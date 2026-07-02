@@ -1,0 +1,1353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Trip Planner</title>
+  <style>
+    :root {
+      --bg: #f7f5ed;
+      --panel: #ffffff;
+      --panel2: #fbfaf6;
+      --text: #202a33;
+      --muted: #687481;
+      --faint: #8c98a4;
+      --border: #e2e6dc;
+      --accent: #2d6a4f;
+      --accent2: #eef7ef;
+      --accent3: #cfe8d6;
+      --warn: #a25b00;
+      --warn2: #fff3df;
+      --blue: #1f6fb2;
+      --blue2: #e9f4ff;
+      --danger: #a13324;
+      --danger2: #fff0ed;
+      --shadow: 0 14px 35px rgba(31, 41, 51, .08);
+      --radius: 22px;
+      --radius-sm: 15px;
+      --max: 1180px;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at top left, rgba(207,232,214,.82), transparent 34rem),
+        linear-gradient(180deg, #fbfaf5 0%, var(--bg) 48%, #f3f0e7 100%);
+      color: var(--text);
+    }
+
+    button, input, textarea, select { font: inherit; }
+    button { cursor: pointer; }
+    [hidden] { display: none !important; }
+
+    .app {
+      width: min(var(--max), calc(100% - 32px));
+      margin: 0 auto;
+      padding: 28px 0 44px;
+    }
+
+    .topbar {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 18px;
+      align-items: end;
+      margin-bottom: 20px;
+    }
+
+    .eyebrow {
+      margin: 0 0 6px;
+      color: var(--accent);
+      font-size: .84rem;
+      font-weight: 900;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(1.8rem, 4vw, 3rem);
+      line-height: 1.02;
+      letter-spacing: -.045em;
+    }
+
+    h2, h3 { letter-spacing: -.025em; }
+    .subtitle {
+      margin: 10px 0 0;
+      color: var(--muted);
+      line-height: 1.45;
+      max-width: 70ch;
+    }
+
+    .actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .btn {
+      border: 1px solid var(--border);
+      background: var(--panel);
+      color: var(--text);
+      border-radius: 999px;
+      padding: 10px 14px;
+      font-weight: 850;
+      white-space: nowrap;
+      box-shadow: 0 1px 0 rgba(31,41,51,.03);
+    }
+
+    .btn:hover { border-color: var(--accent3); background: #f9fcf9; }
+    .btn.primary { background: var(--accent); color: white; border-color: var(--accent); }
+    .btn.danger { color: var(--danger); border-color: #f1cbc4; background: #fff8f7; }
+    .btn.small { padding: 7px 10px; font-size: .9rem; }
+
+    .panel {
+      background: rgba(255,255,255,.92);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      min-width: 0;
+    }
+
+    .summary {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+
+    .stat {
+      background: rgba(255,255,255,.86);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 14px;
+    }
+
+    .stat .num {
+      display: block;
+      font-size: 1.45rem;
+      font-weight: 950;
+      color: var(--accent);
+      line-height: 1;
+      margin-bottom: 5px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .stat .label {
+      display: block;
+      color: var(--muted);
+      font-size: .88rem;
+      font-weight: 750;
+      line-height: 1.25;
+    }
+
+    .menu-tools {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    .search {
+      position: relative;
+    }
+
+    .search input {
+      padding-left: 42px;
+    }
+
+    .search::before {
+      content: "⌕";
+      position: absolute;
+      left: 16px;
+      top: 50%;
+      transform: translateY(-52%);
+      color: var(--faint);
+      font-size: 1.3rem;
+      font-weight: 800;
+    }
+
+    .trip-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .trip-card {
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,.92);
+      border-radius: var(--radius);
+      padding: 18px;
+      box-shadow: var(--shadow);
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      min-height: 230px;
+    }
+
+    .trip-card h2 {
+      margin: 0;
+      font-size: 1.35rem;
+      line-height: 1.15;
+      overflow-wrap: anywhere;
+    }
+
+    .trip-meta {
+      color: var(--muted);
+      font-weight: 750;
+      line-height: 1.4;
+      font-size: .95rem;
+    }
+
+    .progress {
+      display: grid;
+      gap: 7px;
+      margin-top: auto;
+    }
+
+    .bar {
+      height: 10px;
+      border-radius: 999px;
+      background: #edf0e8;
+      overflow: hidden;
+    }
+
+    .bar > span {
+      display: block;
+      height: 100%;
+      background: var(--accent);
+      border-radius: 999px;
+      width: 0%;
+    }
+
+    .card-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .planner {
+      display: grid;
+      grid-template-columns: minmax(280px, 390px) minmax(0, 1fr);
+      gap: 18px;
+      align-items: start;
+    }
+
+    .side {
+      padding: 14px;
+      position: sticky;
+      top: 16px;
+      max-height: calc(100vh - 32px);
+      overflow: auto;
+    }
+
+    .side-head {
+      padding: 6px 4px 12px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .side-head-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .side-head h2 {
+      margin: 0;
+      font-size: 1.1rem;
+    }
+
+    .stop-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .stop-card {
+      width: 100%;
+      display: grid;
+      grid-template-columns: 56px minmax(0, 1fr);
+      gap: 12px;
+      align-items: center;
+      border: 1px solid var(--border);
+      background: #fff;
+      border-radius: 18px;
+      padding: 12px;
+      text-align: left;
+      overflow: hidden;
+    }
+
+    .stop-card:hover { border-color: var(--accent3); background: #fcfefc; }
+    .stop-card.active {
+      border-color: var(--accent);
+      background: linear-gradient(180deg, #f4fbf5, #fff);
+      box-shadow: 0 0 0 3px rgba(47,107,79,.12);
+    }
+
+    .date-tile {
+      height: 56px;
+      display: grid;
+      place-items: center;
+      align-content: center;
+      border-radius: 15px;
+      background: var(--accent2);
+      color: var(--accent);
+      font-weight: 950;
+      line-height: 1;
+    }
+
+    .date-tile .day { font-size: 1.25rem; margin-bottom: 5px; }
+    .date-tile .month { font-size: .76rem; color: var(--muted); letter-spacing: .02em; }
+
+    .stop-text { min-width: 0; }
+    .stop-title-row {
+      display: flex;
+      gap: 8px;
+      align-items: start;
+      min-width: 0;
+    }
+
+    .stop-title {
+      min-width: 0;
+      flex: 1;
+      font-weight: 950;
+      line-height: 1.2;
+      overflow-wrap: anywhere;
+    }
+
+    .stop-meta {
+      display: block;
+      margin-top: 5px;
+      color: var(--muted);
+      font-size: .9rem;
+      font-weight: 750;
+      line-height: 1.35;
+      overflow-wrap: anywhere;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid transparent;
+      border-radius: 999px;
+      padding: 5px 9px;
+      font-size: .76rem;
+      font-weight: 950;
+      white-space: nowrap;
+    }
+
+    .status-Idea { color: var(--muted); background: #f3f4f6; border-color: #e5e7eb; }
+    .status-Shortlist, .status-Checking { color: var(--warn); background: var(--warn2); border-color: #fed7aa; }
+    .status-Held { color: #855e11; background: #fff7cc; border-color: #f3d76b; }
+    .status-Booked { color: var(--blue); background: var(--blue2); border-color: #bfdffc; }
+    .status-Paid { color: var(--accent); background: var(--accent2); border-color: var(--accent3); }
+    .status-Cancelled { color: var(--danger); background: var(--danger2); border-color: #f4c9c1; }
+
+    .editor {
+      padding: clamp(18px, 2.2vw, 28px);
+    }
+
+    .editor-head {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 14px;
+      align-items: start;
+      margin-bottom: 18px;
+    }
+
+    .editor-head h2 {
+      margin: 0 0 6px;
+      font-size: clamp(1.35rem, 3vw, 2rem);
+      line-height: 1.1;
+      overflow-wrap: anywhere;
+    }
+
+    .editor-sub {
+      margin: 0;
+      color: var(--muted);
+      font-weight: 750;
+      line-height: 1.4;
+    }
+
+    .head-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .fields {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px 16px;
+    }
+
+    .field.full { grid-column: 1 / -1; }
+    label {
+      display: block;
+      margin: 0 0 7px;
+      font-weight: 900;
+      color: #314236;
+    }
+
+    input, textarea, select {
+      width: 100%;
+      min-width: 0;
+      border: 1px solid var(--border);
+      border-radius: 15px;
+      padding: 12px 13px;
+      background: #fff;
+      color: var(--text);
+      outline: none;
+    }
+
+    input:focus, textarea:focus, select:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(47,107,79,.12);
+    }
+
+    textarea { min-height: 92px; resize: vertical; }
+
+    .hint {
+      margin-top: 7px;
+      color: var(--muted);
+      font-size: .9rem;
+      line-height: 1.35;
+    }
+
+    .status-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .status-choice {
+      border: 1px solid var(--border);
+      background: #f4f7f2;
+      color: var(--accent);
+      border-radius: 14px;
+      padding: 9px 12px;
+      font-weight: 950;
+    }
+
+    .status-choice.selected {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: white;
+    }
+
+    details.box {
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      background: var(--panel2);
+      overflow: hidden;
+      margin-top: 18px;
+    }
+
+    details.box summary {
+      list-style: none;
+      cursor: pointer;
+      padding: 16px 18px;
+      font-weight: 950;
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    details.box summary::-webkit-details-marker { display: none; }
+    .summary-action { color: var(--muted); font-size: .9rem; white-space: nowrap; }
+    details[open] .summary-action::before { content: "Hide"; }
+    details:not([open]) .summary-action::before { content: "Show"; }
+    .box-body { padding: 0 18px 18px; }
+
+    .empty {
+      text-align: center;
+      color: var(--muted);
+      padding: 48px 20px;
+      line-height: 1.45;
+    }
+
+    .empty strong { color: var(--text); }
+
+    .note {
+      color: var(--muted);
+      line-height: 1.5;
+      font-size: .94rem;
+      margin: 16px 2px 0;
+    }
+
+    .toast {
+      position: fixed;
+      right: 18px;
+      bottom: 18px;
+      max-width: calc(100% - 36px);
+      background: #1f2933;
+      color: #fff;
+      border-radius: 14px;
+      padding: 12px 14px;
+      box-shadow: var(--shadow);
+      opacity: 0;
+      transform: translateY(10px);
+      transition: .2s ease;
+      z-index: 20;
+      font-weight: 800;
+    }
+
+    .toast.show { opacity: 1; transform: translateY(0); }
+    input[type="file"] { display: none; }
+
+    @media (max-width: 1020px) {
+      .app { width: min(100% - 24px, var(--max)); padding-top: 20px; }
+      .topbar { grid-template-columns: 1fr; align-items: start; }
+      .actions { justify-content: flex-start; }
+      .summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .trip-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .planner { grid-template-columns: 1fr; }
+      .side { position: static; max-height: none; overflow: visible; }
+      .stop-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .editor { scroll-margin-top: 18px; }
+    }
+
+    @media (max-width: 680px) {
+      .app { width: min(100% - 18px, var(--max)); }
+      .summary { gap: 9px; }
+      .stat { padding: 12px; }
+      .menu-tools { grid-template-columns: 1fr; }
+      .trip-grid, .stop-list { grid-template-columns: 1fr; }
+      .stop-card { grid-template-columns: 48px minmax(0, 1fr); padding: 10px; }
+      .date-tile { height: 48px; border-radius: 13px; }
+      .date-tile .day { font-size: 1.1rem; }
+      .fields { grid-template-columns: 1fr; }
+      .editor-head { grid-template-columns: 1fr; }
+      .head-actions { justify-content: flex-start; }
+    }
+
+    @media print {
+      body { background: #fff; }
+      .app { width: 100%; padding: 0; }
+      .actions, .side-head-row .btn, .head-actions, .note, .menu-tools { display: none !important; }
+      .panel, .trip-card { box-shadow: none; }
+      .planner { display: block; }
+      .side { position: static; max-height: none; }
+      .editor { display: none; }
+      .stop-card { break-inside: avoid; margin-bottom: 8px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div>
+        <p class="eyebrow" id="eyebrow">Trip planner</p>
+        <h1 id="pageTitle">Trips</h1>
+        <p class="subtitle" id="pageSubtitle">Create trips, add stops, track booking status, and keep notes in one place.</p>
+      </div>
+      <div class="actions">
+        <button class="btn" id="homeBtn" type="button" hidden>All trips</button>
+        <button class="btn primary" id="primaryBtn" type="button">New trip</button>
+        <button class="btn" id="backupBtn" type="button">Backup</button>
+        <button class="btn" id="restoreBtn" type="button">Restore</button>
+        <button class="btn" id="csvBtn" type="button">CSV</button>
+        <button class="btn" id="printBtn" type="button">Print</button>
+        <input id="restoreFile" type="file" accept="application/json,.json" />
+      </div>
+    </header>
+
+    <section class="summary" id="summary"></section>
+
+    <section id="menuView"></section>
+    <section id="tripView" hidden></section>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    const STORAGE_KEY = "genericTripPlanner.v1";
+    const STATUSES = ["Idea", "Shortlist", "Checking", "Held", "Booked", "Paid", "Cancelled"];
+
+    const uuid = () =>
+      (crypto && crypto.randomUUID) ? crypto.randomUUID() :
+      "id-" + Math.random().toString(36).slice(2) + Date.now().toString(36);
+
+    const seedTrips = [
+      {
+        id: uuid(),
+        name: "Germany campervan trip",
+        startDate: "2026-08-08",
+        endDate: "2026-08-23",
+        travellers: "2 adults + 2 children",
+        status: "Planning",
+        notes: "Channel crossing on 8 Aug, return to England on 23 Aug. Europa-Park booked 15–18 Aug. Needs parkrun on Sat 15 Aug.",
+        stops: [
+          {
+            id: uuid(),
+            name: "Klein Strand, Jabbeke",
+            arrival: "2026-08-08",
+            leave: "2026-08-10",
+            status: "Checking",
+            bookingLink: "https://www.kleinstrand.be/en/",
+            accommodation: "Chalet / glamping / campervan pitch",
+            drive: "Calais → Jabbeke: ~1h15–1h45",
+            backup: "Camping Memling, Bruges",
+            notes: "First proper stop after crossing. Bruges nearby. Lake/pool/activity feel.",
+            cost: "",
+            deposit: "",
+            cancellation: ""
+          },
+          {
+            id: uuid(),
+            name: "hu Birkelt Village, Larochette",
+            arrival: "2026-08-10",
+            leave: "2026-08-13",
+            status: "Checking",
+            bookingLink: "https://birkelt.huopenair.com/",
+            accommodation: "Mobile home / safari tent / campervan pitch",
+            drive: "Jabbeke → Birkelt: ~3h–3h30",
+            backup: "",
+            notes: "Main Eurocamp-style block. Pools, waterslide, activities, Mullerthal cycling/walking.",
+            cost: "",
+            deposit: "",
+            cancellation: ""
+          },
+          {
+            id: uuid(),
+            name: "Camping Durlach",
+            arrival: "2026-08-13",
+            leave: "2026-08-15",
+            status: "Checking",
+            bookingLink: "https://www.ka-baeder.de/en/offers/camping-durlach",
+            accommodation: "Mobile home or campervan pitch",
+            drive: "Birkelt → Karlsruhe: ~2h45–3h15",
+            backup: "",
+            notes: "Functional stop for Oberwald parkrun on Sat 15 Aug.",
+            cost: "",
+            deposit: "",
+            cancellation: ""
+          },
+          {
+            id: uuid(),
+            name: "Europa-Park booked accommodation",
+            arrival: "2026-08-15",
+            leave: "2026-08-18",
+            status: "Booked",
+            bookingLink: "https://www.europapark.de/en",
+            accommodation: "Already booked",
+            drive: "Karlsruhe → Rust: ~1h–1h30",
+            backup: "Europa-Park Caravaning / Camp Resort",
+            notes: "Sat 15 Aug: Oberwald parkrun at 9:00, then drive to Europa-Park.",
+            cost: "",
+            deposit: "",
+            cancellation: ""
+          },
+          {
+            id: uuid(),
+            name: "Landal Warsberg",
+            arrival: "2026-08-18",
+            leave: "2026-08-21",
+            status: "Checking",
+            bookingLink: "https://www.landal.com/parks/warsberg",
+            accommodation: "Bungalow / mobile home / campervan pitch",
+            drive: "Rust → Warsberg: ~3h–3h30",
+            backup: "",
+            notes: "Main return-side holiday park block. Saarburg/Moselle/Saar cycling, indoor pool, activities.",
+            cost: "",
+            deposit: "",
+            cancellation: ""
+          },
+          {
+            id: uuid(),
+            name: "Camping au Bord de l’Aisne",
+            arrival: "2026-08-21",
+            leave: "2026-08-22",
+            status: "Checking",
+            bookingLink: "https://camping-aisne-picardie.fr/",
+            accommodation: "Mobile home or campervan pitch",
+            drive: "Warsberg → Guignicourt: ~3h–3h30",
+            backup: "La Croix du Vieux Pont, Berny-Rivière",
+            notes: "Return stepping-stone. Covered/heated pool, paddling pool, play area.",
+            cost: "",
+            deposit: "",
+            cancellation: ""
+          },
+          {
+            id: uuid(),
+            name: "Château du Gandspette",
+            arrival: "2026-08-22",
+            leave: "2026-08-23",
+            status: "Checking",
+            bookingLink: "https://www.chateau-gandspette.com/",
+            accommodation: "Campervan/touring pitch",
+            drive: "Guignicourt → Saint-Omer/Calais area: ~2h15–2h45",
+            backup: "Camping Caravanning Saint Louis / Camping Le Grand Gravelot",
+            notes: "Final port-side stop. Short hop to Calais before crossing.",
+            cost: "",
+            deposit: "",
+            cancellation: ""
+          }
+        ]
+      }
+    ];
+
+    let state = loadState();
+    let currentTripId = location.hash.startsWith("#trip=") ? location.hash.replace("#trip=", "") : null;
+    let selectedStopId = null;
+    let searchText = "";
+
+    function loadState() {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return { trips: seedTrips };
+      try {
+        const parsed = JSON.parse(raw);
+        return { trips: Array.isArray(parsed.trips) ? parsed.trips.map(normaliseTrip) : seedTrips };
+      } catch {
+        return { trips: seedTrips };
+      }
+    }
+
+    function saveState() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    }
+
+    function normaliseTrip(trip) {
+      return {
+        id: trip.id || uuid(),
+        name: trip.name || "Untitled trip",
+        startDate: trip.startDate || "",
+        endDate: trip.endDate || "",
+        travellers: trip.travellers || "",
+        status: trip.status || "Planning",
+        notes: trip.notes || "",
+        stops: Array.isArray(trip.stops) ? trip.stops.map(normaliseStop).sort(byArrival) : []
+      };
+    }
+
+    function normaliseStop(stop) {
+      return {
+        id: stop.id || uuid(),
+        name: stop.name || "Untitled stop",
+        arrival: stop.arrival || "",
+        leave: stop.leave || "",
+        status: STATUSES.includes(stop.status) ? stop.status : "Idea",
+        bookingLink: stop.bookingLink || "",
+        accommodation: stop.accommodation || "",
+        drive: stop.drive || "",
+        backup: stop.backup || "",
+        notes: stop.notes || "",
+        cost: stop.cost || "",
+        deposit: stop.deposit || "",
+        cancellation: stop.cancellation || ""
+      };
+    }
+
+    function getTrip() {
+      return state.trips.find(t => t.id === currentTripId) || null;
+    }
+
+    function getStop() {
+      const trip = getTrip();
+      if (!trip) return null;
+      return trip.stops.find(s => s.id === selectedStopId) || trip.stops[0] || null;
+    }
+
+    function byArrival(a, b) {
+      return (a.arrival || "").localeCompare(b.arrival || "") || (a.name || "").localeCompare(b.name || "");
+    }
+
+    function nights(item) {
+      const start = item.arrival || item.startDate;
+      const end = item.leave || item.endDate;
+      if (!start || !end) return "";
+      const s = new Date(start + "T00:00:00");
+      const e = new Date(end + "T00:00:00");
+      const diff = Math.round((e - s) / 86400000);
+      return Number.isFinite(diff) && diff >= 0 ? diff : "";
+    }
+
+    function isDone(stop) {
+      return stop.status === "Booked" || stop.status === "Paid";
+    }
+
+    function fmtDate(iso) {
+      if (!iso) return "No date";
+      const d = new Date(iso + "T00:00:00");
+      if (Number.isNaN(d.getTime())) return iso;
+      return d.toLocaleDateString("en-GB", { day: "numeric", month: "short" });
+    }
+
+    function day(iso) {
+      return fmtDate(iso).split(" ")[0] || "—";
+    }
+
+    function month(iso) {
+      return fmtDate(iso).split(" ")[1] || "";
+    }
+
+    function dateRange(start, end) {
+      return `${fmtDate(start)} – ${fmtDate(end)}`;
+    }
+
+    function statusClass(status) {
+      return "status-" + String(status || "Idea").replace(/[^A-Za-z0-9]/g, "");
+    }
+
+    function render() {
+      state.trips = state.trips.map(normaliseTrip).sort((a,b) => (a.startDate || "").localeCompare(b.startDate || "") || a.name.localeCompare(b.name));
+      const trip = getTrip();
+      if (currentTripId && !trip) currentTripId = null;
+      if (trip && !getStop()) selectedStopId = trip.stops[0]?.id || null;
+
+      document.getElementById("menuView").hidden = !!getTrip();
+      document.getElementById("tripView").hidden = !getTrip();
+      document.getElementById("homeBtn").hidden = !getTrip();
+
+      if (getTrip()) renderTripView();
+      else renderMenu();
+
+      saveState();
+    }
+
+    function renderHeaderForMenu() {
+      document.getElementById("eyebrow").textContent = "Trip planner";
+      document.getElementById("pageTitle").textContent = "Trips";
+      document.getElementById("pageSubtitle").textContent = "Create trips, add stops, track booking status, and keep notes in one place.";
+      document.getElementById("primaryBtn").textContent = "New trip";
+    }
+
+    function renderHeaderForTrip(trip) {
+      document.getElementById("eyebrow").textContent = "Trip planner";
+      document.getElementById("pageTitle").textContent = trip.name;
+      const n = nights(trip);
+      document.getElementById("pageSubtitle").textContent =
+        `${dateRange(trip.startDate, trip.endDate)}${n !== "" ? ` · ${n} nights` : ""}${trip.travellers ? ` · ${trip.travellers}` : ""}`;
+      document.getElementById("primaryBtn").textContent = "Add stop";
+    }
+
+    function renderSummaryForMenu() {
+      const tripCount = state.trips.length;
+      const stopCount = state.trips.reduce((sum, t) => sum + t.stops.length, 0);
+      const bookedCount = state.trips.reduce((sum, t) => sum + t.stops.filter(isDone).length, 0);
+      const nextTrip = state.trips.find(t => t.stops.some(s => !isDone(s) && s.status !== "Cancelled")) || state.trips[0];
+
+      document.getElementById("summary").innerHTML = `
+        <div class="stat"><span class="num">${tripCount}</span><span class="label">Trips</span></div>
+        <div class="stat"><span class="num">${stopCount}</span><span class="label">Stops tracked</span></div>
+        <div class="stat"><span class="num">${bookedCount}</span><span class="label">Booked or paid stops</span></div>
+        <div class="stat"><span class="num">${escapeHtml(nextTrip?.name || "—")}</span><span class="label">Next active trip</span></div>
+      `;
+    }
+
+    function renderSummaryForTrip(trip) {
+      const stopCount = trip.stops.length;
+      const bookedCount = trip.stops.filter(isDone).length;
+      const openCount = trip.stops.filter(s => !isDone(s) && s.status !== "Cancelled").length;
+      const nightCount = trip.stops.reduce((sum, s) => sum + (nights(s) || 0), 0);
+
+      document.getElementById("summary").innerHTML = `
+        <div class="stat"><span class="num">${stopCount}</span><span class="label">Stops</span></div>
+        <div class="stat"><span class="num">${bookedCount}</span><span class="label">Booked or paid</span></div>
+        <div class="stat"><span class="num">${openCount}</span><span class="label">Still to sort</span></div>
+        <div class="stat"><span class="num">${nightCount}</span><span class="label">Nights tracked</span></div>
+      `;
+    }
+
+    function renderMenu() {
+      renderHeaderForMenu();
+      renderSummaryForMenu();
+
+      const filtered = state.trips.filter(t =>
+        !searchText ||
+        [t.name, t.travellers, t.notes].join(" ").toLowerCase().includes(searchText.toLowerCase())
+      );
+
+      document.getElementById("menuView").innerHTML = `
+        <div class="menu-tools">
+          <div class="search">
+            <input id="tripSearch" type="search" value="${escapeAttr(searchText)}" placeholder="Search trips">
+          </div>
+          <button class="btn primary" type="button" id="newTripMenuBtn">New trip</button>
+        </div>
+
+        ${filtered.length ? `
+          <div class="trip-grid">
+            ${filtered.map(renderTripCard).join("")}
+          </div>
+        ` : `
+          <div class="panel empty"><strong>No trips found.</strong><br>Create a new trip or clear the search.</div>
+        `}
+      `;
+
+      document.getElementById("tripSearch").addEventListener("input", e => {
+        searchText = e.target.value;
+        render();
+      });
+      document.getElementById("newTripMenuBtn").addEventListener("click", addTrip);
+
+      document.querySelectorAll("[data-open-trip]").forEach(btn => btn.addEventListener("click", () => openTrip(btn.dataset.openTrip)));
+      document.querySelectorAll("[data-delete-trip]").forEach(btn => btn.addEventListener("click", () => deleteTrip(btn.dataset.deleteTrip)));
+      document.querySelectorAll("[data-duplicate-trip]").forEach(btn => btn.addEventListener("click", () => duplicateTrip(btn.dataset.duplicateTrip)));
+    }
+
+    function renderTripCard(trip) {
+      const total = trip.stops.length;
+      const done = trip.stops.filter(isDone).length;
+      const pct = total ? Math.round(done / total * 100) : 0;
+      const n = nights(trip);
+      return `
+        <article class="trip-card">
+          <div>
+            <h2>${escapeHtml(trip.name)}</h2>
+            <div class="trip-meta">
+              ${escapeHtml(dateRange(trip.startDate, trip.endDate))}${n !== "" ? ` · ${n} nights` : ""}<br>
+              ${escapeHtml(trip.travellers || "No traveller details")}
+            </div>
+          </div>
+          <div class="progress">
+            <div class="bar" aria-label="${pct}% booked"><span style="width:${pct}%"></span></div>
+            <div class="trip-meta">${done}/${total} stops booked or paid</div>
+          </div>
+          <div class="card-actions">
+            <button class="btn primary small" type="button" data-open-trip="${trip.id}">Open</button>
+            <button class="btn small" type="button" data-duplicate-trip="${trip.id}">Duplicate</button>
+            <button class="btn danger small" type="button" data-delete-trip="${trip.id}">Delete</button>
+          </div>
+        </article>
+      `;
+    }
+
+    function renderTripView() {
+      const trip = getTrip();
+      renderHeaderForTrip(trip);
+      renderSummaryForTrip(trip);
+
+      if (!selectedStopId && trip.stops[0]) selectedStopId = trip.stops[0].id;
+
+      document.getElementById("tripView").innerHTML = `
+        <main class="planner">
+          <aside class="panel side">
+            <div class="side-head">
+              <div class="side-head-row">
+                <h2>Stops</h2>
+                <button class="btn small primary" id="addStopSide" type="button">Add stop</button>
+              </div>
+              <details class="box">
+                <summary><span>Trip details</span><span class="summary-action"></span></summary>
+                <div class="box-body">
+                  ${renderTripDetailsForm(trip)}
+                </div>
+              </details>
+            </div>
+            <div class="stop-list" id="stopList">${trip.stops.length ? trip.stops.map(renderStopCard).join("") : `<div class="empty"><strong>No stops yet.</strong><br>Add the first one.</div>`}</div>
+            <p class="note">Changes save automatically in this browser. Use <strong>Backup</strong> before switching computer or browser.</p>
+          </aside>
+          <section class="panel editor" id="editor">${renderStopEditor(trip)}</section>
+        </main>
+      `;
+
+      bindTripDetails(trip);
+      document.getElementById("addStopSide").addEventListener("click", addStop);
+      document.querySelectorAll("[data-stop]").forEach(btn => {
+        btn.addEventListener("click", () => {
+          selectedStopId = btn.dataset.stop;
+          render();
+          if (window.innerWidth < 1021) document.getElementById("editor").scrollIntoView({ block: "start", behavior: "smooth" });
+        });
+      });
+      bindStopEditor(trip);
+    }
+
+    function renderTripDetailsForm(trip) {
+      return `
+        <div class="fields">
+          <div class="field full">
+            <label for="tripName">Trip name</label>
+            <input id="tripName" type="text" value="${escapeAttr(trip.name)}">
+          </div>
+          <div class="field">
+            <label for="tripStart">Start</label>
+            <input id="tripStart" type="date" value="${escapeAttr(trip.startDate)}">
+          </div>
+          <div class="field">
+            <label for="tripEnd">End</label>
+            <input id="tripEnd" type="date" value="${escapeAttr(trip.endDate)}">
+          </div>
+          <div class="field full">
+            <label for="travellers">Travellers</label>
+            <input id="travellers" type="text" value="${escapeAttr(trip.travellers)}" placeholder="e.g. 2 adults + 2 children">
+          </div>
+          <div class="field full">
+            <label for="tripNotes">Trip notes</label>
+            <textarea id="tripNotes">${escapeHtml(trip.notes)}</textarea>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderStopCard(stop) {
+      const n = nights(stop);
+      return `
+        <button class="stop-card ${stop.id === selectedStopId ? "active" : ""}" type="button" data-stop="${stop.id}">
+          <span class="date-tile" aria-hidden="true">
+            <span class="day">${escapeHtml(day(stop.arrival))}</span>
+            <span class="month">${escapeHtml(month(stop.arrival))}</span>
+          </span>
+          <span class="stop-text">
+            <span class="stop-title-row">
+              <span class="stop-title">${escapeHtml(stop.name)}</span>
+              <span class="pill ${statusClass(stop.status)}">${escapeHtml(stop.status)}</span>
+            </span>
+            <span class="stop-meta">${escapeHtml(dateRange(stop.arrival, stop.leave))}${n !== "" ? ` · ${n} night${n === 1 ? "" : "s"}` : ""}${stop.drive ? ` · ${escapeHtml(stop.drive)}` : ""}</span>
+          </span>
+        </button>
+      `;
+    }
+
+    function renderStopEditor(trip) {
+      const stop = getStop();
+      if (!stop) return `<div class="empty"><strong>No stop selected.</strong><br>Add a stop to begin planning.</div>`;
+      const n = nights(stop);
+      return `
+        <div class="editor-head">
+          <div>
+            <h2>${escapeHtml(stop.name)}</h2>
+            <p class="editor-sub">${escapeHtml(dateRange(stop.arrival, stop.leave))}${n !== "" ? ` · ${n} night${n === 1 ? "" : "s"}` : ""}</p>
+          </div>
+          <div class="head-actions">
+            <button class="btn small" type="button" id="prevStop">Previous</button>
+            <button class="btn small" type="button" id="nextStop">Next</button>
+            <button class="btn small" type="button" id="duplicateStop">Duplicate</button>
+            <button class="btn small danger" type="button" id="deleteStop">Delete</button>
+          </div>
+        </div>
+
+        <div class="fields">
+          <div class="field">
+            <label for="arrival">Arrival</label>
+            <input id="arrival" type="date" value="${escapeAttr(stop.arrival)}">
+          </div>
+          <div class="field">
+            <label for="leave">Leave</label>
+            <input id="leave" type="date" value="${escapeAttr(stop.leave)}">
+          </div>
+          <div class="field full">
+            <label for="name">Stop / accommodation name</label>
+            <input id="name" type="text" value="${escapeAttr(stop.name)}" placeholder="e.g. Landal Warsberg">
+          </div>
+          <div class="field">
+            <label>Status</label>
+            <div class="status-grid" id="statusGrid">
+              ${STATUSES.map(status => `
+                <button type="button" class="status-choice ${status === stop.status ? "selected" : ""}" data-status="${status}">
+                  ${status}
+                </button>
+              `).join("")}
+            </div>
+          </div>
+          <div class="field">
+            <label for="bookingLink">Booking link</label>
+            <input id="bookingLink" type="url" value="${escapeAttr(stop.bookingLink)}" placeholder="https://...">
+            <div class="hint">Leave blank if booked by phone/email.</div>
+          </div>
+        </div>
+
+        <details class="box">
+          <summary><span>Optional details</span><span class="summary-action"></span></summary>
+          <div class="box-body">
+            <div class="fields">
+              <div class="field">
+                <label for="accommodation">Accommodation type</label>
+                <input id="accommodation" type="text" value="${escapeAttr(stop.accommodation)}" placeholder="Static caravan, lodge tent, campervan pitch...">
+              </div>
+              <div class="field">
+                <label for="drive">Drive estimate</label>
+                <input id="drive" type="text" value="${escapeAttr(stop.drive)}" placeholder="e.g. Rust → Warsberg: ~3h">
+              </div>
+              <div class="field">
+                <label for="cost">Total cost</label>
+                <input id="cost" type="text" value="${escapeAttr(stop.cost)}" placeholder="e.g. €420">
+              </div>
+              <div class="field">
+                <label for="deposit">Deposit / paid</label>
+                <input id="deposit" type="text" value="${escapeAttr(stop.deposit)}" placeholder="e.g. €100 deposit">
+              </div>
+              <div class="field">
+                <label for="cancellation">Free cancellation until</label>
+                <input id="cancellation" type="date" value="${escapeAttr(stop.cancellation)}">
+              </div>
+              <div class="field">
+                <label for="backup">Backup option</label>
+                <input id="backup" type="text" value="${escapeAttr(stop.backup)}" placeholder="Alternative campsite/hotel">
+              </div>
+              <div class="field full">
+                <label for="notes">Notes</label>
+                <textarea id="notes" placeholder="Activities, pools, bike routes, things to check...">${escapeHtml(stop.notes)}</textarea>
+              </div>
+            </div>
+          </div>
+        </details>
+      `;
+    }
+
+    function bindTripDetails(trip) {
+      const map = {
+        tripName: "name",
+        tripStart: "startDate",
+        tripEnd: "endDate",
+        travellers: "travellers",
+        tripNotes: "notes"
+      };
+      Object.entries(map).forEach(([id, prop]) => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.addEventListener("input", () => {
+          trip[prop] = el.value;
+          saveState();
+          if (prop !== "notes") render();
+        });
+      });
+    }
+
+    function bindStopEditor(trip) {
+      const stop = getStop();
+      if (!stop) return;
+
+      ["arrival","leave","name","bookingLink","accommodation","drive","cost","deposit","cancellation","backup","notes"].forEach(id => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.addEventListener("input", () => {
+          stop[id] = el.value;
+          saveState();
+          if (["arrival","leave","name","drive"].includes(id)) render();
+        });
+      });
+
+      document.querySelectorAll(".status-choice").forEach(btn => btn.addEventListener("click", () => {
+        stop.status = btn.dataset.status;
+        render();
+        toast(`Marked as ${stop.status}`);
+      }));
+
+      document.getElementById("deleteStop")?.addEventListener("click", () => {
+        if (!confirm(`Delete "${stop.name}"?`)) return;
+        const idx = trip.stops.findIndex(s => s.id === stop.id);
+        trip.stops = trip.stops.filter(s => s.id !== stop.id);
+        selectedStopId = trip.stops[Math.max(0, idx - 1)]?.id || trip.stops[0]?.id || null;
+        render();
+        toast("Stop deleted");
+      });
+
+      document.getElementById("duplicateStop")?.addEventListener("click", () => {
+        const copy = { ...structuredClone(stop), id: uuid(), name: `${stop.name} copy`, status: "Idea" };
+        trip.stops.push(copy);
+        selectedStopId = copy.id;
+        render();
+        toast("Stop duplicated");
+      });
+
+      document.getElementById("prevStop")?.addEventListener("click", () => {
+        const idx = trip.stops.findIndex(s => s.id === stop.id);
+        selectedStopId = trip.stops[Math.max(0, idx - 1)]?.id || stop.id;
+        render();
+      });
+
+      document.getElementById("nextStop")?.addEventListener("click", () => {
+        const idx = trip.stops.findIndex(s => s.id === stop.id);
+        selectedStopId = trip.stops[Math.min(trip.stops.length - 1, idx + 1)]?.id || stop.id;
+        render();
+      });
+    }
+
+    function addTrip() {
+      const trip = {
+        id: uuid(),
+        name: "New trip",
+        startDate: "",
+        endDate: "",
+        travellers: "",
+        status: "Planning",
+        notes: "",
+        stops: []
+      };
+      state.trips.push(trip);
+      openTrip(trip.id);
+      toast("Trip added");
+    }
+
+    function duplicateTrip(id) {
+      const trip = state.trips.find(t => t.id === id);
+      if (!trip) return;
+      const copy = structuredClone(trip);
+      copy.id = uuid();
+      copy.name = `${trip.name} copy`;
+      copy.stops = copy.stops.map(s => ({ ...s, id: uuid(), status: s.status === "Paid" ? "Booked" : s.status }));
+      state.trips.push(copy);
+      openTrip(copy.id);
+      toast("Trip duplicated");
+    }
+
+    function deleteTrip(id) {
+      const trip = state.trips.find(t => t.id === id);
+      if (!trip) return;
+      if (!confirm(`Delete "${trip.name}" and all its stops?`)) return;
+      state.trips = state.trips.filter(t => t.id !== id);
+      currentTripId = null;
+      selectedStopId = null;
+      location.hash = "";
+      render();
+      toast("Trip deleted");
+    }
+
+    function openTrip(id) {
+      currentTripId = id;
+      const trip = getTrip();
+      selectedStopId = trip?.stops[0]?.id || null;
+      location.hash = "trip=" + id;
+      render();
+    }
+
+    function goHome() {
+      currentTripId = null;
+      selectedStopId = null;
+      history.pushState("", document.title, location.pathname + location.search);
+      render();
+    }
+
+    function addStop() {
+      const trip = getTrip();
+      if (!trip) return addTrip();
+      const last = trip.stops[trip.stops.length - 1];
+      const start = last?.leave || trip.startDate || "";
+      const stop = {
+        id: uuid(),
+        name: "New stop",
+        arrival: start,
+        leave: start,
+        status: "Idea",
+        bookingLink: "",
+        accommodation: "",
+        drive: "",
+        backup: "",
+        notes: "",
+        cost: "",
+        deposit: "",
+        cancellation: ""
+      };
+      trip.stops.push(stop);
+      selectedStopId = stop.id;
+      render();
+      toast("Stop added");
+    }
+
+    function backup() {
+      downloadBlob(new Blob([JSON.stringify(state, null, 2)], { type: "application/json" }), `trip-planner-backup-${today()}.json`);
+    }
+
+    function exportCsv() {
+      const trip = getTrip();
+      const rows = [];
+      const headers = ["Trip", "Trip start", "Trip end", "Stop", "Arrival", "Leave", "Nights", "Status", "Accommodation", "Drive", "Cost", "Deposit", "Free cancellation until", "Booking link", "Backup", "Notes"];
+
+      const trips = trip ? [trip] : state.trips;
+      trips.forEach(t => t.stops.forEach(s => rows.push([
+        t.name, t.startDate, t.endDate, s.name, s.arrival, s.leave, nights(s), s.status, s.accommodation, s.drive, s.cost, s.deposit, s.cancellation, s.bookingLink, s.backup, s.notes
+      ])));
+
+      const csv = [headers, ...rows].map(row => row.map(csvCell).join(",")).join("\n");
+      downloadBlob(new Blob([csv], { type: "text/csv;charset=utf-8" }), `trip-planner-${trip ? safeFile(trip.name) : "all-trips"}-${today()}.csv`);
+    }
+
+    function restore(file) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        try {
+          const parsed = JSON.parse(reader.result);
+          if (!Array.isArray(parsed.trips)) throw new Error("No trips array");
+          state = { trips: parsed.trips.map(normaliseTrip) };
+          currentTripId = null;
+          selectedStopId = null;
+          location.hash = "";
+          render();
+          toast("Backup restored");
+        } catch {
+          alert("That backup file could not be read.");
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    function downloadBlob(blob, filename) {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    }
+
+    function csvCell(value) {
+      const str = String(value ?? "");
+      return `"${str.replaceAll('"', '""')}"`;
+    }
+
+    function today() {
+      return new Date().toISOString().slice(0,10);
+    }
+
+    function safeFile(name) {
+      return String(name || "trip").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    function escapeAttr(value) {
+      return escapeHtml(value).replaceAll("\n", " ");
+    }
+
+    let toastTimer;
+    function toast(message) {
+      const el = document.getElementById("toast");
+      el.textContent = message;
+      el.classList.add("show");
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => el.classList.remove("show"), 1800);
+    }
+
+    document.getElementById("primaryBtn").addEventListener("click", () => getTrip() ? addStop() : addTrip());
+    document.getElementById("homeBtn").addEventListener("click", goHome);
+    document.getElementById("backupBtn").addEventListener("click", backup);
+    document.getElementById("csvBtn").addEventListener("click", exportCsv);
+    document.getElementById("printBtn").addEventListener("click", () => window.print());
+    document.getElementById("restoreBtn").addEventListener("click", () => document.getElementById("restoreFile").click());
+    document.getElementById("restoreFile").addEventListener("change", e => {
+      const file = e.target.files?.[0];
+      if (file) restore(file);
+      e.target.value = "";
+    });
+
+    window.addEventListener("hashchange", () => {
+      currentTripId = location.hash.startsWith("#trip=") ? location.hash.replace("#trip=", "") : null;
+      selectedStopId = null;
+      render();
+    });
+
+    render();
+  </script>
+</body>
+</html>
