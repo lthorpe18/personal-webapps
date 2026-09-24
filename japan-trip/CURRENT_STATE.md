@@ -37,3 +37,11 @@ Complete the manual Supabase Auth URL configuration in the dashboard, then sign 
 - Local syntax, rendered-state, mocked sign-in, password-update and mismatched-confirmation tests passed. Real device sign-in and backend password update have not yet been independently verified.
 - HTML scripts and CSS use version 20260924-5; service worker shell cache v5. GitHub Pages deployment must be checked for the latest SHA.
 - No Supabase Email Template change is required for this password route.
+
+## Mobile overview repair (24 September 2026)
+- User-supplied iPhone screenshot showed the Overview title overlapping the system status bar, excessive hero/three-card dashboard height, and expanded multi-paragraph task notes obscuring the checklist.
+- Updated the shared mobile top inset with an installed-PWA minimum; compressed the home hero/date and merged its three metrics into one compact strip; removed redundant home-page explanatory copy; increased checklist control sizes.
+- All task notes now live behind an accessible native Details disclosure on both the Overview and Tasks tabs. Text is still available and editable, including long URLs. No task or booking records were modified.
+- Asset query version 20260924-6 and offline shell cache v6 force the updated CSS/JS on refresh.
+- Static syntax and mocked HTML rendering checks passed for overview, task list, notes disclosure, safe-area CSS, and asset version. Visual acceptance on the user's physical iPhone remains outstanding.
+- The screenshot shows a populated Japan 2026 trip in the app. Previous notes saying no trip was imported may now be outdated; verify account/device sync before claiming backend persistence.
