@@ -139,7 +139,7 @@ function renderAuth(){
   $("#app").className="";
   $("#app").innerHTML='<div class="auth-wrap"><div class="auth-card"><div class="brand"><span class="brand-mark">✦</span><span>Trip Planner</span></div><p class="eyebrow">YOUR NEXT ADVENTURE</p><h1>Your trips, in one place.</h1><p>Sign in with your email to access your private plans, bookings and shared checklists.</p><form id="auth-form"><div class="field"><label for="auth-email">Email address</label><input id="auth-email" name="email" type="email" autocomplete="email" placeholder="you@example.com" required></div><button class="button button-primary" type="submit">Send sign-in link / code</button><p id="auth-message" class="hint" role="status"></p><div class="field" id="otp-section" hidden><label for="auth-token">Email code (if one was included)</label><input id="auth-token" name="token" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6,8}" placeholder="123456"><button class="button" type="button" id="verify-token">Verify code</button></div></form><p class="hint">Open the email link on this device, or enter the one-time code if your email contains one.</p></div></div>';
 }
-function renderNoTrips(){return '<div class="empty"><strong>No trips yet</strong><p>Create a trip, or import a private JSON backup in More after creating one.</p><button class="button button-primary" data-action="new-trip">Create trip</button> <button class="button" data-action="import">Import trip JSON</button></div>';}
+function renderNoTrips(){return '<div class="empty"><strong>No trips yet</strong><p>Create a trip, or import a private JSON backup in More after creating one.</p><button class="button button-primary" data-action="new-trip">Create trip</button> <button class="button" data-action="import">Import trip JSON</button><input id="import-file" type="file" accept="application/json,.json" hidden></div>';}
 function renderHome(){
   const t=trip();const open=state.data.tasks.filter(x=>x.status!=="done").sort(taskSort);
   const confirmed=state.data.bookings.filter(x=>x.status==="booked").length;
@@ -205,6 +205,7 @@ function openEditor(type,id){
     return '<div class="field '+(f.full?"full":"")+'"><label for="field-'+esc(f.name)+'">'+esc(f.label)+'</label>'+control+'</div>';
   }).join("");
   $("#editor-error").hidden=true;
+  $("#editor-delete").hidden=!id;
   $("#editor").showModal();
   $("#editor-fields").querySelector("input,textarea,select")?.focus();
 }
@@ -348,6 +349,7 @@ function attachEvents(){
   });
   $("#editor-close").addEventListener("click",closeEditor);
   $("#editor-cancel").addEventListener("click",closeEditor);
+  $("#editor-delete").addEventListener("click",()=>{const form=$("#editor-form");const type=form.dataset.type,id=form.dataset.id;closeEditor();if(id)remove(type,id);});
   $("#editor").addEventListener("click",e=>{if(e.target===$("#editor"))closeEditor();});
   document.addEventListener("visibilitychange",()=>{if(!document.hidden&&state.user&&!state.demo)loadTrips().catch(fail);});
   window.addEventListener("online",()=>{if(state.user&&!state.demo)loadTrips().catch(fail);});
