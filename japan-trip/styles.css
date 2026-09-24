@@ -22,3 +22,12 @@
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{scroll-behavior:auto!important;animation-duration:.01ms!important;transition-duration:.01ms!important}}
 
 .editor-actions .button-danger{margin-right:auto;background:#fff7f4;border-color:#f0d2c9}
+
+/* Cross-device account access without modifying Supabase email templates. */
+.auth-password-details{margin-top:22px;padding-top:17px;border-top:1px solid var(--line)}
+.auth-password-details summary{cursor:pointer;font-size:.87rem;font-weight:800;color:var(--pine)}
+.auth-password-details[open] summary{margin-bottom:10px}
+.auth-password-details .hint{margin:9px 0;line-height:1.5}
+.auth-password-details form{margin-top:14px}
+.settings-section #account-password-form{margin:15px 0 18px;max-width:430px;gap:12px}
+.settings-section #account-password-form .button{width:max-content;max-width:100%}
