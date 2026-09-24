@@ -139,14 +139,14 @@ for each row execute function private.set_updated_at();
 -- Keep each row attached to the trip it was created for, even when a member
 -- has edit access to more than one trip.
 create function private.prevent_trip_reassignment()
-returns trigger language plpgsql set search_path='' as $
+returns trigger language plpgsql set search_path='' as $$
 begin
   if new.trip_id is distinct from old.trip_id then
     raise exception 'Cannot move records between trips';
   end if;
   return new;
 end;
-$;
+$$;
 create trigger prevent_stop_trip_change before update on public.trip_stops
 for each row execute function private.prevent_trip_reassignment();
 create trigger prevent_task_trip_change before update on public.tasks
