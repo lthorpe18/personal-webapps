@@ -3,30 +3,29 @@
 ## Source of truth
 Repository: lthorpe18/personal-webapps
 App folder: japan-trip/
+Live Pages base: https://lthorpe18.github.io/personal-webapps/
+App path: https://lthorpe18.github.io/personal-webapps/japan-trip/
 Do not change or reuse the existing trip-planner/ app unless explicitly requested.
-This app is a reusable, multi-trip PWA, with Japan December 2026 as its first real trip.
+This application is destination-independent and supports multiple trips.
 
-## Verified implementation
-- Static HTML/CSS/JavaScript PWA committed on main; home-screen manifest, icon and service worker.
-- Home, tasks, itinerary (stays and activities), bookings, decisions, settings and trip switching.
-- Authenticated Supabase frontend, trip members and email invitations, import/export and CRUD implemented in source.
-- Separate SQL schema written under supabase/001_initial_schema.sql, including trip-scoped RLS.
-- JS syntax and offline-worker syntax checks passed; manifest JSON parsed; basic rendered-screen smoke checks passed.
-- GitHub Pages was enabled and a successful deployment of an earlier app commit was recorded. The latest code may have a newer in-progress deployment; check GitHub Actions before claiming deployment of a particular SHA.
+## Verified and completed
+- A dedicated Supabase project named Trip Planner was created in the ORB organisation, London region (eu-west-2); project ref: zrjjjbavwflbrdsbgeli. Cost quote: 0 per month, approved through Supabase.
+- Initial schema and a foreign-key index migration were applied successfully to that dedicated project.
+- Database checks found 8/8 app tables with row-level security, no anon SELECT privileges on those tables, six realtime-enabled content tables, seven security triggers, and invitation claim RPC restricted to authenticated callers.
+- Supabase security advisor reports ONE intentional warning for public.claim_trip_invitations(): a deliberately authenticated-only SECURITY DEFINER RPC. It derives identity from the verified email and auth.uid(), takes no user-controlled arguments, and does not grant anon EXECUTE. Reassess if altering the invitation model.
+- The public GitHub config.js is set to this project's URL and its publishable key only. Never commit service-role or secret keys.
+- Home, Tasks, Itinerary, Bookings, Decisions, Settings, import/export and trip switching exist in source. Prior local JavaScript syntax/render/import smoke tests passed.
+- GitHub Pages is enabled for the repository. Confirm the deployment of the CURRENT main SHA in Actions before describing a version as live.
 
-## Not yet verified or activated
-- No new dedicated Supabase project created: requires user's selection of organisation, cost quote and explicit confirmation.
-- SQL migration has not run against a database; its actual behaviour and RLS isolation require backend testing.
-- Public config.js has blank URL/publishableKey, so the app shows a fictional preview and does not persist changes.
-- No cross-device sign-in, email invitation or owner/editor/viewer live acceptance tests.
-- Published subpath and full iPhone home-screen behaviour have not been independently tested in a device browser.
+## Outstanding to make the app usable by the family
+1. Supabase Dashboard > Authentication > URL Configuration: set Site URL and Redirect URL to the exact app URL above, including trailing slash. Connected Supabase tools do not expose Auth URL configuration writes.
+2. For reliably signing in to the installed iPhone PWA, optionally edit Supabase's Email Magic Link template to include the OTP token. The app supports both magic links and code entry, but the default template may send only a link.
+3. User must sign in with their verified email; do not create or impersonate a login via backend SQL.
+4. Import the private Japan 2026 JSON into the signed-in account. Its personal details and booking references must NOT be committed to this public repository. The user received the file in their earlier ChatGPT chat.
+5. Verify owner/editor/viewer authorization, real email invitation claims, cloud persistence, realtime, and the actual iPhone Add to Home Screen flow. Tests against real signed-in accounts have not yet run.
 
-## Private Japan data
-The 2026 trip's detailed tasks, stay dates and sensitive bookings are in a PRIVATE JSON import file supplied to the user in the ChatGPT conversation, not in this repository.
-Do not commit the import JSON or personal confirmation emails. Import after the new private backend is connected.
-Confirmed travel priorities: Universal Studios Japan and Nagashima Spa Land are the two theme parks; Fuji-Q was dropped. A separate Mount Fuji sightseeing opportunity remains desired.
+## Japan scope
+Current plan: Universal Studios Japan and Nagashima Spa Land are the two theme parks. Fuji-Q was dropped. A separate Mt Fuji sightseeing opportunity remains desirable. Accommodation and attractions beyond flights and Heathrow hotel should not be marked booked until confirmed.
 
 ## Next action
-Ask the user to choose the Supabase organisation for a dedicated project (the account currently exposes ORB). Obtain a project cost quote and approval using Supabase's required confirmation workflow; only then create it, run/test the schema and configure email authentication and public config.js. Then import the private Japan JSON and perform owner/editor/viewer and iPhone acceptance tests.
-
-Do not represent the current preview as secure synced storage before the backend is provisioned and tested.
+Complete the manual Supabase Auth URL configuration in the dashboard, then sign in via the Pages app and import the private JSON. Run owner/editor/viewer and iPhone acceptance checks. Preserve privacy and the existing trip-planner app.
