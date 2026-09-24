@@ -137,12 +137,15 @@ function render(){
   $("#app").className="";
   $("#app").innerHTML='<div class="layout"><aside class="sidebar"><div class="brand"><span class="brand-mark">✦</span><span>Trip Planner</span></div><nav class="side-nav" aria-label="Main">'+nav()+'</nav><div class="side-foot"><small>'+esc(state.user?.email||"Demo mode")+'</small><button class="button button-small" data-action="trips">Switch / add trip</button></div></aside><main class="main"><div class="topline"><div class="topline-left"><p class="eyebrow">'+esc(t?.title||"TRIP PLANNER")+'</p><h1>'+esc(title)+'</h1><p class="sub">'+esc(t?.destination||"Plan your next adventure")+(t?.start_date?" · "+esc(day(t.start_date))+" – "+esc(day(t.end_date)):"")+'</p></div><div class="head-actions">'+back+'<button class="icon-button" data-action="refresh" title="Refresh" aria-label="Refresh">↻</button></div></div>'+
     (state.demo?'<div class="status-banner"><strong>Preview only.</strong> These are fictional examples. Changes are not saved and no personal information is stored. Connect your own Supabase project to activate private, shared trips.</div>':!navigator.onLine?'<div class="status-banner"><strong>Offline.</strong> Your private trip data needs a network connection.</div>':"")+
-    (!t?renderNoTrips():state.tab==="home"?renderHome():state.tab==="tasks"?renderTasks():state.tab==="itinerary"?renderItinerary():state.tab==="bookings"?renderBookings():renderMore())+
+    (!t && state.tab!=="more"?renderNoTrips():state.tab==="home"?renderHome():state.tab==="tasks"?renderTasks():state.tab==="itinerary"?renderItinerary():state.tab==="bookings"?renderBookings():renderMore())+
     '</main><nav class="bottom-nav" aria-label="Main">'+nav()+'</nav></div>';
 }
 function renderAuth(){
   $("#app").className="";
-  $("#app").innerHTML='<div class="auth-wrap"><div class="auth-card"><div class="brand"><span class="brand-mark">✦</span><span>Trip Planner</span></div><p class="eyebrow">YOUR NEXT ADVENTURE</p><h1>Your trips, in one place.</h1><p>Sign in with your email to access your private plans, bookings and shared checklists.</p><form id="auth-form"><div class="field"><label for="auth-email">Email address</label><input id="auth-email" name="email" type="email" autocomplete="email" placeholder="you@example.com" required></div><button class="button button-primary" type="submit">Send sign-in link / code</button><p id="auth-message" class="hint" role="status"></p><div class="field" id="otp-section" hidden><label for="auth-token">Email code (if one was included)</label><input id="auth-token" name="token" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6,8}" placeholder="123456"><button class="button" type="button" id="verify-token">Verify code</button></div></form><p class="hint">Open the email link on this device, or enter the one-time code if your email contains one.</p></div></div>';
+  $("#app").innerHTML='<div class="auth-wrap"><div class="auth-card"><div class="brand"><span class="brand-mark">✦</span><span>Trip Planner</span></div><p class="eyebrow">YOUR NEXT ADVENTURE</p><h1>Your trips, in one place.</h1><p>Sign in to access your private plans, bookings and shared checklists.</p>'+
+    '<form id="auth-form"><div class="field"><label for="auth-email">Email address</label><input id="auth-email" name="email" type="email" autocomplete="email" placeholder="you@example.com" required></div><button class="button button-primary" type="submit">Send sign-in email</button><p id="auth-message" class="hint" role="status"></p><div class="field" id="otp-section" hidden><label for="auth-token">Email code (if included)</label><input id="auth-token" name="token" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6,8}" placeholder="123456"><button class="button" type="button" id="verify-token">Verify code</button></div></form>'+
+    '<details class="auth-password-details"><summary>Sign in with a password instead</summary><p class="hint">Already set a password? Use it here; you do not need email access on this device.</p><form id="password-auth-form"><div class="field"><label for="password-auth-email">Email address</label><input id="password-auth-email" name="email" type="email" autocomplete="username" placeholder="you@example.com" required></div><div class="field"><label for="password-auth-password">Password</label><input id="password-auth-password" name="password" type="password" autocomplete="current-password" required></div><button class="button button-primary" type="submit">Sign in with password</button><p id="password-auth-message" class="hint" role="alert"></p></form><p class="hint">Need to set one? Open a sign-in email on your phone, then go to More → Settings → Account &amp; connection.</p></details>'+
+    '<p class="hint">The sign-in email link opens on the device where you tap it. You can also sign in here with a password once you have set one.</p></div></div>';
 }
 function renderNoTrips(){return '<div class="empty"><strong>No trips yet</strong><p>Create a new holiday or import your private trip backup directly.</p><button class="button button-primary" data-action="new-trip">Create trip</button> <button class="button" data-action="import">Import trip JSON</button><input id="import-file" type="file" accept="application/json,.json" hidden></div>';}
 function renderHome(){
@@ -178,6 +181,7 @@ function renderBookings(){
   return '<div class="section-head"><div><h2>Bookings & confirmations</h2><p>References and links are visible only to your trip members.</p></div>'+(canEdit()?'<button class="button button-primary button-small" data-action="new-booking">+ Booking</button>':"")+'</div><div class="book-grid">'+(bookings.length?bookings.map(v=>'<article class="panel booking-card"><div class="panel-head"><div><p class="eyebrow">'+esc(v.category||"OTHER")+'</p><h3>'+esc(v.title)+'</h3></div>'+pill(v.status||"pending","booking")+'</div><div class="details">'+(v.provider?esc(v.provider)+"<br>":"")+(v.start_date?esc(day(v.start_date))+(v.end_date?" – "+esc(day(v.end_date)):""):"Date TBC")+(v.notes?'<p class="note-text">'+esc(v.notes)+'</p>':"")+'</div>'+(v.booking_reference?'<div class="booking-ref">Reference: <strong>'+esc(v.booking_reference)+'</strong></div>':"")+'<div class="booking-bottom"><span class="muted">'+(v.amount!=null?esc(v.currency||"GBP")+" "+Number(v.amount).toLocaleString("en-GB",{minimumFractionDigits:2,maximumFractionDigits:2}):"")+'</span><div class="row-actions">'+link(v.confirmation_url,"Open")+(canEdit()?'<button class="icon-button" data-action="edit-booking" data-id="'+esc(v.id)+'" aria-label="Edit booking">✎</button>':"")+'</div></div></article>').join(""):emptySmall("No bookings yet","Add reservations once they are confirmed.",canEdit()?"new-booking":"",canEdit()?"Add booking":""))+'</div>';
 }
 function renderMore(){
+  if(!trip())state.moreTab="settings";
   const subtabs=[["decisions","Decisions"],["settings","Settings"]];
   return '<div class="tabs">'+subtabs.map(([id,label])=>'<button class="tab '+(state.moreTab===id?"active":"")+'" data-more="'+id+'">'+label+"</button>").join("")+'</div>'+(state.moreTab==="decisions"?renderDecisions():renderSettings());
 }
@@ -189,9 +193,9 @@ function renderSettings(){
   const t=trip();
   const trips=state.trips.map(v=>'<button type="button" class="trip-option '+(v.id===state.tripId?"active":"")+'" data-trip="'+esc(v.id)+'"><p class="eyebrow">'+esc(v.destination||"Trip")+'</p><h3>'+esc(v.title)+'</h3><p>'+esc(day(v.start_date))+' – '+esc(day(v.end_date))+'</p></button>').join("");
   return '<div class="panel settings-section"><h2>Your trips</h2><p>Switch trips or create a new holiday using the same planner.</p><div class="trip-list">'+trips+'</div><button class="button button-primary" data-action="new-trip">+ New trip</button> '+(isOwner()?'<button class="button" data-action="edit-trip">Edit current trip</button>':"")+'</div>'+
-    '<div class="panel settings-section"><h2>Share this trip</h2>'+(state.demo?'<p>Cloud storage must be connected before inviting other people.</p>':isOwner()?'<p>Invite somebody by email. They can sign in with that exact address and select this trip. No automatic invitation email is sent: share the app link with them yourself.</p><button class="button" data-action="new-invite">+ Invite person</button>'+(state.invites.length?'<div class="stack" style="margin-top:14px">'+state.invites.map(v=>'<div class="task-row"><div class="task-body"><span class="task-title">'+esc(v.email)+'</span><div class="task-meta">'+esc(v.role)+" · "+(v.accepted_at?"Joined":"Pending")+'</div></div></div>').join("")+"</div>":""):'<p>Your trip owner manages invitations. You have '+esc(state.member?.role||"member")+' access.</p>')+'</div>'+
+    '<div class="panel settings-section"><h2>Share this trip</h2>'+(!t?'<p>Create a trip before inviting others.</p>':state.demo?'<p>Cloud storage must be connected before inviting other people.</p>':isOwner()?'<p>Invite somebody by email. They can sign in with that exact address and select this trip. No automatic invitation email is sent: share the app link with them yourself.</p><button class="button" data-action="new-invite">+ Invite person</button>'+(state.invites.length?'<div class="stack" style="margin-top:14px">'+state.invites.map(v=>'<div class="task-row"><div class="task-body"><span class="task-title">'+esc(v.email)+'</span><div class="task-meta">'+esc(v.role)+" · "+(v.accepted_at?"Joined":"Pending")+'</div></div></div>').join("")+"</div>":""):'<p>Your trip owner manages invitations. You have '+esc(state.member?.role||"member")+' access.</p>')+'</div>'+
     '<div class="panel settings-section"><h2>Back up and import</h2><p>Export includes private booking information. Keep the JSON file somewhere secure. Import creates a new trip; it never overwrites another holiday.</p><button class="button" data-action="export">Export current trip</button> <button class="button" data-action="import">Import trip JSON</button><input id="import-file" type="file" accept="application/json,.json" hidden></div>'+
-    '<div class="panel settings-section"><h2>Account & connection</h2><p>'+esc(state.user?.email||"Preview mode")+'</p>'+(state.demo?'<p>This site is in preview mode because its Supabase project has not been configured.</p>':'<button class="button" data-action="signout">Sign out</button>')+'</div>';
+    '<div class="panel settings-section"><h2>Account & connection</h2><p>'+esc(state.user?.email||"Preview mode")+'</p>'+(state.demo?'<p>This site is a fictional preview. Changes are not saved.</p>':'<form id="account-password-form" class="stack" autocomplete="on"><p class="panel-sub">Set or change your password. Once saved, you can sign in on another device without opening email there.</p><div class="field"><label for="account-new-password">New password (at least 12 characters)</label><input id="account-new-password" type="password" name="password" autocomplete="new-password" minlength="12" required></div><div class="field"><label for="account-confirm-password">Confirm new password</label><input id="account-confirm-password" type="password" name="confirm_password" autocomplete="new-password" minlength="12" required></div><button class="button button-primary" type="submit">Save password</button><p class="hint" id="account-password-message" role="status"></p></form><button class="button" data-action="signout">Sign out</button>')+'</div>';
 }
 function emptySmall(title,description,action,button){return '<div class="empty"><strong>'+esc(title)+'</strong><p>'+esc(description)+'</p>'+(action?'<button class="button" data-action="'+esc(action)+'">'+esc(button)+'</button>':"")+'</div>';}
 function openEditor(type,id){
@@ -341,6 +345,42 @@ function attachEvents(){
   });
   document.addEventListener("submit",async e=>{
     if(e.target.id==="editor-form")return saveEditor(e);
+    if(e.target.id==="account-password-form"){
+      e.preventDefault();
+      const form=e.target,message=$("#account-password-message");
+      if(state.demo || !state.user || !state.client){message.textContent="Sign in before setting a password.";return;}
+      const values=new FormData(form),password=String(values.get("password")||""),confirmation=String(values.get("confirm_password")||"");
+      if(password.length<12){message.textContent="Use at least 12 characters.";return;}
+      if(password!==confirmation){message.textContent="The passwords do not match.";return;}
+      const button=form.querySelector('button[type="submit"]');button.disabled=true;message.textContent="";
+      try{
+        const {error}=await state.client.auth.updateUser({password});
+        if(error)throw error;
+        form.reset();
+        message.textContent="Password saved. You can now sign in on your other devices.";
+        toast("Password saved");
+      }catch(error){message.textContent=error?.message||"Could not save password. Try again.";}
+      finally{button.disabled=false;}
+      return;
+    }
+    if(e.target.id==="password-auth-form"){
+      e.preventDefault();
+      const form=e.target,message=$("#password-auth-message");
+      const values=new FormData(form),email=String(values.get("email")||"").trim(),password=String(values.get("password")||"");
+      const button=form.querySelector('button[type="submit"]');button.disabled=true;message.textContent="";
+      try{
+        const {data,error}=await state.client.auth.signInWithPassword({email,password});
+        if(error)throw error;
+        if(!data.user)throw new Error("Sign-in did not complete. Try again.");
+        form.querySelector('[name="password"]').value="";
+        state.user=data.user;
+        await loadTrips();
+      }catch(error){
+        message.textContent=error?.message||"Could not sign in. Check your email and password.";
+        form.querySelector('[name="password"]').value="";
+      }finally{button.disabled=false;}
+      return;
+    }
     if(e.target.id==="auth-form"){
       e.preventDefault();const email=new FormData(e.target).get("email");const button=e.target.querySelector('button[type="submit"]');button.disabled=true;
       try{await authEmail(email);$("#auth-message").textContent="Email sent. Check your inbox for the link or code.";$("#otp-section").hidden=false;}catch(error){$("#auth-message").textContent=error.message;}finally{button.disabled=false;}
