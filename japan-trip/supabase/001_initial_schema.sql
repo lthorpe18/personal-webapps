@@ -201,25 +201,25 @@ begin
   foreach tbl in array array['trip_stops','tasks','activities','bookings','decisions'] loop
     execute format(
       'create policy %I on public.%I for select to authenticated using(
-        exists(select 1 from public.trip_members m where m.trip_id=trip_id and m.user_id=(select auth.uid()))
-      )',tbl||'_member_read',tbl
+        exists(select 1 from public.trip_members m where m.trip_id=public.%I.trip_id and m.user_id=(select auth.uid()))
+      )',tbl||'_member_read',tbl,tbl
     );
     execute format(
       'create policy %I on public.%I for insert to authenticated with check(
-        exists(select 1 from public.trip_members m where m.trip_id=trip_id and m.user_id=(select auth.uid()) and m.role in (''owner'',''editor''))
-      )',tbl||'_member_insert',tbl
+        exists(select 1 from public.trip_members m where m.trip_id=public.%I.trip_id and m.user_id=(select auth.uid()) and m.role in (''owner'',''editor''))
+      )',tbl||'_member_insert',tbl,tbl
     );
     execute format(
       'create policy %I on public.%I for update to authenticated using(
-        exists(select 1 from public.trip_members m where m.trip_id=trip_id and m.user_id=(select auth.uid()) and m.role in (''owner'',''editor''))
+        exists(select 1 from public.trip_members m where m.trip_id=public.%I.trip_id and m.user_id=(select auth.uid()) and m.role in (''owner'',''editor''))
       ) with check(
-        exists(select 1 from public.trip_members m where m.trip_id=trip_id and m.user_id=(select auth.uid()) and m.role in (''owner'',''editor''))
-      )',tbl||'_member_update',tbl
+        exists(select 1 from public.trip_members m where m.trip_id=public.%I.trip_id and m.user_id=(select auth.uid()) and m.role in (''owner'',''editor''))
+      )',tbl||'_member_update',tbl,tbl,tbl
     );
     execute format(
       'create policy %I on public.%I for delete to authenticated using(
-        exists(select 1 from public.trip_members m where m.trip_id=trip_id and m.user_id=(select auth.uid()) and m.role in (''owner'',''editor''))
-      )',tbl||'_member_delete',tbl
+        exists(select 1 from public.trip_members m where m.trip_id=public.%I.trip_id and m.user_id=(select auth.uid()) and m.role in (''owner'',''editor''))
+      )',tbl||'_member_delete',tbl,tbl
     );
   end loop;
 end;
@@ -230,9 +230,10 @@ $policies$;
 -- An attacker with a public publishable key cannot read someone else's invites.
 create function public.claim_trip_invitations()
 returns integer language plpgsql security definer set search_path='' as $$
-declare caller uuid := auth.uid();
-declare verified_email text;
-declare joined_count integer;
+declare
+  caller uuid := auth.uid();
+  verified_email text;
+  joined_count integer;
 begin
   if caller is null then raise exception 'Sign in required'; end if;
   select lower(u.email) into verified_email
