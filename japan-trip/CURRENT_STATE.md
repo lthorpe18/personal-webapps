@@ -29,3 +29,11 @@ Current plan: Universal Studios Japan and Nagashima Spa Land are the two theme p
 
 ## Next action
 Complete the manual Supabase Auth URL configuration in the dashboard, then sign in via the Pages app and import the private JSON. Run owner/editor/viewer and iPhone acceptance checks. Preserve privacy and the existing trip-planner app.
+
+## Password sign-in for devices without email access (24 Sep 2026)
+- Added Sign in with a password on the login screen and Set or change password in More > Settings > Account & connection.
+- Existing email-link sign-in is retained. Users can open a magic link on their phone once, then set their own password in the signed-in app. They can thereafter sign in on their work laptop without accessing personal email there.
+- Account settings can be reached even when no trip has yet been imported. Password form requires at least 12 characters and matching confirmation; app never commits or logs credentials.
+- Local syntax, rendered-state, mocked sign-in, password-update and mismatched-confirmation tests passed. Real device sign-in and backend password update have not yet been independently verified.
+- HTML scripts and CSS use version 20260924-5; service worker shell cache v5. GitHub Pages deployment must be checked for the latest SHA.
+- No Supabase Email Template change is required for this password route.
