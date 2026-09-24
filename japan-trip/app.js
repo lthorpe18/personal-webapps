@@ -2,7 +2,7 @@
 const $ = selector => document.querySelector(selector);
 const esc = value => String(value == null ? "" : value).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const config = window.TRIP_PLANNER_CONFIG || {};
-const isDemo = !(config.url && config.publishableKey);
+const isDemo = new URLSearchParams(location.search).get("demo") === "1";
 const NAV = [["home","⌂","Home"],["tasks","☑","Tasks"],["itinerary","◇","Itinerary"],["bookings","▣","Bookings"],["more","⋯","More"]];
 const TABLE = {task:"tasks",stop:"trip_stops",activity:"activities",booking:"bookings",decision:"decisions",trip:"trips",invite:"trip_invitations"};
 const PRIORITIES = [["1","Urgent"],["2","High"],["3","Normal"]];
@@ -55,9 +55,14 @@ function demoFixture(){
 }
 async function init(){
   if("serviceWorker" in navigator && (location.protocol==="https:"||location.hostname==="localhost")){
-    navigator.serviceWorker.register("./sw.js").catch(()=>{});
+    navigator.serviceWorker.register("./sw.js?v=4",{updateViaCache:"none"}).catch(()=>{});
   }
   if(state.demo){const v=demoFixture();state.trips=[v.t];state.tripId=v.t.id;state.data=v.d;render();return;}
+  if(!(config.url && config.publishableKey)){
+    $("#app").className="";
+    $("#app").innerHTML='<div class="auth-wrap"><div class="auth-card"><div class="brand"><span class="brand-mark">✦</span><span>Trip Planner</span></div><h1>Update needed</h1><p>This device has not loaded the current app configuration. Connect to the internet and reload to access your private trips.</p><button class="button button-primary" onclick="location.reload()">Reload app</button></div></div>';
+    return;
+  }
   try{
     const module=await import("https://esm.sh/@supabase/supabase-js@2.117.1?bundle");
     state.client=module.createClient(config.url,config.publishableKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
