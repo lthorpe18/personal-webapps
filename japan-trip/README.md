@@ -4,6 +4,12 @@ A mobile-first PWA for multiple holidays, developed in the japan-trip folder of 
 
 The app includes Home, Tasks, Itinerary, Bookings and More (Decisions and Settings). It supports trip-specific access roles, member invitations, import/export, and iPhone Add to Home Screen.
 
+## Active ORB project (24 September 2026)
+
+The Trip Planner Supabase project has already been created in ORB (London, `eu-west-2`), and the schema plus indexes are installed. `config.js` now contains its public project URL and publishable key. **Do not create another project** for this deployment.
+
+Before sign-in works correctly, set the Supabase Authentication Site URL and allowed Redirect URL to `https://lthorpe18.github.io/personal-webapps/japan-trip/` (including the trailing slash). This setting is not exposed by the connected Supabase tools. See `CURRENT_STATE.md` for verified progress and remaining checks.
+
 ## Current state
 
 The frontend is committed. Without a configured Supabase project, it displays a fictional preview; preview changes are not saved. No personal booking information is stored in this public repository.
