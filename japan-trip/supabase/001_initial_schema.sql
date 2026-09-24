@@ -136,6 +136,30 @@ for each row execute function private.set_updated_at();
 create trigger update_decisions before update on public.decisions
 for each row execute function private.set_updated_at();
 
+-- Keep each row attached to the trip it was created for, even when a member
+-- has edit access to more than one trip.
+create function private.prevent_trip_reassignment()
+returns trigger language plpgsql set search_path='' as $
+begin
+  if new.trip_id is distinct from old.trip_id then
+    raise exception 'Cannot move records between trips';
+  end if;
+  return new;
+end;
+$;
+create trigger prevent_stop_trip_change before update on public.trip_stops
+for each row execute function private.prevent_trip_reassignment();
+create trigger prevent_task_trip_change before update on public.tasks
+for each row execute function private.prevent_trip_reassignment();
+create trigger prevent_activity_trip_change before update on public.activities
+for each row execute function private.prevent_trip_reassignment();
+create trigger prevent_booking_trip_change before update on public.bookings
+for each row execute function private.prevent_trip_reassignment();
+create trigger prevent_decision_trip_change before update on public.decisions
+for each row execute function private.prevent_trip_reassignment();
+create trigger prevent_invitation_trip_change before update on public.trip_invitations
+for each row execute function private.prevent_trip_reassignment();
+
 -- Insertion of a trip atomically creates its owner's membership.
 -- Only a verified auth.uid() may own a newly inserted trip (RLS below).
 create function private.ensure_owner_membership()
@@ -259,6 +283,7 @@ revoke all on function public.claim_trip_invitations() from public, anon;
 grant execute on function public.claim_trip_invitations() to authenticated;
 revoke all on function private.ensure_owner_membership() from public, anon, authenticated;
 revoke all on function private.set_updated_at() from public, anon, authenticated;
+revoke all on function private.prevent_trip_reassignment() from public, anon, authenticated;
 
 -- RLS is necessary but not sufficient: Data API permissions are also explicit.
 revoke all on public.trips,public.trip_members,public.trip_invitations,
