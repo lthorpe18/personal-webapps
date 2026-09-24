@@ -1,5 +1,5 @@
 /* Static-shell cache only. Private trip data and Supabase requests are NEVER cached. */
-const CACHE = "trip-planner-shell-v2";
+const CACHE = "trip-planner-shell-v3";
 const SHELL = ["./","./index.html","./styles.css","./app.js","./config.js","./manifest.webmanifest","./icon.svg","./icon-192.png"];
 self.addEventListener("install", event => {
   event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(SHELL)).then(() => self.skipWaiting()));
@@ -16,7 +16,7 @@ self.addEventListener("fetch", event => {
   if (req.method !== "GET" || url.origin !== self.location.origin || !url.pathname.startsWith(new URL(self.registration.scope).pathname)) return;
   // Online-first means a fresh deployment is visible promptly; the cached shell is a fallback.
   event.respondWith(fetch(req).then(response => {
-    if (response.ok && response.type === "basic" && url.pathname !== new URL("./config.js", self.registration.scope).pathname) {
+    if (response.ok && response.type === "basic" && true) {
       const clone = response.clone();
       caches.open(CACHE).then(cache => cache.put(req, clone));
     }
