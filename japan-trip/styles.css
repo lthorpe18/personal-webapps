@@ -31,3 +31,50 @@
 .auth-password-details form{margin-top:14px}
 .settings-section #account-password-form{margin:15px 0 18px;max-width:430px;gap:12px}
 .settings-section #account-password-form .button{width:max-content;max-width:100%}
+
+/* Mobile overview density and iPhone safe areas — 24 September 2026 */
+.task-notes{margin-top:8px;min-width:0}
+.task-notes summary{width:max-content;max-width:100%;cursor:pointer;color:var(--pine);font-size:.75rem;font-weight:800;list-style:none;display:flex;align-items:center;gap:5px;padding:3px 0}
+.task-notes summary::-webkit-details-marker{display:none}
+.task-notes summary::after{content:"⌄";font-size:1rem;line-height:.8;transition:transform .15s}
+.task-notes[open] summary::after{transform:rotate(180deg)}
+.task-notes p{font-size:.78rem;line-height:1.52;color:var(--muted);white-space:pre-wrap;overflow-wrap:anywhere;word-break:normal;margin:7px 0 2px;padding-top:8px;border-top:1px solid var(--line)}
+@media(max-width:650px){
+  .main{padding-top:calc(14px + env(safe-area-inset-top,0px));padding-right:14px;padding-left:14px}
+  .topline{gap:8px}
+  .topline .eyebrow{font-size:.62rem;letter-spacing:.12em;margin-bottom:5px}
+  .topline h1{font-size:1.56rem;line-height:1.09}
+  .topline .sub{margin-top:6px}
+  .head-actions .icon-button{width:38px;height:38px}
+  .view-home .topline{margin-bottom:15px}
+  .view-home .topline .sub{display:none}
+  .view-home .hero{min-height:0;padding:20px 18px;border-radius:19px;gap:12px;align-items:center}
+  .view-home .hero .eyebrow{display:none}
+  .view-home .hero h2{font-size:1.88rem;margin:0 0 7px}
+  .view-home .hero p{font-size:.76rem;line-height:1.35}
+  .view-home .hero-stat b{font-size:2.3rem}
+  .view-home .hero-stat span{font-size:.62rem;margin-top:5px;letter-spacing:.025em}
+  .view-home .stats{background:var(--white);border:1px solid var(--line);border-radius:15px;overflow:hidden;gap:0;margin:11px 0 17px}
+  .view-home .stat{background:transparent;border:0;border-radius:0;min-width:0;padding:12px 9px 11px}
+  .view-home .stat+.stat{border-left:1px solid var(--line)}
+  .view-home .stat b{font-size:1.48rem;line-height:1.05}
+  .view-home .stat span{display:block;font-size:.69rem;margin-top:4px;line-height:1.2}
+  .view-home .section-head{margin:19px 0 10px;align-items:center}
+  .view-home .section-head p{display:none}
+  .view-home .section-head h2{font-size:1.08rem}
+  .view-home .section-head a{white-space:nowrap}
+  .task-row{gap:10px;padding:12px 11px;border-radius:14px}
+  .task-check{width:30px;height:30px;margin-top:0}
+  .task-check:checked:after{font-size:.93rem}
+  .task-title{font-size:.84rem;line-height:1.38;overflow-wrap:break-word}
+  .task-meta{gap:5px 7px;margin-top:6px;font-size:.7rem;line-height:1.25}
+  .task-meta .pill{font-size:.64rem;padding:4px 8px}
+  .row-actions .icon-button{width:36px;height:36px}
+  .home-task .task-notes{margin-top:5px}
+  .home-task .task-notes summary{padding:3px 0;font-size:.71rem}
+  .stack{gap:9px}
+}
+@media (display-mode:standalone) and (max-width:650px){
+  /* Some iOS home-screen versions report a zero inset: leave room for the status bar anyway. */
+  .main{padding-top:calc(14px + max(44px,env(safe-area-inset-top,0px)))}
+}
