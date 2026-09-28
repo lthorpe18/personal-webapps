@@ -78,3 +78,36 @@
   /* Some iOS home-screen versions report a zero inset: leave room for the status bar anyway. */
   .main{padding-top:calc(14px + max(44px,env(safe-area-inset-top,0px)))}
 }
+
+
+/* Itinerary table image preview: deliberately separate from booking data and editing. */
+.itinerary-actions{display:flex;gap:8px;align-items:center;justify-content:flex-end;flex-wrap:wrap}
+.itinerary-actions .button{white-space:nowrap}
+.share-dialog{border:0;border-radius:21px;padding:0;width:min(930px,calc(100% - 28px));max-height:calc(100dvh - 30px);box-shadow:0 25px 90px #0d291d50;color:var(--text);background:#fff}
+.share-dialog::backdrop{background:#102621a6;backdrop-filter:blur(3px)}
+.share-shell{padding:20px;display:flex;flex-direction:column;gap:13px;max-height:calc(100dvh - 30px)}
+.share-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+.share-heading h2{margin:0;font-size:1.26rem;letter-spacing:-.025em}
+.share-intro{margin:0;color:var(--muted);font-size:.82rem;line-height:1.4}
+.share-options{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:15px;align-items:end}
+.share-note-option{display:flex;gap:9px;align-items:center;font-size:.8rem;font-weight:800;cursor:pointer;min-width:0;line-height:1.4}
+.share-note-option input{width:19px;height:19px;flex-shrink:0;accent-color:var(--pine)}
+.share-note-option small{display:block;font-weight:500;color:var(--muted);font-size:.72rem;margin-top:2px}
+.share-privacy{background:var(--mint);border-radius:10px;padding:8px 10px;color:#285b4d;font-size:.73rem;line-height:1.42;margin:0}
+.share-image-wrap{min-height:145px;max-height:48dvh;overflow:auto;border:1px solid var(--line);background:#f3f6f6;border-radius:12px;text-align:center;overscroll-behavior:contain}
+.share-image-wrap img{width:100%;height:auto;display:block;min-width:640px}
+.share-status{font-size:.77rem;line-height:1.4;color:var(--muted);margin:12px 10px}
+.share-footer{display:flex;justify-content:flex-end;gap:9px;border-top:1px solid var(--line);padding-top:12px}
+.share-footer .button{min-height:44px}
+@media(max-width:650px){
+  .itinerary-section-head{display:grid;grid-template-columns:minmax(0,1fr);gap:11px}
+  .itinerary-actions{justify-content:flex-start}
+  .itinerary-actions .button{min-height:40px}
+  .share-dialog{width:calc(100% - 16px);max-height:calc(100dvh - 18px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px))}
+  .share-shell{padding:15px;gap:11px;max-height:calc(100dvh - 18px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px))}
+  .share-heading h2{font-size:1.13rem}
+  .share-options{grid-template-columns:1fr;gap:9px}
+  .share-note-option{padding:2px 0}
+  .share-image-wrap{max-height:43dvh}
+  .share-footer .button{flex:1;padding:9px 8px}
+}
