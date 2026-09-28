@@ -22,6 +22,7 @@ function headingFor(trip){
   return String(trip.destination||trip.title||"TRIP").toLocaleUpperCase("en-GB")+" • "+range;
 }
 function fromToHeading(from,to){
+  if(from===to)return dayOf(from)+" "+monthOf(to)+" "+to.slice(0,4);
   if(from.slice(0,7)===to.slice(0,7))return dayOf(from)+"–"+dayOf(to)+" "+monthOf(to)+" "+to.slice(0,4);
   if(from.slice(0,4)===to.slice(0,4))return dayOf(from)+" "+monthOf(from)+" – "+dayOf(to)+" "+monthOf(to)+" "+to.slice(0,4);
   return dayOf(from)+" "+monthOf(from)+" "+from.slice(0,4)+" – "+dayOf(to)+" "+monthOf(to)+" "+to.slice(0,4);
@@ -45,10 +46,7 @@ function baseForDate(date,stops,activities,tripEnd){
   const current=activeStop(stops,date);
   const previous=activeStop(stops,isoDay(new Date(utcDay(date).getTime()-86400000)));
   let base=current?.location||((date===tripEnd&&previous?.ends_on===date)?previous.location:"");
-  // On transfer days, include the origin and destination rather than suggesting a stationary day.
-  if(current&&previous&&previous.id!==current.id&&previous.location!==current.location){
-    base=previous.location+" → "+current.location;
-  }
+  // Use the destination overnight base; route labels come from explicitly entered transport locations.
   const travel=activities.find(a=>a.type==="transport"&&
     /[→➜]/.test(String(a.location||""))&&String(a.location).length<=65);
   if(travel)base=travel.location;
