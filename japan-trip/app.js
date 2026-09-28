@@ -223,7 +223,8 @@ function closeEditor(){$("#editor").close();}
 async function saveEditor(event){
   event.preventDefault();
   if(state.busy)return;
-  const form=event.currentTarget,type=form.dataset.type,id=form.dataset.id;
+  // The submit listener is delegated from document: currentTarget is document, target is the form.
+  const form=event.target,type=form.dataset.type,id=form.dataset.id;
   const data=Object.fromEntries(new FormData(form).entries());
   if(data.email)data.email=data.email.trim().toLowerCase();
   if(data.start_date&&data.end_date&&data.end_date<data.start_date)return editorError("End date cannot be before the start date.");
