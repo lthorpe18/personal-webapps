@@ -11,7 +11,7 @@
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="icon" type="image/svg+xml" href="./icon.svg">
   <link rel="apple-touch-icon" href="./icon-192.png">
-  <link rel="stylesheet" href="./styles.css?v=20260924-6">
+  <link rel="stylesheet" href="./styles.css?v=20260928-7">
   <title>Trip Planner</title>
 </head>
 <body>
@@ -25,7 +25,18 @@
       <div class="editor-actions"><button type="button" class="button button-danger" id="editor-delete" hidden>Delete</button><button type="button" class="button button-quiet" id="editor-cancel">Cancel</button><button type="submit" class="button button-primary" id="editor-submit">Save</button></div>
     </form>
   </dialog>
-  <script src="./config.js?v=20260924-6"></script>
-  <script type="module" src="./app.js?v=20260924-6"></script>
+  <dialog id="itinerary-share-dialog" class="share-dialog" aria-labelledby="itinerary-share-title">
+    <div class="share-shell">
+      <div class="share-heading"><div><p class="eyebrow">ITINERARY</p><h2 id="itinerary-share-title">Share as an image</h2></div><button type="button" class="icon-button" id="itinerary-share-close" aria-label="Close image preview">✕</button></div>
+      <p class="share-intro">Create a table from your current trip. Review the preview before sending it.</p>
+      <div class="share-options"><div class="field"><label for="itinerary-share-style">Table style</label><select id="itinerary-share-style"><option value="detailed" selected>Detailed — activity names and places</option><option value="simple">Simple — activity names only</option></select></div>
+        <label class="share-note-option"><input id="itinerary-share-notes" type="checkbox"><span>Include activity notes <small>Optional. Notes may contain private information.</small></span></label></div>
+      <p id="itinerary-share-privacy" class="share-privacy">Booking references, costs, links, tasks and accommodation notes are never included.</p>
+      <div class="share-image-wrap"><p id="itinerary-share-status" class="share-status" role="status">Preparing image…</p><img id="itinerary-share-image" alt="Preview of your generated three-column itinerary table" hidden></div>
+      <div class="share-footer"><button type="button" class="button" id="itinerary-share-download" disabled>Download PNG</button><button type="button" class="button button-primary" id="itinerary-share-native" disabled>Share image</button></div>
+    </div>
+  </dialog>
+  <script src="./config.js?v=20260928-7"></script>
+  <script type="module" src="./app.js?v=20260928-7"></script>
 </body>
 </html>
