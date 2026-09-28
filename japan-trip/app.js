@@ -1,4 +1,5 @@
 /* Trip Planner v1 — plain browser JavaScript; no private trip data in source control. */
+import { buildItineraryExportRows, makeItineraryPng } from "./itinerary-export.js?v=1";
 const $ = selector => document.querySelector(selector);
 const esc = value => String(value == null ? "" : value).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const config = window.TRIP_PLANNER_CONFIG || {};
@@ -55,7 +56,7 @@ function demoFixture(){
 }
 async function init(){
   if("serviceWorker" in navigator && (location.protocol==="https:"||location.hostname==="localhost")){
-    navigator.serviceWorker.register("./sw.js?v=6",{updateViaCache:"none"}).catch(()=>{});
+    navigator.serviceWorker.register("./sw.js?v=7",{updateViaCache:"none"}).catch(()=>{});
   }
   if(state.demo){const v=demoFixture();state.trips=[v.t];state.tripId=v.t.id;state.data=v.d;render();return;}
   if(!(config.url && config.publishableKey)){
@@ -174,7 +175,7 @@ function stopRow(v){
 function renderItinerary(){
   const stops=[...state.data.trip_stops].sort((a,b)=>String(a.starts_on).localeCompare(String(b.starts_on)));
   const activities=[...state.data.activities].sort((a,b)=>String(a.activity_date||"9999").localeCompare(String(b.activity_date||"9999")));
-  return '<div class="section-head"><div><h2>Overnight bases</h2><p>Where you stay, in travel order.</p></div>'+(canEdit()?'<button class="button button-primary button-small" data-action="new-stop">+ Stay</button>':"")+'</div><div class="timeline">'+(stops.length?stops.map(stopRow).join(""):emptySmall("No stays yet","Add your first overnight base.",canEdit()?"new-stop":"",canEdit()?"Add stay":""))+'</div><div class="section-head"><div><h2>Activities & journeys</h2><p>Day trips, transport and tickets.</p></div>'+(canEdit()?'<button class="button button-primary button-small" data-action="new-activity">+ Activity</button>':"")+'</div><div class="panel">'+(activities.length?activities.map(v=>'<div class="activity-row"><div class="activity-date">'+esc(day(v.activity_date))+'</div><div><div class="activity-title">'+esc(v.title)+'</div><div class="activity-sub">'+esc(v.location||label("activity",v.type)||"")+' · '+esc(v.type?.replaceAll("_"," ")||"Activity")+'</div>'+pill(v.status||"planned","activity")+(v.notes?'<p class="panel-sub">'+esc(v.notes)+'</p>':"")+'</div>'+(canEdit()?'<button class="icon-button" data-action="edit-activity" data-id="'+esc(v.id)+'" aria-label="Edit activity">✎</button>':"")+'</div>').join(""):emptySmall("No activities yet","Add sightseeing, park days or transport.",canEdit()?"new-activity":"",canEdit()?"Add activity":""))+'</div>';
+  return '<div class="section-head itinerary-section-head"><div><h2>Overnight bases</h2><p>Where you stay, in travel order.</p></div><div class="itinerary-actions"><button class="button button-small" type="button" data-action="share-itinerary">⇪ Share table</button>'+(canEdit()?'<button class="button button-primary button-small" data-action="new-stop">+ Stay</button>':"")+'</div></div><div class="timeline">'+(stops.length?stops.map(stopRow).join(""):emptySmall("No stays yet","Add your first overnight base.",canEdit()?"new-stop":"",canEdit()?"Add stay":""))+'</div><div class="section-head"><div><h2>Activities & journeys</h2><p>Day trips, transport and tickets.</p></div>'+(canEdit()?'<button class="button button-primary button-small" data-action="new-activity">+ Activity</button>':"")+'</div><div class="panel">'+(activities.length?activities.map(v=>'<div class="activity-row"><div class="activity-date">'+esc(day(v.activity_date))+'</div><div><div class="activity-title">'+esc(v.title)+'</div><div class="activity-sub">'+esc(v.location||label("activity",v.type)||"")+' · '+esc(v.type?.replaceAll("_"," ")||"Activity")+'</div>'+pill(v.status||"planned","activity")+(v.notes?'<p class="panel-sub">'+esc(v.notes)+'</p>':"")+'</div>'+(canEdit()?'<button class="icon-button" data-action="edit-activity" data-id="'+esc(v.id)+'" aria-label="Edit activity">✎</button>':"")+'</div>').join(""):emptySmall("No activities yet","Add sightseeing, park days or transport.",canEdit()?"new-activity":"",canEdit()?"Add activity":""))+'</div>';
 }
 function renderBookings(){
   const bookings=[...state.data.bookings].sort((a,b)=>String(a.start_date||"9999").localeCompare(String(b.start_date||"9999")));
@@ -326,6 +327,7 @@ function attachEvents(){
     const t=e.target.closest("[data-trip]");if(t){changeTrip(t.dataset.trip);return;}
     const action=e.target.closest("[data-action]");if(!action)return;
     const name=action.dataset.action,id=action.dataset.id;
+    if(name==="share-itinerary")return openItineraryShare();
     if(name==="refresh")return refresh();
     if(name==="trips"){state.tab="more";state.moreTab="settings";return render();}
     if(name==="signout"){const {error}=await state.client.auth.signOut();if(error)fail(error);return;}
@@ -399,5 +401,106 @@ function attachEvents(){
   document.addEventListener("visibilitychange",()=>{if(!document.hidden&&state.user&&!state.demo)loadTrips().catch(fail);});
   window.addEventListener("online",()=>{if(state.user&&!state.demo)loadTrips().catch(fail);});
 }
+
+/* The export dialog lives outside #app so a regular refresh never removes its controls. */
+let itineraryShareReady=null;
+let itineraryShareRequest=0;
+const itineraryName=tripData=>{
+  const name=String(tripData?.title||tripData?.destination||"trip").toLowerCase()
+    .replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"").slice(0,50)||"trip";
+  return name+"-itinerary.png";
+};
+function releaseItineraryPreview(){
+  itineraryShareRequest++;
+  if(itineraryShareReady?.url)URL.revokeObjectURL(itineraryShareReady.url);
+  itineraryShareReady=null;
+  const image=$("#itinerary-share-image");
+  image.hidden=true;
+  image.removeAttribute("src");
+}
+async function updateItineraryShare(){
+  const dialog=$("#itinerary-share-dialog");
+  if(!dialog.open)return;
+  const request=++itineraryShareRequest;
+  const image=$("#itinerary-share-image");
+  const status=$("#itinerary-share-status");
+  const download=$("#itinerary-share-download"),share=$("#itinerary-share-native");
+  download.disabled=true;share.disabled=true;
+  status.textContent="Preparing image…";
+  const detailed=$("#itinerary-share-style").value==="detailed";
+  const includeNotes=$("#itinerary-share-notes").checked;
+  $("#itinerary-share-privacy").textContent=includeNotes?
+    "Activity notes are included. Review the preview carefully for private details before sharing. Booking references and costs are never added automatically.":
+    "Booking references, costs, links, tasks and accommodation notes are never included.";
+  try{
+    const currentTrip=trip();
+    if(!currentTrip)throw new Error("Choose a trip before sharing its itinerary.");
+    const rows=buildItineraryExportRows({
+      trip:currentTrip,stops:state.data.trip_stops,activities:state.data.activities,
+      detailed,includeNotes
+    });
+    const blob=await makeItineraryPng({trip:currentTrip,rows});
+    if(request!==itineraryShareRequest||!dialog.open)return;
+    const url=URL.createObjectURL(blob);
+    const filename=itineraryName(currentTrip);
+    let file=null,canShare=false;
+    if(typeof File!=="undefined"){
+      file=new File([blob],filename,{type:"image/png"});
+      try{canShare=!!(navigator.share&&navigator.canShare&&navigator.canShare({files:[file]}));}catch{canShare=false;}
+    }
+    if(itineraryShareReady?.url)URL.revokeObjectURL(itineraryShareReady.url);
+    itineraryShareReady={url,blob,file,filename,title:currentTrip.title||currentTrip.destination||"Trip"};
+    image.src=url;image.hidden=false;
+    share.hidden=!canShare;
+    status.textContent=rows.length+" itinerary rows · Preview exactly what you will share.";
+    download.disabled=false;share.disabled=!canShare;
+  }catch(error){
+    if(request!==itineraryShareRequest)return;
+    status.textContent=error?.message||"Could not prepare the itinerary image.";
+    image.hidden=true;
+    toast("Could not prepare itinerary image.");
+  }
+}
+function openItineraryShare(){
+  if(!trip())return toast("Choose a trip before sharing its itinerary.");
+  const dialog=$("#itinerary-share-dialog");
+  if(!dialog.open)dialog.showModal();
+  return updateItineraryShare();
+}
+function downloadItineraryShare(){
+  const ready=itineraryShareReady;
+  if(!ready)return;
+  const a=document.createElement("a");
+  a.href=ready.url;a.download=ready.filename;
+  document.body.appendChild(a);a.click();a.remove();
+}
+async function shareItineraryReady(){
+  const ready=itineraryShareReady;
+  if(!ready)return;
+  if(!(ready.file&&navigator.share))return downloadItineraryShare();
+  const button=$("#itinerary-share-native");
+  try{
+    // Call navigator.share during the original click, before any await, for iOS user activation.
+    const sharing=navigator.share({title:ready.title+" itinerary",files:[ready.file]});
+    button.disabled=true;
+    await sharing;
+  }catch(error){
+    if(error?.name!=="AbortError"){
+      $("#itinerary-share-status").textContent="Could not open the share sheet. You can download the PNG instead.";
+    }
+  }finally{button.disabled=false;}
+}
+function bindItineraryShare(){
+  const dialog=$("#itinerary-share-dialog");
+  $("#itinerary-share-close").addEventListener("click",()=>dialog.close());
+  dialog.addEventListener("close",releaseItineraryPreview);
+  dialog.addEventListener("click",event=>{if(event.target===dialog)dialog.close();});
+  $("#itinerary-share-style").addEventListener("change",updateItineraryShare);
+  $("#itinerary-share-notes").addEventListener("change",updateItineraryShare);
+  $("#itinerary-share-download").addEventListener("click",downloadItineraryShare);
+  $("#itinerary-share-native").addEventListener("click",shareItineraryReady);
+}
+
 attachEvents();
+bindItineraryShare();
 init();
