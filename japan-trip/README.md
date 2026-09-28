@@ -10,25 +10,21 @@ The Trip Planner Supabase project has already been created in ORB (London, `eu-w
 
 Before sign-in works correctly, set the Supabase Authentication Site URL and allowed Redirect URL to `https://lthorpe18.github.io/personal-webapps/japan-trip/` (including the trailing slash). This setting is not exposed by the connected Supabase tools. See `CURRENT_STATE.md` for verified progress and remaining checks.
 
-## Current state
+## Current deployment
 
-The frontend is committed. Without a configured Supabase project, it displays a fictional preview; preview changes are not saved. No personal booking information is stored in this public repository.
+GitHub Pages: https://lthorpe18.github.io/personal-webapps/japan-trip/
 
-## GitHub Pages
+The dedicated Trip Planner Supabase database and browser configuration are installed. The user has signed in on their iPhone and shown a populated Japan trip. Email links remain available; the app also supports setting a password from More > Settings > Account & connection and using it on devices without personal email access.
 
-In the repository Settings > Pages, select Deploy from a branch, main, /(root) if Pages is not already configured. This keeps the existing static apps accessible. The anticipated app path is https://lthorpe18.github.io/personal-webapps/japan-trip/ but verify the actual live address in GitHub Pages settings.
+Do not create another Supabase project or commit private itinerary JSON. The `supabase/` directory is the deployment record for the existing dedicated project, not an instruction to rerun the initial migration.
 
-## Connect private data
+## Shareable itinerary PNG
 
-Create a NEW dedicated Supabase project with the user's approval of organisation and any project cost. Do not reuse another application's database.
+From **Itinerary**, tap **Share table** to preview a clean three-column image (Date, Base / Route, Activities) built directly from the active trip. Choose Simple or Detailed, then share through the native file share sheet on supported iPhones or download the PNG on desktop.
 
-Apply supabase/001_initial_schema.sql to the new database. Every public table has row-level security. Trip members can only read their permitted trips, and viewers have read-only access.
+The export groups consecutive flexible days at the same base; specific dated activities retain their own day; undated activities appear separately as FLEXIBLE. Enter explicit arrow routes in the location field of a transport activity to display them in the base/route column. Cancelled stays and dropped activities are excluded.
 
-Set Authentication > URL Configuration to the actual Pages URL, and enable Email authentication. For iPhone home-screen sign-in, configure the Email Magic Link template to include the OTP token if you want six-digit email codes; ordinary magic links are supported too.
-
-Update config.js with the new project's URL and PUBLIC publishable key. Never place a secret or service-role key in frontend files. Sign in and import the private trip JSON using More > Settings > Import trip JSON.
-
-Invite family members using More > Settings. The invitation is claimed when they log in with the matching verified email. The app does not automatically send an invitation email; share the app URL yourself.
+Only trip title, dates, stay locations and activity titles/places are included by default. No booking records, tasks, prices or accommodation notes are read. Activity notes can be included explicitly after checking a clear privacy warning and inspecting the preview; these may contain private links and references. Export is client-side using Canvas, with no new backend API or database write.
 
 ## Privacy, syncing and portability
 
