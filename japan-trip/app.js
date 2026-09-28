@@ -430,8 +430,8 @@ async function updateItineraryShare(){
   const detailed=$("#itinerary-share-style").value==="detailed";
   const includeNotes=$("#itinerary-share-notes").checked;
   $("#itinerary-share-privacy").textContent=includeNotes?
-    "Activity notes are included. Review the preview carefully for private details before sharing. Booking references and costs are never added automatically.":
-    "Booking references, costs, links, tasks and accommodation notes are never included.";
+    "Activity notes are included. Review them for private links and references before sharing. Booking records and costs are not used.":
+    "Booking records, costs, tasks and accommodation notes are not used. Check activity titles and places before sharing.";
   try{
     const currentTrip=trip();
     if(!currentTrip)throw new Error("Choose a trip before sharing its itinerary.");
