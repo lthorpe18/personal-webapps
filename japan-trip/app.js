@@ -1,5 +1,5 @@
 /* Trip Planner v1 — plain browser JavaScript; no private trip data in source control. */
-import { buildItineraryExportRows, makeItineraryPng } from "./itinerary-export.js?v=1";
+import { buildItineraryExportRows, makeItineraryPng } from "./itinerary-export.js?v=2";
 const $ = selector => document.querySelector(selector);
 const esc = value => String(value == null ? "" : value).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const config = window.TRIP_PLANNER_CONFIG || {};
@@ -56,7 +56,7 @@ function demoFixture(){
 }
 async function init(){
   if("serviceWorker" in navigator && (location.protocol==="https:"||location.hostname==="localhost")){
-    navigator.serviceWorker.register("./sw.js?v=7",{updateViaCache:"none"}).catch(()=>{});
+    navigator.serviceWorker.register("./sw.js?v=8",{updateViaCache:"none"}).catch(()=>{});
   }
   if(state.demo){const v=demoFixture();state.trips=[v.t];state.tripId=v.t.id;state.data=v.d;render();return;}
   if(!(config.url && config.publishableKey)){
