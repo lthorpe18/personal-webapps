@@ -17,18 +17,17 @@ This application is destination-independent and supports multiple trips.
 - Home, Tasks, Itinerary, Bookings, Decisions, Settings, import/export and trip switching exist in source. Prior local JavaScript syntax/render/import smoke tests passed.
 - GitHub Pages is enabled for the repository. Confirm the deployment of the CURRENT main SHA in Actions before describing a version as live.
 
-## Outstanding to make the app usable by the family
-1. Supabase Dashboard > Authentication > URL Configuration: set Site URL and Redirect URL to the exact app URL above, including trailing slash. Connected Supabase tools do not expose Auth URL configuration writes.
-2. For reliably signing in to the installed iPhone PWA, optionally edit Supabase's Email Magic Link template to include the OTP token. The app supports both magic links and code entry, but the default template may send only a link.
-3. User must sign in with their verified email; do not create or impersonate a login via backend SQL.
-4. Import the private Japan 2026 JSON into the signed-in account. Its personal details and booking references must NOT be committed to this public repository. The user received the file in their earlier ChatGPT chat.
-5. Verify owner/editor/viewer authorization, real email invitation claims, cloud persistence, realtime, and the actual iPhone Add to Home Screen flow. Tests against real signed-in accounts have not yet run.
+## Remaining acceptance checks (as of 28 Sep 2026)
+- The user has shown the populated Japan 2026 trip in the running iPhone app. Earlier statements that the import had not happened are stale; do not re-import without explicit authorisation.
+- Confirm login and syncing on the work laptop and a second signed-in family account. Invitations, viewer/editor permissions and realtime updates have not had end-to-end tests with distinct real users.
+- Confirm the share image's visual appearance and native iPhone share sheet using a real device. Mocked image-generation tests are not the same as an iPhone visual test.
+- Keep private trip JSON and booking references out of the public GitHub repo.
 
 ## Japan scope
 Current plan: Universal Studios Japan and Nagashima Spa Land are the two theme parks. Fuji-Q was dropped. A separate Mt Fuji sightseeing opportunity remains desirable. Accommodation and attractions beyond flights and Heathrow hotel should not be marked booked until confirmed.
 
 ## Next action
-Complete the manual Supabase Auth URL configuration in the dashboard, then sign in via the Pages app and import the private JSON. Run owner/editor/viewer and iPhone acceptance checks. Preserve privacy and the existing trip-planner app.
+Check that the current main SHA is deployed to GitHub Pages. User acceptance: open Itinerary, tap Share table, inspect the PNG preview, then test native share on iPhone / download on work laptop. Do not change the existing separate trip-planner app.
 
 ## Password sign-in for devices without email access (24 Sep 2026)
 - Added Sign in with a password on the login screen and Set or change password in More > Settings > Account & connection.
@@ -45,3 +44,10 @@ Complete the manual Supabase Auth URL configuration in the dashboard, then sign 
 - Asset query version 20260924-6 and offline shell cache v6 force the updated CSS/JS on refresh.
 - Static syntax and mocked HTML rendering checks passed for overview, task list, notes disclosure, safe-area CSS, and asset version. Visual acceptance on the user's physical iPhone remains outstanding.
 - The screenshot shows a populated Japan 2026 trip in the app. Previous notes saying no trip was imported may now be outdated; verify account/device sync before claiming backend persistence.
+
+## Itinerary image export (28 Sep 2026)
+- Added `itinerary-export.js` with pure row derivation from current trip dates, `trip_stops` and `activities`, and a client-side Canvas PNG renderer. No Supabase migration, storage, booking query or external image-generation service.
+- The Itinerary tab has a Share table button and separate preview dialog with Simple / Detailed options. Notes are excluded by default and require explicit opt-in with a private-information warning. Share-ready PNG uses native Web Share API file sharing where supported; fallback downloads the same PNG.
+- Specific activity dates become separate rows; unplanned adjacent days at the same overnight base are grouped; undated activities are marked FLEXIBLE at the end. Explicit transport routes with an arrow can override the base/route label. Cancelled stays and dropped activities do not export. Nothing is manually hardcoded for Japan, so the feature works for future trips.
+- Final asset version: `20260928-8`; service worker `trip-planner-shell-v8`, versioned export module `?v=2`. Preserve prior export format `trip-planner/v1`.
+- Verify GitHub Pages deployment and acceptance tests before claiming the feature is live and fully working.
