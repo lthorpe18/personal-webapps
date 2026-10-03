@@ -51,3 +51,15 @@ Check that the current main SHA is deployed to GitHub Pages. User acceptance: op
 - Specific activity dates become separate rows; unplanned adjacent days at the same overnight base are grouped; undated activities are marked FLEXIBLE at the end. Explicit transport routes with an arrow can override the base/route label. Cancelled stays and dropped activities do not export. Nothing is manually hardcoded for Japan, so the feature works for future trips.
 - Final asset version: `20260928-8`; service worker `trip-planner-shell-v8`, versioned export module `?v=2`. Preserve prior export format `trip-planner/v1`.
 - Verify GitHub Pages deployment and acceptance tests before claiming the feature is live and fully working.
+
+
+## Day-by-day / Travel Mode (4 Oct 2026)
+- Added a first-class **Days** navigation destination intended as the simple while-travelling view.
+- Days derives its content from existing trip data rather than duplicating itinerary text: activities, bookings, overnight stops, transport legs and trip assets.
+- Added a horizontal date strip, selected-day heading, contextual First up / Next summary, rich activity cards, structured transport-leg cards and a persistent Tonight accommodation card.
+- Booked activities can expose confirmation links and stored tickets directly from the day timeline.
+- Added a private ticket-wallet dialog. The Snow Monkey booking on 21 Dec is linked to five stored ticket assets and can open them as a swipe/click-through QR wallet.
+- Added structured schema support before the UI: activity times/order/address/map/booking link; booking stop/check-in/check-out/address/map fields; transport_legs with endpoint timezones, services, reservations and seat metadata; assets can link to activities, bookings, stops or transport legs.
+- Backfilled confirmed Tokyo Airbnb, Shibu Hotel and Haneda accommodation metadata; Snow Monkey admission is a first-class booking linked to its activity/assets; confirmed SAS flight sectors are stored as transport legs.
+- V1 intentionally does not cache private Supabase data offline. QR payloads can be rendered in the ticket wallet while online; an explicit secure offline-trip feature remains later work.
+- Static JavaScript syntax and source-presence checks passed on the feature branch. Real signed-in mobile visual/interaction acceptance remains required after GitHub Pages deployment.

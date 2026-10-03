@@ -4,7 +4,7 @@ const $ = selector => document.querySelector(selector);
 const esc = value => String(value == null ? "" : value).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const config = window.TRIP_PLANNER_CONFIG || {};
 const isDemo = new URLSearchParams(location.search).get("demo") === "1";
-const NAV = [["home","⌂","Home"],["tasks","☑","Tasks"],["itinerary","◇","Itinerary"],["bookings","▣","Bookings"],["more","⋯","More"]];
+const NAV = [["home","⌂","Home"],["days","◷","Days"],["tasks","☑","Tasks"],["itinerary","◇","Itinerary"],["bookings","▣","Bookings"],["more","⋯","More"]];
 const TABLE = {task:"tasks",stop:"trip_stops",activity:"activities",booking:"bookings",decision:"decisions",trip:"trips",invite:"trip_invitations"};
 const PRIORITIES = [["1","Urgent"],["2","High"],["3","Normal"]];
 const STATUSES = {
@@ -24,7 +24,7 @@ const FIELDS = {
   decision:[FIELD("subject","Decision","text",{required:true,full:true}),FIELD("status","Status","select",{options:STATUSES.decision}),FIELD("outcome","Agreed outcome","textarea",{required:true,full:true}),FIELD("notes","Context or next steps","textarea",{full:true})],
   invite:[FIELD("email","Person's email","email",{required:true,full:true}),FIELD("role","Access","select",{options:[["editor","Can edit"],["viewer","Read only"]]})]
 };
-const state={client:null,user:null,trips:[],tripId:null,tab:"home",moreTab:"decisions",filter:"open",category:"all",search:"",data:{tasks:[],trip_stops:[],activities:[],bookings:[],decisions:[]},invites:[],member:null,demo:isDemo,busy:false,refreshVersion:0,channel:null};
+const state={client:null,user:null,trips:[],tripId:null,tab:"home",moreTab:"decisions",filter:"open",category:"all",search:"",selectedDay:null,ticketIndex:0,data:{tasks:[],trip_stops:[],activities:[],bookings:[],decisions:[],transport_legs:[],trip_assets:[]},invites:[],member:null,demo:isDemo,busy:false,refreshVersion:0,channel:null};
 const day=date => date ? new Date(date+"T12:00:00Z").toLocaleDateString("en-GB",{day:"numeric",month:"short",timeZone:"UTC"}) : "Date TBC";
 const longDay=date => date ? new Date(date+"T12:00:00Z").toLocaleDateString("en-GB",{weekday:"short",day:"numeric",month:"short",year:"numeric",timeZone:"UTC"}) : "Date TBC";
 const nights=(from,to)=>from&&to?Math.max(0,Math.round((Date.parse(to+"T00:00:00Z")-Date.parse(from+"T00:00:00Z"))/86400000)):0;
@@ -51,12 +51,12 @@ function demoFixture(){
     {id:uid(),location:"Tokyo",starts_on:"2027-02-02",ends_on:"2027-02-07",status:"planned",accommodation_name:"",notes:"Example city stay."},
     {id:uid(),location:"Kyoto",starts_on:"2027-02-07",ends_on:"2027-02-11",status:"planned",accommodation_name:"",notes:"Example city stay."}
   ],activities:[{id:uid(),title:"Explore the old city",location:"Kyoto",activity_date:"2027-02-08",type:"sightseeing",status:"planned",notes:"Example activity."}],
-  bookings:[],decisions:[{id:uid(),subject:"Which cities to visit?",outcome:"Tokyo and Kyoto",status:"confirmed",notes:"Example decision."}]};
+  bookings:[],decisions:[{id:uid(),subject:"Which cities to visit?",outcome:"Tokyo and Kyoto",status:"confirmed",notes:"Example decision."}],transport_legs:[],trip_assets:[]};
   return {t,d};
 }
 async function init(){
   if("serviceWorker" in navigator && (location.protocol==="https:"||location.hostname==="localhost")){
-    navigator.serviceWorker.register("./sw.js?v=8",{updateViaCache:"none"}).catch(()=>{});
+    navigator.serviceWorker.register("./sw.js?v=10",{updateViaCache:"none"}).catch(()=>{});
   }
   if(state.demo){const v=demoFixture();state.trips=[v.t];state.tripId=v.t.id;state.data=v.d;render();return;}
   if(!(config.url && config.publishableKey)){
@@ -95,22 +95,22 @@ async function loadTrips(){
   const last=localStorage.getItem("trip-planner-last-trip");
   state.tripId=state.trips.some(t=>t.id===state.tripId)?state.tripId:(state.trips.find(t=>t.id===last)?.id||state.trips[0]?.id||null);
   if(state.tripId)await loadTrip();
-  else{state.member=null;state.data={tasks:[],trip_stops:[],activities:[],bookings:[],decisions:[]};render();}
+  else{state.member=null;state.data={tasks:[],trip_stops:[],activities:[],bookings:[],decisions:[],transport_legs:[],trip_assets:[]};render();}
 }
 async function loadTrip(){
   const id=state.tripId;if(!id)return;
   const current=++state.refreshVersion;
   const jobs=[
-    ...["tasks","trip_stops","activities","bookings","decisions"].map(name=>state.client.from(name).select("*").eq("trip_id",id)),
+    ...["tasks","trip_stops","activities","bookings","decisions","transport_legs","trip_assets"].map(name=>state.client.from(name).select("*").eq("trip_id",id)),
     state.client.from("trip_members").select("role").eq("trip_id",id).eq("user_id",state.user.id).maybeSingle()
   ];
   if(isOwner())jobs.push(state.client.from("trip_invitations").select("*").eq("trip_id",id).order("created_at",{ascending:false}));
   const results=await Promise.all(jobs);
   if(current!==state.refreshVersion||id!==state.tripId)return;
   for(const result of results)if(result.error)throw result.error;
-  ["tasks","trip_stops","activities","bookings","decisions"].forEach((key,i)=>state.data[key]=results[i].data||[]);
-  state.member=results[5].data;
-  state.invites=isOwner()?results[6].data||[]:[];
+  ["tasks","trip_stops","activities","bookings","decisions","transport_legs","trip_assets"].forEach((key,i)=>state.data[key]=results[i].data||[]);
+  state.member=results[7].data;
+  state.invites=isOwner()?results[8].data||[]:[];
   localStorage.setItem("trip-planner-last-trip",id);
   subscribe(id);
   render();
@@ -121,7 +121,7 @@ function subscribe(id){
   // Realtime is optional: visibility changes and a manual refresh also reload shared data.
   let schedule;
   const channel=state.client.channel("trip-"+id);
-  ["tasks","trip_stops","activities","bookings","decisions","trip_invitations"].forEach(table=>
+  ["tasks","trip_stops","activities","bookings","decisions","transport_legs","trip_assets","trip_invitations"].forEach(table=>
     channel.on("postgres_changes",{event:"*",schema:"public",table,filter:"trip_id=eq."+id},()=>{
       clearTimeout(schedule);schedule=setTimeout(()=>{if(state.tripId===id)loadTrip().catch(fail);},450);
     })
@@ -132,13 +132,13 @@ function nav(){return NAV.map(([id,ico,title])=>'<button type="button" class="na
 function render(){
   if(!state.demo&&!state.user){renderAuth();return;}
   const t=trip();
-  const names={home:"Overview",tasks:"Checklist",itinerary:"Itinerary",bookings:"Bookings",more:"Trip details"};
+  const names={home:"Overview",days:"Day by day",tasks:"Checklist",itinerary:"Itinerary",bookings:"Bookings",more:"Trip details"};
   const title=t?names[state.tab]:"Your trips";
   const back=state.trips.length>1?'<button class="icon-button" data-action="trips" title="Switch trip" aria-label="Switch trip">⇄</button>':"";
   $("#app").className="";
   $("#app").innerHTML='<div class="layout"><aside class="sidebar"><div class="brand"><span class="brand-mark">✦</span><span>Trip Planner</span></div><nav class="side-nav" aria-label="Main">'+nav()+'</nav><div class="side-foot"><small>'+esc(state.user?.email||"Demo mode")+'</small><button class="button button-small" data-action="trips">Switch / add trip</button></div></aside><main class="main view-'+esc(state.tab)+'"><div class="topline"><div class="topline-left"><p class="eyebrow">'+esc(t?.title||"TRIP PLANNER")+'</p><h1>'+esc(title)+'</h1><p class="sub">'+esc(t?.destination||"Plan your next adventure")+(t?.start_date?" · "+esc(day(t.start_date))+" – "+esc(day(t.end_date)):"")+'</p></div><div class="head-actions">'+back+'<button class="icon-button" data-action="refresh" title="Refresh" aria-label="Refresh">↻</button></div></div>'+
     (state.demo?'<div class="status-banner"><strong>Preview only.</strong> These are fictional examples. Changes are not saved and no personal information is stored. Connect your own Supabase project to activate private, shared trips.</div>':!navigator.onLine?'<div class="status-banner"><strong>Offline.</strong> Your private trip data needs a network connection.</div>':"")+
-    (!t && state.tab!=="more"?renderNoTrips():state.tab==="home"?renderHome():state.tab==="tasks"?renderTasks():state.tab==="itinerary"?renderItinerary():state.tab==="bookings"?renderBookings():renderMore())+
+    (!t && state.tab!=="more"?renderNoTrips():state.tab==="home"?renderHome():state.tab==="days"?renderDays():state.tab==="tasks"?renderTasks():state.tab==="itinerary"?renderItinerary():state.tab==="bookings"?renderBookings():renderMore())+
     '</main><nav class="bottom-nav" aria-label="Main">'+nav()+'</nav></div>';
 }
 function renderAuth(){
@@ -161,6 +161,106 @@ function renderHome(){
     '<div class="section-head"><div><h2>Useful shortcuts</h2></div></div><div class="panel"><button class="button button-primary" data-action="new-task">+ Add task</button> <button class="button" data-action="new-booking">+ Add booking</button> <button class="button" data-tab="more" data-more="decisions">Decisions →</button></div>';
 }
 function taskSort(a,b){return Number(a.priority||3)-Number(b.priority||3)||String(a.due_date||"9999").localeCompare(String(b.due_date||"9999"))||String(a.title).localeCompare(String(b.title));}
+
+function tripToday(){
+  const t=trip();if(!t)return null;
+  try{
+    const parts=new Intl.DateTimeFormat("en-CA",{timeZone:t.timezone||"UTC",year:"numeric",month:"2-digit",day:"2-digit"}).formatToParts(new Date());
+    const p=Object.fromEntries(parts.map(x=>[x.type,x.value]));
+    return p.year+"-"+p.month+"-"+p.day;
+  }catch{return new Date().toISOString().slice(0,10);}
+}
+function tripDates(){
+  const t=trip();if(!t?.start_date||!t?.end_date)return[];
+  const out=[];let d=new Date(t.start_date+"T12:00:00Z"),end=new Date(t.end_date+"T12:00:00Z");
+  while(d<=end){out.push(d.toISOString().slice(0,10));d=new Date(d.getTime()+86400000);}
+  return out;
+}
+function activeDay(){
+  const dates=tripDates(),t=trip();if(!dates.length)return null;
+  if(state.selectedDay&&dates.includes(state.selectedDay))return state.selectedDay;
+  const today=tripToday();
+  state.selectedDay=dates.includes(today)?today:(today<t.start_date?t.start_date:t.end_date);
+  return state.selectedDay;
+}
+function fullDay(date){
+  return new Date(date+"T12:00:00Z").toLocaleDateString("en-GB",{weekday:"long",day:"numeric",month:"long",timeZone:"UTC"});
+}
+function shortWeekday(date){
+  return new Date(date+"T12:00:00Z").toLocaleDateString("en-GB",{weekday:"short",timeZone:"UTC"});
+}
+function clock(ts,tz){
+  if(!ts)return "";
+  try{return new Intl.DateTimeFormat("en-GB",{hour:"2-digit",minute:"2-digit",hour12:false,timeZone:tz||trip()?.timezone||"UTC"}).format(new Date(ts));}
+  catch{return new Date(ts).toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit"});}
+}
+function dayStop(date){
+  return state.data.trip_stops.find(s=>s.status!=="cancelled"&&date>=s.starts_on&&date<s.ends_on)||null;
+}
+function linkedBooking(activity){
+  return activity?.booking_id?state.data.bookings.find(b=>b.id===activity.booking_id)||null:null;
+}
+function assetsFor(activity,booking){
+  return state.data.trip_assets.filter(a=>(activity&&a.activity_id===activity.id)||(booking&&a.booking_id===booking.id)).sort((a,b)=>(a.sort_order||0)-(b.sort_order||0)||String(a.title).localeCompare(String(b.title)));
+}
+function bookingActions(booking,assets){
+  if(!booking&&!assets.length)return "";
+  const bits=[];
+  if(assets.length)bits.push('<button class="button button-primary button-small" data-action="tickets" data-booking-id="'+esc(booking?.id||"")+'" data-activity-id="'+esc(assets[0]?.activity_id||"")+'">🎟 '+assets.length+' ticket'+(assets.length===1?"":"s")+'</button>');
+  if(booking?.confirmation_url&&safeUrl(booking.confirmation_url))bits.push('<a class="button button-small" target="_blank" rel="noopener noreferrer" href="'+esc(safeUrl(booking.confirmation_url))+'">Confirmation ↗</a>');
+  return bits.length?'<div class="day-actions">'+bits.join("")+'</div>':"";
+}
+function renderActivityDayItem(a){
+  const booking=linkedBooking(a),assets=assetsFor(a,booking);
+  const time=a.starts_at?clock(a.starts_at,trip()?.timezone):"";
+  const meta=[a.location||"",booking?.provider||"",booking?.booking_reference?"Ref "+booking.booking_reference:""].filter(Boolean);
+  return '<article class="day-card activity-day-card"><div class="day-card-time">'+(time?esc(time):'<span>Any time</span>')+'</div><div class="day-card-body"><div class="day-card-kicker">'+esc((a.type||"activity").replaceAll("_"," "))+'</div><h3>'+esc(a.title)+'</h3>'+(meta.length?'<p>'+esc(meta.join(" · "))+'</p>':"")+(a.notes?'<details class="travel-details"><summary>Useful details</summary><p>'+esc(a.notes)+'</p></details>':"")+bookingActions(booking,assets)+'</div></article>';
+}
+function modeIcon(mode){return({walk:"↟",bus:"▰",train:"━",shinkansen:"➜",taxi:"◆",flight:"✈",car:"◇",ferry:"≈",other:"•"})[mode]||"•";}
+function renderTransportLeg(v){
+  const booking=v.booking_id?state.data.bookings.find(b=>b.id===v.booking_id):null;
+  const assets=state.data.trip_assets.filter(a=>a.transport_leg_id===v.id||(booking&&a.booking_id===booking.id)).sort((a,b)=>(a.sort_order||0)-(b.sort_order||0));
+  const detail=[v.operator,v.service_number,v.platform&&"Platform "+v.platform,v.carriage&&"Carriage "+v.carriage,v.seat&&"Seat "+v.seat].filter(Boolean).join(" · ");
+  return '<article class="day-card travel-leg"><div class="travel-mode">'+esc(modeIcon(v.mode))+'</div><div class="travel-times"><strong>'+esc(clock(v.departs_at,v.departure_timezone))+'</strong><span>'+esc(v.departure_name)+'</span><i></i><strong>'+esc(clock(v.arrives_at,v.arrival_timezone))+'</strong><span>'+esc(v.arrival_name)+'</span></div><div class="day-card-body"><div class="day-card-kicker">'+esc(v.mode.replaceAll("_"," "))+'</div>'+(detail?'<p>'+esc(detail)+'</p>':"")+(v.notes?'<details class="travel-details"><summary>Journey details</summary><p>'+esc(v.notes)+'</p></details>':"")+bookingActions(booking,assets)+'</div></article>';
+}
+function tonightCard(date){
+  const stop=dayStop(date);if(!stop)return "";
+  const booking=state.data.bookings.find(b=>b.stop_id===stop.id&&b.status==="booked")||null;
+  const assets=state.data.trip_assets.filter(a=>a.stop_id===stop.id||(booking&&a.booking_id===booking.id)).sort((a,b)=>(a.sort_order||0)-(b.sort_order||0));
+  const nightNo=Math.max(1,Math.round((Date.parse(date+"T12:00:00Z")-Date.parse(stop.starts_on+"T12:00:00Z"))/86400000)+1);
+  const total=nights(stop.starts_on,stop.ends_on);
+  const detail=[booking?.check_in_time&&date===stop.starts_on?"Check-in "+String(booking.check_in_time).slice(0,5):"",booking?.check_out_time&&new Date(Date.parse(date+"T12:00:00Z")+86400000).toISOString().slice(0,10)===stop.ends_on?"Checkout "+String(booking.check_out_time).slice(0,5):"",booking?.booking_reference?"Ref "+booking.booking_reference:""].filter(Boolean);
+  const address=booking?.address||"";
+  return '<section class="tonight-card"><div class="tonight-icon">☾</div><div class="tonight-main"><p class="eyebrow">TONIGHT · NIGHT '+nightNo+(total?"/"+total:"")+'</p><h3>'+esc(stop.accommodation_name||stop.location)+'</h3><p>'+esc(stop.location)+(detail.length?" · "+esc(detail.join(" · ")):"")+'</p>'+(address?'<p class="tonight-address">'+esc(address)+'</p>':"")+bookingActions(booking,assets)+'</div></section>';
+}
+function daySummary(date,items,stop){
+  const nowDate=tripToday(),today=date===nowDate;
+  let next=null;
+  if(today){
+    const now=Date.now();
+    next=items.find(x=>x.when&&x.when>=now)||items[0]||null;
+  }else next=items[0]||null;
+  if(next){
+    return '<div class="today-summary"><p class="eyebrow">'+(today?"NEXT":"FIRST UP")+'</p><strong>'+esc(next.title)+'</strong>'+(next.time?'<span>'+esc(next.time)+'</span>':"")+'</div>';
+  }
+  return '<div class="today-summary quiet"><p class="eyebrow">'+(today?"TODAY":"DAY PLAN")+'</p><strong>'+esc(stop?.location||"Open day")+'</strong><span>No fixed-time plans yet</span></div>';
+}
+function renderDays(){
+  const date=activeDay(),dates=tripDates();if(!date)return emptySmall("Dates not set","Add trip dates before using Day by day.","","");
+  const activities=state.data.activities.filter(a=>a.status!=="dropped"&&a.activity_date===date).sort((a,b)=>(a.sort_order||0)-(b.sort_order||0)||String(a.starts_at||"").localeCompare(String(b.starts_at||"")));
+  const legs=state.data.transport_legs.filter(v=>v.reservation_status!=="cancelled"&&v.activity_date===date).sort((a,b)=>(a.sort_order||0)-(b.sort_order||0)||String(a.departs_at||"").localeCompare(String(b.departs_at||"")));
+  const combined=[
+    ...legs.map(v=>({kind:"leg",value:v,order:v.sort_order||0,when:v.departs_at?Date.parse(v.departs_at):null,title:(v.service_number?v.service_number+" · ":"")+v.departure_name+" → "+v.arrival_name,time:v.departs_at?clock(v.departs_at,v.departure_timezone):""})),
+    ...activities.map(v=>({kind:"activity",value:v,order:v.sort_order||0,when:v.starts_at?Date.parse(v.starts_at):null,title:v.title,time:v.starts_at?clock(v.starts_at,trip()?.timezone):""}))
+  ].sort((a,b)=>a.when&&b.when?a.when-b.when:a.when?-1:b.when?1:a.order-b.order);
+  const stop=dayStop(date);
+  return '<div class="day-strip-wrap"><div class="day-strip" aria-label="Trip dates">'+dates.map(d=>'<button class="day-chip '+(d===date?"active ":"")+(d===tripToday()?"today":"")+'" data-day="'+d+'"><span>'+esc(shortWeekday(d))+'</span><b>'+esc(new Date(d+"T12:00:00Z").toLocaleDateString("en-GB",{day:"2-digit",timeZone:"UTC"}))+'</b></button>').join("")+'</div></div>'+
+    '<div class="day-heading"><div><p class="eyebrow">'+esc(stop?.location||trip()?.destination||"TRIP DAY")+'</p><h2>'+esc(fullDay(date))+'</h2></div><span class="day-count">Day '+(dates.indexOf(date)+1)+' of '+dates.length+'</span></div>'+
+    daySummary(date,combined,stop)+
+    '<section class="day-timeline">'+(combined.length?combined.map(x=>x.kind==="leg"?renderTransportLeg(x.value):renderActivityDayItem(x.value)).join(""):'<div class="day-free"><strong>No fixed plans</strong><p>This day is open. Your overnight base and booking details are still shown below.</p></div>')+'</section>'+
+    tonightCard(date);
+}
+
 function taskRow(v,isOverview=false){
   return '<div class="task-row '+(isOverview?'home-task':'')+'"><input class="task-check" type="checkbox" data-task-check="'+esc(v.id)+'" aria-label="Complete '+esc(v.title)+'" '+(v.status==="done"?"checked ":"")+(canEdit()?"":"disabled ")+'><div class="task-body"><span class="task-title '+(v.status==="done"?"complete":"")+'">'+esc(v.title)+'</span><div class="task-meta"><span>'+esc(v.category||"General")+'</span>'+pill(v.priority||3,"priority")+(v.due_date?'<span>Due '+esc(day(v.due_date))+'</span>':"")+(v.status==="blocked"?pill("blocked"):"")+'</div>'+(v.notes?'<details class="task-notes"><summary>Details</summary><p>'+esc(v.notes)+'</p></details>':"")+'</div>'+(canEdit()?'<div class="row-actions"><button class="icon-button" data-action="edit-task" data-id="'+esc(v.id)+'" aria-label="Edit task">✎</button></div>':"")+'</div>';
 }
@@ -299,7 +399,7 @@ async function importTrip(file){
   try{
     if(state.demo){
       newId=uid();state.trips.push({...data,id:newId,created_by:"demo"});state.tripId=newId;
-      state.data={tasks:[],trip_stops:[],activities:[],bookings:[],decisions:[]};
+      state.data={tasks:[],trip_stops:[],activities:[],bookings:[],decisions:[],transport_legs:[],trip_assets:[]};
       for(const [type,key] of keys)state.data[key]=(payload[key]||[]).map(v=>({...stripRow(type,v),id:uid(),trip_id:newId}));
       render();
     }else{
@@ -319,16 +419,19 @@ async function importTrip(file){
     throw error;
   }
 }
-function changeTrip(id){if(!state.trips.some(t=>t.id===id))return;state.tripId=id;state.tab="home";state.moreTab="decisions";if(state.demo){state.data={tasks:[],trip_stops:[],activities:[],bookings:[],decisions:[]};render();}else loadTrip().catch(fail);}
+function changeTrip(id){if(!state.trips.some(t=>t.id===id))return;state.tripId=id;state.tab="home";state.moreTab="decisions";state.selectedDay=null;if(state.demo){state.data={tasks:[],trip_stops:[],activities:[],bookings:[],decisions:[],transport_legs:[],trip_assets:[]};render();}else loadTrip().catch(fail);}
 async function refresh(){if(state.demo){render();toast("Preview mode — changes are not saved.");return;}try{await loadTrips();toast("Up to date");}catch(error){fail(error);}}
 function attachEvents(){
   document.addEventListener("click",async e=>{
     const navEl=e.target.closest("[data-tab]");if(navEl){e.preventDefault();state.tab=navEl.dataset.tab;if(navEl.dataset.more)state.moreTab=navEl.dataset.more;state.search="";render();window.scrollTo({top:0,behavior:"instant"});return;}
+    const dayEl=e.target.closest("[data-day]");if(dayEl){state.selectedDay=dayEl.dataset.day;render();requestAnimationFrame(()=>document.querySelector('.day-chip.active')?.scrollIntoView({behavior:"smooth",inline:"center",block:"nearest"}));return;}
+    const ticketEl=e.target.closest("[data-ticket-index]");if(ticketEl){state.ticketIndex=Number(ticketEl.dataset.ticketIndex)||0;return renderTicketWallet();}
     const more=e.target.closest("[data-more]");if(more){state.moreTab=more.dataset.more;render();return;}
     const t=e.target.closest("[data-trip]");if(t){changeTrip(t.dataset.trip);return;}
     const action=e.target.closest("[data-action]");if(!action)return;
     const name=action.dataset.action,id=action.dataset.id;
     if(name==="share-itinerary")return openItineraryShare();
+    if(name==="tickets")return openTicketWallet(action.dataset.bookingId,action.dataset.activityId);
     if(name==="refresh")return refresh();
     if(name==="trips"){state.tab="more";state.moreTab="settings";return render();}
     if(name==="signout"){const {error}=await state.client.auth.signOut();if(error)fail(error);return;}
@@ -399,8 +502,46 @@ function attachEvents(){
   $("#editor-cancel").addEventListener("click",closeEditor);
   $("#editor-delete").addEventListener("click",()=>{const form=$("#editor-form");const type=form.dataset.type,id=form.dataset.id;closeEditor();if(id)remove(type,id);});
   $("#editor").addEventListener("click",e=>{if(e.target===$("#editor"))closeEditor();});
+  $("#ticket-dialog-close")?.addEventListener("click",()=>$("#ticket-dialog")?.close());
+  $("#ticket-dialog")?.addEventListener("click",e=>{if(e.target===$("#ticket-dialog"))$("#ticket-dialog").close();});
   document.addEventListener("visibilitychange",()=>{if(!document.hidden&&state.user&&!state.demo)loadTrips().catch(fail);});
   window.addEventListener("online",()=>{if(state.user&&!state.demo)loadTrips().catch(fail);});
+}
+
+
+let activeTicketAssets=[];
+async function ticketSrc(asset){
+  const value=String(asset?.data_url||"");
+  if(value.startsWith("data:image/"))return value;
+  if(value.startsWith("qr:")){
+    try{
+      const qr=await import("https://esm.sh/qrcode@1.5.4?bundle");
+      return await qr.toDataURL(value.slice(3),{width:520,margin:2,errorCorrectionLevel:"M"});
+    }catch(error){console.error(error);return "";}
+  }
+  return "";
+}
+async function renderTicketWallet(){
+  const dialog=$("#ticket-dialog");if(!dialog?.open||!activeTicketAssets.length)return;
+  const index=Math.max(0,Math.min(state.ticketIndex,activeTicketAssets.length-1));
+  state.ticketIndex=index;
+  const asset=activeTicketAssets[index],src=await ticketSrc(asset);
+  $("#ticket-dialog-title").textContent=asset.title||"Ticket";
+  $("#ticket-dialog-count").textContent=(index+1)+" of "+activeTicketAssets.length;
+  const image=$("#ticket-dialog-image");
+  if(src){image.src=src;image.hidden=false;}else{image.removeAttribute("src");image.hidden=true;}
+  $("#ticket-dialog-empty").hidden=!!src;
+  $("#ticket-dialog-pager").innerHTML=activeTicketAssets.map((a,i)=>'<button class="ticket-dot '+(i===index?"active":"")+'" data-ticket-index="'+i+'" aria-label="Show ticket '+(i+1)+'"></button>').join("");
+  $("#ticket-prev").disabled=index===0;
+  $("#ticket-next").disabled=index===activeTicketAssets.length-1;
+  $("#ticket-prev").onclick=()=>{if(state.ticketIndex>0){state.ticketIndex--;renderTicketWallet();}};
+  $("#ticket-next").onclick=()=>{if(state.ticketIndex<activeTicketAssets.length-1){state.ticketIndex++;renderTicketWallet();}};
+}
+function openTicketWallet(bookingId,activityId){
+  activeTicketAssets=state.data.trip_assets.filter(a=>a.kind==="ticket_qr"&&((bookingId&&a.booking_id===bookingId)||(activityId&&a.activity_id===activityId))).sort((a,b)=>(a.sort_order||0)-(b.sort_order||0)||String(a.title).localeCompare(String(b.title)));
+  if(!activeTicketAssets.length)return toast("No ticket QR codes are stored for this item yet.");
+  state.ticketIndex=0;
+  const dialog=$("#ticket-dialog");dialog.showModal();renderTicketWallet();
 }
 
 /* The export dialog lives outside #app so a regular refresh never removes its controls. */
