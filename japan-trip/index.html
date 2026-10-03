@@ -11,7 +11,7 @@
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="icon" type="image/svg+xml" href="./icon.svg">
   <link rel="apple-touch-icon" href="./icon-192.png">
-  <link rel="stylesheet" href="./styles.css?v=20260928-8">
+  <link rel="stylesheet" href="./styles.css?v=20261004-1">
   <title>Trip Planner</title>
 </head>
 <body>
@@ -36,7 +36,25 @@
       <div class="share-footer"><button type="button" class="button" id="itinerary-share-download" disabled>Download PNG</button><button type="button" class="button button-primary" id="itinerary-share-native" disabled>Share image</button></div>
     </div>
   </dialog>
-  <script src="./config.js?v=20260928-8"></script>
-  <script type="module" src="./app.js?v=20260928-9"></script>
+  <dialog id="ticket-dialog" class="ticket-dialog" aria-labelledby="ticket-dialog-title">
+    <div class="ticket-shell">
+      <div class="ticket-heading">
+        <div><p class="eyebrow">TICKET WALLET</p><h2 id="ticket-dialog-title">Ticket</h2></div>
+        <button type="button" class="icon-button" id="ticket-dialog-close" aria-label="Close tickets">✕</button>
+      </div>
+      <div class="ticket-stage">
+        <img id="ticket-dialog-image" alt="Ticket QR code" hidden>
+        <p id="ticket-dialog-empty" class="ticket-empty" hidden>This ticket could not be displayed. Open the original confirmation instead.</p>
+      </div>
+      <div class="ticket-controls">
+        <button type="button" class="icon-button" id="ticket-prev" aria-label="Previous ticket">←</button>
+        <div><p id="ticket-dialog-count" class="share-status"></p><div id="ticket-dialog-pager" class="ticket-pager"></div></div>
+        <button type="button" class="icon-button" id="ticket-next" aria-label="Next ticket">→</button>
+      </div>
+      <p class="ticket-security">Stored with your private trip data. Show the QR code at the entrance.</p>
+    </div>
+  </dialog>
+  <script src="./config.js?v=20261004-1"></script>
+  <script type="module" src="./app.js?v=20261004-1"></script>
 </body>
 </html>
