@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#173d3a">
+  <meta name="description" content="Read-only Japan 2026 trip planner.">
+  <link rel="icon" type="image/svg+xml" href="./icon.svg">
+  <link rel="stylesheet" href="./styles.css?v=20261012-public-1">
+  <style>
+    .public-note{margin:0 0 18px;padding:11px 15px;border-radius:13px;background:#eaf3ee;border:1px solid #cfe3d6;color:#285b4d;font-size:.82rem;line-height:1.4}
+    .public-view .task-check{cursor:default}
+    @media(max-width:650px){.bottom-nav{grid-template-columns:repeat(6,1fr)!important}.public-note{font-size:.75rem}}
+  </style>
+  <title>Japan 2026 · Trip Planner</title>
+</head>
+<body>
+  <div id="app" class="app-loading"><div class="loading-ring"></div><p>Opening Japan 2026…</p></div>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script src="./config.js?v=20261012-public-1"></script>
+  <script type="module" src="./public.js?v=20261012-public-1"></script>
+</body>
+</html>
