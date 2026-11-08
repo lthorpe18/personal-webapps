@@ -40,3 +40,9 @@ The app is served from the repository's `main` branch by GitHub Pages. Assets an
 The migration is additive. Before schema/data changes, `private.privacy_backups` captured all original content records, trip metadata, policies and public view definitions. This table is outside exposed schemas and grants no access to application roles. Private notes also retain the original mixed-content details for owner review.
 
 The preceding Git commit is the frontend rollback point. Retain the database privacy protections when rolling back frontend assets. For data recovery, an administrator can retrieve the original row from `private.privacy_backups` by `kind` and `payload->>'id'`, compare it with the current row and restore the needed fields. Restoring confidential original notes into Shared rows would re-expose them; recover them into Private notes instead. Do not drop privacy columns/policies or restore the old public projection as a routine rollback.
+
+## Save permission correction (8 November 2026)
+
+The original privacy SELECT predicate re-read the target row through a STABLE helper. That row is not visible to the helper during INSERT ... RETURNING, so authenticated new-item saves incorrectly failed. The restrictive policies now authorise the candidate row's values directly with a non-exposed helper, while resolving linked parents through the existing protected lookup. Membership, owner/explicit grants, private-parent restrictions and write-role policies remain enforced. INSERT now has its own restrictive privacy check, and UPDATE checks the proposed row as well. Previous policy definitions were captured in the protected snapshot before migration.
+
+The regression SQL now explicitly tests authenticated INSERT/UPDATE RETURNING for Shared and Private records across all seven content tables, plus editor insertion, private-insert denial and viewer-insert denial. These are rolled-back fixtures.

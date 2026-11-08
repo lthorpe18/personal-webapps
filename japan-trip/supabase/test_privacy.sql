@@ -58,11 +58,46 @@ update public.tasks set private_user_ids='{}' where trip_id=current_setting('pri
 select set_config('request.jwt.claim.sub',current_setting('privacy.viewer'),true);
 do $$ begin if (select count(*) from public.tasks where trip_id=current_setting('privacy.trip')::uuid)<>1 then raise exception 'Grant revocation failed';end if;end $$;
 reset role;
+-- Exercise the same INSERT/UPDATE RETURNING path used by PostgREST and the app.
+set local role authenticated;
+select set_config('request.jwt.claim.sub',current_setting('privacy.owner'),true);
+do $$ declare tab text; vis text; rid uuid; changed uuid; parent_id uuid; begin
+  select id into parent_id from public.bookings where trip_id=current_setting('privacy.trip')::uuid and title='Shared' limit 1;
+  foreach vis in array array['shared','private'] loop
+    foreach tab in array array['tasks','activities','bookings','decisions','trip_stops','transport_legs','trip_assets'] loop
+      if tab in ('tasks','activities','bookings') then
+        execute format('insert into public.%I(trip_id,title,visibility) values($1,''Returning save test'',$2) returning id',tab) into rid using current_setting('privacy.trip')::uuid,vis;
+      elsif tab='decisions' then
+        insert into public.decisions(trip_id,subject,outcome,visibility) values(current_setting('privacy.trip')::uuid,'Returning save test','Test',vis) returning id into rid;
+      elsif tab='trip_stops' then
+        insert into public.trip_stops(trip_id,location,starts_on,ends_on,visibility) values(current_setting('privacy.trip')::uuid,'Returning save test',current_date,current_date+1,vis) returning id into rid;
+      elsif tab='transport_legs' then
+        insert into public.transport_legs(trip_id,activity_date,departure_name,arrival_name,visibility) values(current_setting('privacy.trip')::uuid,current_date,'A','B',vis) returning id into rid;
+      else
+        insert into public.trip_assets(trip_id,title,kind,mime_type,data_url,booking_id,visibility) values(current_setting('privacy.trip')::uuid,'Returning save test','document','text/plain','example',parent_id,vis) returning id into rid;
+      end if;
+      if rid is null then raise exception 'Insert returned no ID for % / %',tab,vis;end if;
+      execute format('update public.%I set visibility=$1 where id=$2 returning id',tab) into changed using vis,rid;
+      if changed is distinct from rid then raise exception 'Update returning failed for % / %',tab,vis;end if;
+    end loop;
+  end loop;
+end $$;
+select set_config('request.jwt.claim.sub',current_setting('privacy.editor'),true);
+do $$ declare rid uuid;begin
+  insert into public.activities(trip_id,title) values(current_setting('privacy.trip')::uuid,'Editor shared insert') returning id into rid;
+  if rid is null then raise exception 'Editor insert failed';end if;
+  begin insert into public.activities(trip_id,title,visibility) values(current_setting('privacy.trip')::uuid,'Disallowed private insert','private') returning id into rid;raise exception 'Editor created private record';exception when raise_exception then if sqlerrm='Editor created private record' then raise;end if;end;
+end $$;
+select set_config('request.jwt.claim.sub',current_setting('privacy.viewer'),true);
+do $$ declare rid uuid;begin
+  begin insert into public.activities(trip_id,title) values(current_setting('privacy.trip')::uuid,'Disallowed viewer insert') returning id into rid;raise exception 'Viewer inserted record';exception when insufficient_privilege then null;end;
+  if exists(select 1 from public.activities where trip_id=current_setting('privacy.trip')::uuid and visibility='private') then raise exception 'Private inserted record leaked to viewer';end if;
+end $$;
 reset role;
 set local role anon;
 do $$ begin
   if not exists(select 1 from public.shared_japan_2026) then raise exception 'Public projection unavailable';end if;
   begin perform 1 from public.tasks;raise exception 'Anon raw access';exception when insufficient_privilege then null;end;
 end $$;
-select 'PASS: owner, viewer, editor, outsider, explicit grants/revocation, linked attachments, preview, public projection and raw API denial' as result;
+select 'PASS: owner, viewer, editor, outsider, explicit grants/revocation, linked attachments, preview, public projection, raw API denial and Shared/Private INSERT/UPDATE RETURNING for all seven tables' as result;
 rollback;
