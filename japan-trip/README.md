@@ -51,3 +51,7 @@ Checks: `node japan-trip/trip-view.test.mjs` and `node japan-trip/privacy.test.m
 ## Accommodation listing links
 
 Accommodation detail sheets in Plan and Wallet include a separate Listing / website button. Public property links are stored in `listing_url` on the stay, or on a standalone booking. Edit the stay to change its URL; if a URL belongs to its linked booking instead, the editor directs you there. Listing links follow existing record/parent visibility and appear in the safe public projection only for Shared records. Private confirmation links and reservation data remain separate.
+
+## Mobile form sizing
+
+All inputs, selects, textareas and editable text use at least 16px type before focus to prevent iPhone focus zoom. Form columns can shrink within their grid tracks; date/select/text controls share a 48px height, and narrow phone editors stack below 360px. Pinch zoom is preserved.
