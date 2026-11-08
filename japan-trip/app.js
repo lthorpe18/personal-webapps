@@ -62,7 +62,7 @@ function demoFixture(){
 }
 async function init(){
   if("serviceWorker" in navigator && (location.protocol==="https:"||location.hostname==="localhost")){
-    navigator.serviceWorker.register("./sw.js?v=11",{updateViaCache:"none"}).catch(()=>{});
+    navigator.serviceWorker.register("./sw.js?v=12",{updateViaCache:"none"}).catch(()=>{});
   }
   if(state.demo){const v=demoFixture();state.trips=[v.t];state.tripId=v.t.id;state.data=v.d;render();return;}
   if(!(config.url && config.publishableKey)){
@@ -106,6 +106,12 @@ async function loadTrips(){
 async function loadTrip(){
   const id=state.tripId;if(!id)return;
   const current=++state.refreshVersion;
+  if(state.preview){
+    const snapshot=await state.client.rpc("preview_shared_trip",{p_trip_id:id});
+    if(snapshot.error)throw snapshot.error;
+    if(current!==state.refreshVersion||id!==state.tripId||!state.preview)return;
+    state.data=snapshot.data;subscribe(id);render();return;
+  }
   const jobs=[
     ...["tasks","trip_stops","activities","bookings","decisions","transport_legs","trip_assets"].map(name=>state.client.from(name).select("*").eq("trip_id",id)),
     isOwner()?state.client.rpc("trip_member_directory",{p_trip_id:id}):state.client.from("trip_members").select("*").eq("trip_id",id)
@@ -114,10 +120,10 @@ async function loadTrip(){
   const results=await Promise.all(jobs);
   if(current!==state.refreshVersion||id!==state.tripId)return;
   for(const result of results)if(result.error)throw result.error;
-  ["tasks","trip_stops","activities","bookings","decisions","transport_legs","trip_assets"].forEach((key,i)=>state.data[key]=results[i].data||[]);
+  const loadedData=Object.fromEntries(["tasks","trip_stops","activities","bookings","decisions","transport_legs","trip_assets"].map((key,i)=>[key,results[i].data||[]]));
   state.members=results[7].data||[];
   state.member=state.members.find(m=>m.user_id===state.user.id);
-  if(state.preview){const snapshot=await state.client.rpc("preview_shared_trip",{p_trip_id:id});if(snapshot.error)throw snapshot.error;state.data=snapshot.data;}
+  state.data=loadedData;
   state.invites=isOwner()?results[8].data||[]:[];
   localStorage.setItem("trip-planner-last-trip",id);
   subscribe(id);
@@ -460,7 +466,12 @@ function attachEvents(){
     const t=e.target.closest("[data-trip]");if(t){changeTrip(t.dataset.trip);return;}
     const action=e.target.closest("[data-action]");if(!action)return;
     const name=action.dataset.action,id=action.dataset.id;
-    if(name==="preview-shared"){if(!isOwner())return;state.preview=!state.preview;closePrivateDialogs();state.tab="home";state.data=Object.fromEntries(Object.keys(state.data).map(k=>[k,[]]));render();await loadTrip().catch(fail);return;}
+    if(name==="preview-shared"){
+      if(!isOwner())return;
+      state.preview=!state.preview;closePrivateDialogs();state.tab="home";
+      if(state.demo){if(state.preview){state.demoFullData=state.data;state.data=sharedOnlyData();}else state.data=state.demoFullData;render();return;}
+      state.data=Object.fromEntries(Object.keys(state.data).map(k=>[k,[]]));render();await loadTrip().catch(fail);return;
+    }
     if(name==="private-note"){openEditor("decision");$("#field-visibility").value="private";$("#editor-title").textContent="Add private note";return;}
     if(name==="member-role"||name==="member-remove")return manageMember(name,id);
     if(name==="cancel-invite"){const r=await state.client.from("trip_invitations").delete().eq("id",id);if(r.error)fail(r.error);else await loadTrip();return;}

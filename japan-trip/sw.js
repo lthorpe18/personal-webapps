@@ -1,6 +1,6 @@
 /* Static-shell cache only. Private trip data and Supabase requests are NEVER cached. */
-const CACHE = "trip-planner-shell-v11";
-const SHELL = ["./","./index.html","./styles.css?v=20261108-1","./app.js?v=20261108-1","./itinerary-export.js?v=2","./privacy-ui.js?v=1","./manifest.webmanifest","./icon.svg","./icon-192.png"];
+const CACHE = "trip-planner-shell-v12";
+const SHELL = ["./","./index.html","./styles.css?v=20261108-2","./app.js?v=20261108-2","./itinerary-export.js?v=2","./privacy-ui.js?v=1","./manifest.webmanifest","./icon.svg","./icon-192.png"];
 self.addEventListener("install", event => {
   event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(SHELL)).then(() => self.skipWaiting()));
 });

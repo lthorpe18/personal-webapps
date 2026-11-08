@@ -21,4 +21,14 @@ state.demo=false;state.user={id:'viewer'};state.trips[0].created_by='owner';stat
 state.user.id='owner';state.preview=true;if(canEdit())throw new Error('Preview can edit');render();if(!$('#app').innerHTML.includes('Shared member preview'))throw new Error('Missing preview banner');
 state.preview=false;state.data.tasks[0].visibility='private';if(!privacyBadge(state.data.tasks[0]).includes('Private'))throw new Error('Private badge missing');
 `,context);
-console.log('PASS: export parent filtering, immutability, all mobile app views render, privacy editor, viewer and preview read-only controls');
+await vm.runInContext(`(async()=>{
+  state.preview=true;state.data={tasks:[],trip_stops:[],activities:[],bookings:[],decisions:[],transport_legs:[],trip_assets:[]};
+  let requested=false,resolveSnapshot;
+  const snapshot=new Promise(resolve=>resolveSnapshot=resolve);
+  state.client={from(table){return {select(){return this},eq(){return this},order(){return this},then(resolve){return Promise.resolve({data:table==='tasks'?[{id:'private-fetch',visibility:'private'}]:[]}).then(resolve)}}},rpc(name){if(name==='preview_shared_trip'){requested=true;return snapshot;}return Promise.resolve({data:[{user_id:'owner',role:'owner'}]});}};
+  const pending=loadTrip();while(!requested)await Promise.resolve();
+  if(state.data.tasks.length)throw new Error('Owner records entered preview before server filtering');
+  state.preview=false;state.refreshVersion++;resolveSnapshot({data:{tasks:[{id:'stale'}]}});await pending;
+  if(state.data.tasks.length)throw new Error('Stale preview overwrote the current view');
+})()`,context);
+console.log('PASS: export parent filtering, immutability, main view rendering, privacy editor, read-only controls and asynchronous preview isolation');

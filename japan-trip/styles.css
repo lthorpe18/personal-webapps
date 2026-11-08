@@ -199,3 +199,5 @@
 }
 
 .private-badge{margin-inline:6px;background:#f3e8ff;color:#663399}.privacy-list{margin-top:18px}.privacy-list summary{cursor:pointer;padding:12px 0}.privacy-list .task-row{overflow-wrap:anywhere}.privacy-list h3{margin-top:24px}
+
+.field input[type="checkbox"]{width:auto;min-width:18px;height:18px;margin-right:8px;vertical-align:middle}.settings-section .task-row{flex-wrap:wrap;overflow-wrap:anywhere}.settings-section .task-body{flex-basis:140px}
