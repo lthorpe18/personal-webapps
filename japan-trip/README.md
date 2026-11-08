@@ -2,7 +2,7 @@
 
 A mobile-first PWA for multiple holidays, developed in the japan-trip folder of personal-webapps. The existing trip-planner app is left unchanged.
 
-The app includes Home, Tasks, Itinerary, Bookings and More (Decisions and Settings). It supports trip-specific access roles, member invitations, import/export, and iPhone Add to Home Screen.
+The app includes Plan, Tasks, Wallet and More (Decisions and Settings). It supports trip-specific access roles, member invitations, import/export, and iPhone Add to Home Screen.
 
 ## Active ORB project (24 September 2026)
 
@@ -20,7 +20,7 @@ Do not create another Supabase project or commit private itinerary JSON. The `su
 
 ## Shareable itinerary PNG
 
-From **Itinerary**, tap **Share table** to preview a clean three-column image (Date, Base / Route, Activities) built directly from the active trip. Choose Simple or Detailed, then share through the native file share sheet on supported iPhones or download the PNG on desktop.
+From **Plan**, tap **Share table** to preview a clean three-column image (Date, Base / Route, Activities) built directly from the active trip. Choose Simple or Detailed, then share through the native file share sheet on supported iPhones or download the PNG on desktop.
 
 The export groups consecutive flexible days at the same base; specific dated activities retain their own day; undated activities appear separately as FLEXIBLE. Enter explicit arrow routes in the location field of a transport activity to display them in the base/route column. Cancelled stays and dropped activities are excluded.
 
@@ -37,3 +37,13 @@ The app is destination-independent: each holiday has its own tasks, overnight ba
 ## Record privacy (8 November 2026)
 
 See [PRIVACY.md](PRIVACY.md) for Shared/Private records, member access, owner preview, safe exports, verification and recovery. Use More → Settings → Privacy & access. Public sharing now enforces record and linked-parent visibility.
+
+## Unified Plan and Wallet (8 November 2026)
+
+Plan replaces Home, Days and Itinerary. It shows compact days grouped by overnight base, with a trip summary and tasks shortcut. Tap a day for its timeline, then tap a card for a shared detail sheet. Blue marks stays, purple travel, amber activities and coral meals; icons and text labels identify every type without relying on colour. Arrival/check-out events and quiet-day accommodation are derived from the existing records, including accommodation just outside the main trip dates. Flexible activities appear at the end.
+
+Wallet replaces the long booking-card screen with search and category filters. A ticket-name search finds its associated reservation. Both Plan and Wallet use `trip-view.js` and the same detail sheet, which contains references, costs, addresses/maps, connections, tickets, notes and permitted edit actions. Linked stops/reservations and activities/journey legs are combined for display only. Older records without links use conservative named/date matching; ambiguous matches stay separate. No source record is deleted or rewritten by the presentation layer. Cancelled reservations remain accessible in Wallet.
+
+The public read-only page uses the same renderer with the existing restricted database projection. It does not fetch authenticated rows, private attachments or additional booking details. Privacy preview, safe itinerary images/JSON exports, editing, invitations and trip switching are retained.
+
+Checks: `node japan-trip/trip-view.test.mjs` and `node japan-trip/privacy.test.mjs`. The model tests cover deduplication, legacy/public data, shared detail identity, search, check-in/out, cancelled reservations, HTML escaping, source immutability and private-parent filtering. Browser QA covers a 390px mobile frame, day expansion, detail sheets, Wallet search and ticket access. Physical iPhone/PWA/native sharing remain device acceptance checks.

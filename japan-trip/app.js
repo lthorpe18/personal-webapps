@@ -1,3 +1,4 @@
+import { navigationIcon, buildTripView, renderPlan as renderUnifiedPlan, renderWallet, renderItemDetail } from "./trip-view.js?v=1";
 import { sharedData } from "./privacy-ui.js?v=1";
 /* Trip Planner v1 — plain browser JavaScript; no private trip data in source control. */
 import { buildItineraryExportRows, makeItineraryPng } from "./itinerary-export.js?v=2";
@@ -5,7 +6,7 @@ const $ = selector => document.querySelector(selector);
 const esc = value => String(value == null ? "" : value).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const config = window.TRIP_PLANNER_CONFIG || {};
 const isDemo = new URLSearchParams(location.search).get("demo") === "1";
-const NAV = [["home","⌂","Home"],["days","◷","Days"],["tasks","☑","Tasks"],["itinerary","◇","Itinerary"],["bookings","▣","Bookings"],["more","⋯","More"]];
+const NAV = [["plan","◇","Plan"],["tasks","☑","Tasks"],["wallet","▤","Wallet"],["more","⋯","More"]];
 const TABLE = {task:"tasks",stop:"trip_stops",activity:"activities",booking:"bookings",decision:"decisions",trip:"trips",invite:"trip_invitations",leg:"transport_legs",asset:"trip_assets"};
 const PRIORITIES = [["1","Urgent"],["2","High"],["3","Normal"]];
 const STATUSES = {
@@ -30,7 +31,7 @@ FIELDS.asset=[FIELD("title","Attachment title","text",{required:true,full:true})
 for(const type of ["task","stop","activity","booking","decision","leg","asset"]){
   FIELDS[type].push(FIELD("visibility","Visibility","select",{options:[["shared","Shared — trip members"],["private","Private — owner and selected members"]],full:true}));
 }
-const state={preview:false,members:[],client:null,user:null,trips:[],tripId:null,tab:"home",moreTab:"decisions",filter:"open",category:"all",search:"",selectedDay:null,ticketIndex:0,data:{tasks:[],trip_stops:[],activities:[],bookings:[],decisions:[],transport_legs:[],trip_assets:[]},invites:[],member:null,demo:isDemo,busy:false,refreshVersion:0,channel:null};
+const state={preview:false,members:[],client:null,user:null,trips:[],tripId:null,tab:"plan",moreTab:"decisions",filter:"open",category:"all",search:"",selectedDay:null,detailKey:null,walletSearch:"",walletFilter:"all",ticketIndex:0,data:{tasks:[],trip_stops:[],activities:[],bookings:[],decisions:[],transport_legs:[],trip_assets:[]},invites:[],member:null,demo:isDemo,busy:false,refreshVersion:0,channel:null};
 const day=date => date ? new Date(date+"T12:00:00Z").toLocaleDateString("en-GB",{day:"numeric",month:"short",timeZone:"UTC"}) : "Date TBC";
 const longDay=date => date ? new Date(date+"T12:00:00Z").toLocaleDateString("en-GB",{weekday:"short",day:"numeric",month:"short",year:"numeric",timeZone:"UTC"}) : "Date TBC";
 const nights=(from,to)=>from&&to?Math.max(0,Math.round((Date.parse(to+"T00:00:00Z")-Date.parse(from+"T00:00:00Z"))/86400000)):0;
@@ -58,11 +59,18 @@ function demoFixture(){
     {id:uid(),location:"Kyoto",starts_on:"2027-02-07",ends_on:"2027-02-11",status:"planned",accommodation_name:"",notes:"Example city stay."}
   ],activities:[{id:uid(),title:"Explore the old city",location:"Kyoto",activity_date:"2027-02-08",type:"sightseeing",status:"planned",notes:"Example activity."}],
   bookings:[],decisions:[{id:uid(),subject:"Which cities to visit?",outcome:"Tokyo and Kyoto",status:"confirmed",notes:"Example decision."}],transport_legs:[],trip_assets:[]};
+  d.trip_stops[0].accommodation_name="City apartment Tokyo";
+  d.trip_stops[1].accommodation_name="Garden House Kyoto";
+  const stayId=uid(),railId=uid(),activityId=uid();
+  d.bookings=[{id:stayId,title:"Garden House Kyoto",category:"accommodation",provider:"Example host",start_date:"2027-02-07",end_date:"2027-02-11",status:"booked",stop_id:d.trip_stops[1].id,check_in_time:"16:00",check_out_time:"10:00",address:"Example address, Kyoto",booking_reference:"DEMO-ONLY",notes:"Fictional confirmation for exploring the app."},{id:railId,title:"Tokyo to Kyoto rail journey",category:"transport",provider:"Example railway",status:"booked",start_date:"2027-02-07",end_date:"2027-02-07",booking_reference:"DEMO-RAIL"}];
+  d.activities.push({id:activityId,title:"Travel to Kyoto",type:"transport",activity_date:"2027-02-07",location:"Tokyo → Kyoto",status:"booked",booking_id:railId});
+  d.transport_legs=[{id:uid(),activity_date:"2027-02-07",departure_name:"Tokyo",arrival_name:"Kyoto",departs_at:"2027-02-07T01:00:00Z",arrives_at:"2027-02-07T03:15:00Z",mode:"shinkansen",booking_id:railId,reservation_status:"booked",operator:"Example railway",service_number:"Demo service",seat:"12A",notes:"Illustrative times only."}];
+  d.trip_assets=[{id:uid(),title:"Example rail ticket",kind:"ticket_qr",mime_type:"application/x-qr-payload",data_url:"qr:DEMO-ONLY-NOT-A-VALID-TICKET",booking_id:railId,activity_id:activityId}];
   return {t,d};
 }
 async function init(){
   if("serviceWorker" in navigator && (location.protocol==="https:"||location.hostname==="localhost")){
-    navigator.serviceWorker.register("./sw.js?v=13",{updateViaCache:"none"}).catch(()=>{});
+    navigator.serviceWorker.register("./sw.js?v=14",{updateViaCache:"none"}).catch(()=>{});
   }
   if(state.demo){const v=demoFixture();state.trips=[v.t];state.tripId=v.t.id;state.data=v.d;render();return;}
   if(!(config.url && config.publishableKey)){
@@ -142,19 +150,20 @@ function subscribe(id){
   );
   state.channel=channel.subscribe();
 }
-function nav(){return NAV.map(([id,ico,title])=>'<button type="button" class="nav-link '+(state.tab===id?"active":"")+'" data-tab="'+id+'" aria-label="'+title+'" aria-current="'+(state.tab===id?"page":"false")+'"><span class="nav-ico">'+ico+'</span><span class="nav-label">'+title+"</span></button>").join("");}
+function nav(){return NAV.map(([id,ico,title])=>'<button type="button" class="nav-link '+(state.tab===id?"active":"")+'" data-tab="'+id+'" aria-label="'+title+'" aria-current="'+(state.tab===id?"page":"false")+'"><span class="nav-ico">'+navigationIcon(id)+'</span><span class="nav-label">'+title+"</span></button>").join("");}
 function render(){
   if(!state.demo&&!state.user){renderAuth();return;}
   const t=trip();
-  const names={home:"Overview",days:"Day by day",tasks:"Checklist",itinerary:"Itinerary",bookings:"Bookings",more:"Trip details"};
+  const names={plan:"Your plan",tasks:"Checklist",wallet:"Travel wallet",more:"Trip details"};
   const title=t?names[state.tab]:"Your trips";
   const back=state.trips.length>1?'<button class="icon-button" data-action="trips" title="Switch trip" aria-label="Switch trip">⇄</button>':"";
   $("#app").className="";
   $("#app").innerHTML='<div class="layout"><aside class="sidebar"><div class="brand"><span class="brand-mark">✦</span><span>Trip Planner</span></div><nav class="side-nav" aria-label="Main">'+nav()+'</nav><div class="side-foot"><small>'+esc(state.user?.email||"Demo mode")+'</small><button class="button button-small" data-action="trips">Switch / add trip</button></div></aside><main class="main view-'+esc(state.tab)+'"><div class="topline"><div class="topline-left"><p class="eyebrow">'+esc(t?.title||"TRIP PLANNER")+'</p><h1>'+esc(title)+'</h1><p class="sub">'+esc(t?.destination||"Plan your next adventure")+(t?.start_date?" · "+esc(day(t.start_date))+" – "+esc(day(t.end_date)):"")+'</p></div><div class="head-actions">'+back+'<button class="icon-button" data-action="refresh" title="Refresh" aria-label="Refresh">↻</button></div></div>'+
     (state.preview?'<div class="status-banner"><strong>Shared member preview</strong> — read-only access with no private grants. <button class="button button-small" data-action="preview-shared">Exit preview</button></div>':'')+
     (state.demo?'<div class="status-banner"><strong>Preview only.</strong> These are fictional examples. Changes are not saved and no personal information is stored. Connect your own Supabase project to activate private, shared trips.</div>':!navigator.onLine?'<div class="status-banner"><strong>Offline.</strong> Your private trip data needs a network connection.</div>':"")+
-    (!t && state.tab!=="more"?renderNoTrips():state.tab==="home"?renderHome():state.tab==="days"?renderDays():state.tab==="tasks"?renderTasks():state.tab==="itinerary"?renderItinerary():state.tab==="bookings"?renderBookings():renderMore())+
+    (!t && state.tab!=="more"?renderNoTrips():state.tab==="plan"?renderPlanView():state.tab==="tasks"?renderTasks():state.tab==="wallet"?renderWallet(trip(),state.data,{search:state.walletSearch,filter:state.walletFilter,canEdit:canEdit()}):renderMore())+
     '</main><nav class="bottom-nav" aria-label="Main">'+nav()+'</nav></div>';
+  syncItemDetail();
 }
 function renderAuth(){
   $("#app").className="";
@@ -164,17 +173,6 @@ function renderAuth(){
     '<p class="hint">The sign-in email link opens on the device where you tap it. You can also sign in here with a password once you have set one.</p></div></div>';
 }
 function renderNoTrips(){return '<div class="empty"><strong>No trips yet</strong><p>Create a new holiday or import your private trip backup directly.</p><button class="button button-primary" data-action="new-trip">Create trip</button> <button class="button" data-action="import">Import trip JSON</button><input id="import-file" type="file" accept="application/json,.json" hidden></div>';}
-function renderHome(){
-  const t=trip();const open=state.data.tasks.filter(x=>x.status!=="done").sort(taskSort);
-  const confirmed=state.data.bookings.filter(x=>x.status==="booked").length;
-  const done=state.data.tasks.filter(x=>x.status==="done").length;
-  const stays=[...state.data.trip_stops].sort((a,b)=>String(a.starts_on).localeCompare(String(b.starts_on)));
-  return '<section class="hero"><div><p class="eyebrow">YOUR NEXT ADVENTURE</p><h2>'+esc(t.destination||t.title)+'</h2><p>'+esc(day(t.start_date))+' – '+esc(day(t.end_date))+' '+esc(String(t.end_date||t.start_date).slice(0,4))+'</p></div><div class="hero-stat"><b>'+until(t.start_date)+'</b><span>Days to go</span></div></section>'+
-    '<div class="stats"><div class="stat"><b>'+open.length+'</b><span>To do</span></div><div class="stat"><b>'+confirmed+'</b><span>Booked</span></div><div class="stat"><b>'+done+'/'+state.data.tasks.length+'</b><span>Done</span></div></div>'+
-    '<div class="section-head"><div><h2>Up next</h2><p>Highest priority outstanding tasks</p></div><a href="#" data-tab="tasks">View all →</a></div><div class="stack">'+(open.length?open.slice(0,4).map(v=>taskRow(v,true)).join(""):emptySmall("All caught up","There are no outstanding tasks.",canEdit()?"new-task":"","Add task"))+'</div>'+
-    '<div class="section-head"><div><h2>Where you’ll be</h2><p>Your planned overnight bases</p></div><a href="#" data-tab="itinerary">Full itinerary →</a></div><div class="stack">'+(stays.length?stays.slice(0,4).map(stopRow).join(""):emptySmall("Build your route","Add your first overnight stop.",canEdit()?"new-stop":"","Add stop"))+'</div>'+
-    '<div class="section-head"><div><h2>Useful shortcuts</h2></div></div><div class="panel">'+(canEdit()?'<button class="button button-primary" data-action="new-task">+ Add task</button> <button class="button" data-action="new-booking">+ Add booking</button> ':'')+'<button class="button" data-tab="more" data-more="decisions">Decisions →</button></div>';
-}
 function taskSort(a,b){return Number(a.priority||3)-Number(b.priority||3)||String(a.due_date||"9999").localeCompare(String(b.due_date||"9999"))||String(a.title).localeCompare(String(b.title));}
 
 function tripToday(){
@@ -212,70 +210,6 @@ function clock(ts,tz){
 function dayStop(date){
   return state.data.trip_stops.find(s=>s.status!=="cancelled"&&date>=s.starts_on&&date<s.ends_on)||null;
 }
-function linkedBooking(activity){
-  return activity?.booking_id?state.data.bookings.find(b=>b.id===activity.booking_id)||null:null;
-}
-function assetsFor(activity,booking){
-  return state.data.trip_assets.filter(a=>(activity&&a.activity_id===activity.id)||(booking&&a.booking_id===booking.id)).sort((a,b)=>(a.sort_order||0)-(b.sort_order||0)||String(a.title).localeCompare(String(b.title)));
-}
-function bookingActions(booking,assets){
-  if(!booking&&!assets.length)return "";
-  const bits=[];
-  if(assets.length)bits.push('<button class="button button-primary button-small" data-action="tickets" data-booking-id="'+esc(booking?.id||"")+'" data-activity-id="'+esc(assets[0]?.activity_id||"")+'">🎟 '+assets.length+' ticket'+(assets.length===1?"":"s")+'</button>');
-  if(booking?.confirmation_url&&safeUrl(booking.confirmation_url))bits.push('<a class="button button-small" target="_blank" rel="noopener noreferrer" href="'+esc(safeUrl(booking.confirmation_url))+'">Confirmation ↗</a>');
-  return bits.length?'<div class="day-actions">'+bits.join("")+'</div>':"";
-}
-function renderActivityDayItem(a){
-  const booking=linkedBooking(a),assets=assetsFor(a,booking);
-  const time=a.starts_at?clock(a.starts_at,trip()?.timezone):"";
-  const meta=[a.location||"",booking?.provider||"",booking?.booking_reference?"Ref "+booking.booking_reference:""].filter(Boolean);
-  return '<article class="day-card activity-day-card"><div class="day-card-time">'+(time?esc(time):'<span>Any time</span>')+'</div><div class="day-card-body"><div class="day-card-kicker">'+esc((a.type||"activity").replaceAll("_"," "))+'</div><h3>'+esc(a.title)+privacyBadge(a)+'</h3>'+(meta.length?'<p>'+esc(meta.join(" · "))+'</p>':"")+(a.notes?'<details class="travel-details"><summary>Useful details</summary><p>'+esc(a.notes)+'</p></details>':"")+bookingActions(booking,assets)+'</div></article>';
-}
-function modeIcon(mode){return({walk:"↟",bus:"▰",train:"━",shinkansen:"➜",taxi:"◆",flight:"✈",car:"◇",ferry:"≈",other:"•"})[mode]||"•";}
-function renderTransportLeg(v){
-  const booking=v.booking_id?state.data.bookings.find(b=>b.id===v.booking_id):null;
-  const assets=state.data.trip_assets.filter(a=>a.transport_leg_id===v.id||(booking&&a.booking_id===booking.id)).sort((a,b)=>(a.sort_order||0)-(b.sort_order||0));
-  const detail=[v.operator,v.service_number,v.platform&&"Platform "+v.platform,v.carriage&&"Carriage "+v.carriage,v.seat&&"Seat "+v.seat].filter(Boolean).join(" · ");
-  return '<article class="day-card travel-leg"><div class="travel-mode">'+esc(modeIcon(v.mode))+'</div><div class="travel-times"><strong>'+esc(clock(v.departs_at,v.departure_timezone))+'</strong><span>'+esc(v.departure_name)+'</span><i></i><strong>'+esc(clock(v.arrives_at,v.arrival_timezone))+'</strong><span>'+esc(v.arrival_name)+'</span></div><div class="day-card-body"><div class="day-card-kicker">'+esc(v.mode.replaceAll("_"," "))+privacyBadge(v)+'</div>'+(detail?'<p>'+esc(detail)+'</p>':"")+(v.notes?'<details class="travel-details"><summary>Journey details</summary><p>'+esc(v.notes)+'</p></details>':"")+bookingActions(booking,assets)+'</div></article>';
-}
-function tonightCard(date){
-  const stop=dayStop(date);if(!stop)return "";
-  const booking=state.data.bookings.find(b=>b.stop_id===stop.id&&b.status==="booked")||null;
-  const assets=state.data.trip_assets.filter(a=>a.stop_id===stop.id||(booking&&a.booking_id===booking.id)).sort((a,b)=>(a.sort_order||0)-(b.sort_order||0));
-  const nightNo=Math.max(1,Math.round((Date.parse(date+"T12:00:00Z")-Date.parse(stop.starts_on+"T12:00:00Z"))/86400000)+1);
-  const total=nights(stop.starts_on,stop.ends_on);
-  const detail=[booking?.check_in_time&&date===stop.starts_on?"Check-in "+String(booking.check_in_time).slice(0,5):"",booking?.check_out_time&&new Date(Date.parse(date+"T12:00:00Z")+86400000).toISOString().slice(0,10)===stop.ends_on?"Checkout "+String(booking.check_out_time).slice(0,5):"",booking?.booking_reference?"Ref "+booking.booking_reference:""].filter(Boolean);
-  const address=booking?.address||"";
-  return '<section class="tonight-card"><div class="tonight-icon">☾</div><div class="tonight-main"><p class="eyebrow">TONIGHT · NIGHT '+nightNo+(total?"/"+total:"")+'</p><h3>'+esc(stop.accommodation_name||stop.location)+'</h3><p>'+esc(stop.location)+(detail.length?" · "+esc(detail.join(" · ")):"")+'</p>'+(address?'<p class="tonight-address">'+esc(address)+'</p>':"")+bookingActions(booking,assets)+'</div></section>';
-}
-function daySummary(date,items,stop){
-  const nowDate=tripToday(),today=date===nowDate;
-  let next=null;
-  if(today){
-    const now=Date.now();
-    next=items.find(x=>x.when&&x.when>=now)||items[0]||null;
-  }else next=items[0]||null;
-  if(next){
-    return '<div class="today-summary"><p class="eyebrow">'+(today?"NEXT":"FIRST UP")+'</p><strong>'+esc(next.title)+'</strong>'+(next.time?'<span>'+esc(next.time)+'</span>':"")+'</div>';
-  }
-  return '<div class="today-summary quiet"><p class="eyebrow">'+(today?"TODAY":"DAY PLAN")+'</p><strong>'+esc(stop?.location||"Open day")+'</strong><span>No fixed-time plans yet</span></div>';
-}
-function renderDays(){
-  const date=activeDay(),dates=tripDates();if(!date)return emptySmall("Dates not set","Add trip dates before using Day by day.","","");
-  const activities=state.data.activities.filter(a=>a.status!=="dropped"&&a.activity_date===date).sort((a,b)=>(a.sort_order||0)-(b.sort_order||0)||String(a.starts_at||"").localeCompare(String(b.starts_at||"")));
-  const legs=state.data.transport_legs.filter(v=>v.reservation_status!=="cancelled"&&v.activity_date===date).sort((a,b)=>(a.sort_order||0)-(b.sort_order||0)||String(a.departs_at||"").localeCompare(String(b.departs_at||"")));
-  const combined=[
-    ...legs.map(v=>({kind:"leg",value:v,order:v.sort_order||0,when:v.departs_at?Date.parse(v.departs_at):null,title:(v.service_number?v.service_number+" · ":"")+v.departure_name+" → "+v.arrival_name,time:v.departs_at?clock(v.departs_at,v.departure_timezone):""})),
-    ...activities.map(v=>({kind:"activity",value:v,order:v.sort_order||0,when:v.starts_at?Date.parse(v.starts_at):null,title:v.title,time:v.starts_at?clock(v.starts_at,trip()?.timezone):""}))
-  ].sort((a,b)=>a.when&&b.when?a.when-b.when:a.when?-1:b.when?1:a.order-b.order);
-  const stop=dayStop(date);
-  return '<div class="day-strip-wrap"><div class="day-strip" aria-label="Trip dates">'+dates.map(d=>'<button class="day-chip '+(d===date?"active ":"")+(d===tripToday()?"today":"")+'" data-day="'+d+'"><span>'+esc(shortWeekday(d))+'</span><b>'+esc(new Date(d+"T12:00:00Z").toLocaleDateString("en-GB",{day:"2-digit",timeZone:"UTC"}))+'</b></button>').join("")+'</div></div>'+
-    '<div class="day-heading"><div><p class="eyebrow">'+esc(stop?.location||trip()?.destination||"TRIP DAY")+'</p><h2>'+esc(fullDay(date))+'</h2></div><span class="day-count">Day '+(dates.indexOf(date)+1)+' of '+dates.length+'</span></div>'+
-    daySummary(date,combined,stop)+
-    '<section class="day-timeline">'+(combined.length?combined.map(x=>x.kind==="leg"?renderTransportLeg(x.value):renderActivityDayItem(x.value)).join(""):'<div class="day-free"><strong>No fixed plans</strong><p>This day is open. Your overnight base and booking details are still shown below.</p></div>')+'</section>'+
-    tonightCard(date);
-}
-
 function taskRow(v,isOverview=false){
   return '<div class="task-row '+(isOverview?'home-task':'')+'"><input class="task-check" type="checkbox" data-task-check="'+esc(v.id)+'" aria-label="Complete '+esc(v.title)+'" '+(v.status==="done"?"checked ":"")+(canEdit()?"":"disabled ")+'><div class="task-body"><span class="task-title '+(v.status==="done"?"complete":"")+'">'+esc(v.title)+privacyBadge(v)+'</span><div class="task-meta"><span>'+esc(v.category||"General")+'</span>'+pill(v.priority||3,"priority")+(v.due_date?'<span>Due '+esc(day(v.due_date))+'</span>':"")+(v.status==="blocked"?pill("blocked"):"")+'</div>'+(v.notes?'<details class="task-notes"><summary>Details</summary><p>'+esc(v.notes)+'</p></details>':"")+'</div>'+(canEdit()?'<div class="row-actions"><button class="icon-button" data-action="edit-task" data-id="'+esc(v.id)+'" aria-label="Edit task">✎</button></div>':"")+'</div>';
 }
@@ -284,17 +218,16 @@ function renderTasks(){
   let filtered=state.data.tasks.filter(t=>(state.filter==="all"||(state.filter==="open"?t.status!=="done":t.status===state.filter))&&(state.category==="all"||(t.category||"General")===state.category)&&(t.title+" "+(t.notes||"")).toLowerCase().includes(state.search.toLowerCase())).sort(taskSort);
   return '<div class="section-head"><div><h2>All tasks</h2><p>Search, tick off and prioritise everything.</p></div>'+(canEdit()?'<button class="button button-primary button-small" data-action="new-task">+ New task</button>':"")+'</div><div class="filters"><input class="filter-search" id="task-search" type="search" placeholder="Search checklist" aria-label="Search tasks" value="'+esc(state.search)+'"><select class="filter-select" data-filter="status" aria-label="Task status">'+[["open","Outstanding"],["all","All statuses"],["todo","To do"],["doing","In progress"],["blocked","Blocked"],["done","Completed"]].map(([id,n])=>'<option value="'+id+'" '+(state.filter===id?"selected":"")+'>'+n+'</option>').join("")+'</select><select class="filter-select" data-filter="category" aria-label="Task category"><option value="all">All categories</option>'+cats.map(c=>'<option '+(state.category===c?"selected":"")+' value="'+esc(c)+'">'+esc(c)+'</option>').join("")+'</select></div><div class="stack">'+(filtered.length?filtered.map(taskRow).join(""):emptySmall("No matching tasks","Try another filter or add a task.",canEdit()?"new-task":"",canEdit()?"Add task":""))+'</div>';
 }
-function stopRow(v){
-  return '<div class="panel stop-card"><div class="stop-date"><b>'+esc(new Date(v.starts_on+"T12:00:00Z").toLocaleDateString("en-GB",{day:"2-digit",timeZone:"UTC"}))+'</b><span>'+esc(new Date(v.starts_on+"T12:00:00Z").toLocaleDateString("en-GB",{month:"short",timeZone:"UTC"}).toUpperCase())+'</span></div><div class="stop-main"><h3>'+esc(v.location)+'</h3><p>'+esc(day(v.starts_on))+' – '+esc(day(v.ends_on))+' · '+nights(v.starts_on,v.ends_on)+' nights'+(v.accommodation_name?" · "+esc(v.accommodation_name):"")+'</p>'+pill(v.status||"planned","stop")+'</div>'+(canEdit()?'<button class="icon-button" data-action="edit-stop" data-id="'+esc(v.id)+'" aria-label="Edit stop">✎</button>':"")+'</div>';
+function renderPlanView(){if(state.planTrip!==state.tripId){state.planTrip=state.tripId;const today=tripToday();if(tripDates().includes(today))state.selectedDay=today;}return renderUnifiedPlan(trip(),state.data,{expandedDay:state.selectedDay,today:tripToday(),canEdit:canEdit(),canShare:true});}
+function openItemDetail(key){
+  const model=buildTripView(trip(),state.data),record=model.details.get(key);if(!record)return toast("This item is no longer available.");
+  state.detailKey=key;$("#item-detail-body").innerHTML=renderItemDetail(record,trip(),{canEdit:canEdit()});
+  if(!$("#item-detail").open)$("#item-detail").showModal();
 }
-function renderItinerary(){
-  const stops=[...state.data.trip_stops].sort((a,b)=>String(a.starts_on).localeCompare(String(b.starts_on)));
-  const activities=[...state.data.activities].sort((a,b)=>String(a.activity_date||"9999").localeCompare(String(b.activity_date||"9999")));
-  return '<div class="section-head itinerary-section-head"><div><h2>Overnight bases</h2><p>Where you stay, in travel order.</p></div><div class="itinerary-actions"><button class="button button-small" type="button" data-action="share-itinerary">⇪ Share table</button>'+(canEdit()?'<button class="button button-primary button-small" data-action="new-stop">+ Stay</button>':"")+'</div></div><div class="timeline">'+(stops.length?stops.map(stopRow).join(""):emptySmall("No stays yet","Add your first overnight base.",canEdit()?"new-stop":"",canEdit()?"Add stay":""))+'</div><div class="section-head"><div><h2>Activities & journeys</h2><p>Day trips, transport and tickets.</p></div>'+(canEdit()?'<button class="button button-primary button-small" data-action="new-activity">+ Activity</button>':"")+'</div><div class="panel">'+(activities.length?activities.map(v=>'<div class="activity-row"><div class="activity-date">'+esc(day(v.activity_date))+'</div><div><div class="activity-title">'+esc(v.title)+privacyBadge(v)+'</div><div class="activity-sub">'+esc(v.location||label("activity",v.type)||"")+' · '+esc(v.type?.replaceAll("_"," ")||"Activity")+'</div>'+pill(v.status||"planned","activity")+(v.notes?'<p class="panel-sub">'+esc(v.notes)+'</p>':"")+'</div>'+(canEdit()?'<button class="icon-button" data-action="edit-activity" data-id="'+esc(v.id)+'" aria-label="Edit activity">✎</button>':"")+'</div>').join(""):emptySmall("No activities yet","Add sightseeing, park days or transport.",canEdit()?"new-activity":"",canEdit()?"Add activity":""))+'</div>';
-}
-function renderBookings(){
-  const bookings=[...state.data.bookings].sort((a,b)=>String(a.start_date||"9999").localeCompare(String(b.start_date||"9999")));
-  return '<div class="section-head"><div><h2>Bookings & confirmations</h2><p>References and links are visible only to your trip members.</p></div>'+(canEdit()?'<button class="button button-primary button-small" data-action="new-booking">+ Booking</button>':"")+'</div><div class="book-grid">'+(bookings.length?bookings.map(v=>'<article class="panel booking-card"><div class="panel-head"><div><p class="eyebrow">'+esc(v.category||"OTHER")+'</p><h3>'+esc(v.title)+'</h3></div>'+pill(v.status||"pending","booking")+'</div><div class="details">'+(v.provider?esc(v.provider)+"<br>":"")+(v.start_date?esc(day(v.start_date))+(v.end_date?" – "+esc(day(v.end_date)):""):"Date TBC")+(v.notes?'<p class="note-text">'+esc(v.notes)+'</p>':"")+'</div>'+(v.booking_reference?'<div class="booking-ref">Reference: <strong>'+esc(v.booking_reference)+'</strong></div>':"")+'<div class="booking-bottom"><span class="muted">'+(v.amount!=null?esc(v.currency||"GBP")+" "+Number(v.amount).toLocaleString("en-GB",{minimumFractionDigits:2,maximumFractionDigits:2}):"")+'</span><div class="row-actions">'+link(v.confirmation_url,"Open")+(canEdit()?'<button class="icon-button" data-action="edit-booking" data-id="'+esc(v.id)+'" aria-label="Edit booking">✎</button>':"")+'</div></div></article>').join(""):emptySmall("No bookings yet","Add reservations once they are confirmed.",canEdit()?"new-booking":"",canEdit()?"Add booking":""))+'</div>';
+function closeItemDetail(){state.detailKey=null;$("#item-detail")?.close();$("#item-detail-body").innerHTML="";}
+function syncItemDetail(){
+  if(state.detailKey){const record=trip()&&buildTripView(trip(),state.data).details.get(state.detailKey);if(record)$("#item-detail-body").innerHTML=renderItemDetail(record,trip(),{canEdit:canEdit()});else closeItemDetail();}
+  if(activeTicketAssets.some(a=>!state.data.trip_assets.some(x=>x.id===a.id))){activeTicketAssets=[];ticketRenderVersion++;$("#ticket-dialog")?.close();$("#ticket-dialog-image")?.removeAttribute("src");}
 }
 function renderMore(){
   if(!trip())state.moreTab="settings";
@@ -307,7 +240,7 @@ function renderDecisions(){
 }
 function sharedOnlyData(){return sharedData(state.data);}
 function privacyBadge(v){return v.visibility==="private"?'<span class="pill private-badge">🔒 Private</span>':'';}
-function closePrivateDialogs(){for(const selector of ["#editor","#ticket-dialog","#itinerary-share-dialog"]){const el=$(selector);if(el?.open)el.close();}releaseItineraryPreview();activeTicketAssets=[];ticketRenderVersion++;$("#ticket-dialog-image")?.removeAttribute("src");state.ticketIndex=0;}
+function closePrivateDialogs(){state.walletSearch="";state.walletFilter="all";state.search="";closeItemDetail();for(const selector of ["#editor","#ticket-dialog","#itinerary-share-dialog"]){const el=$(selector);if(el?.open)el.close();}releaseItineraryPreview();activeTicketAssets=[];ticketRenderVersion++;$("#ticket-dialog-image")?.removeAttribute("src");state.ticketIndex=0;}
 function renderPrivacySettings(){
   if(!isOwner()||state.preview)return '';
   const types={tasks:"task",trip_stops:"stop",activities:"activity",bookings:"booking",decisions:"decision",transport_legs:"leg",trip_assets:"asset"};
@@ -331,11 +264,13 @@ function renderSettings(){
 }
 function emptySmall(title,description,action,button){return '<div class="empty"><strong>'+esc(title)+'</strong><p>'+esc(description)+'</p>'+(action?'<button class="button" data-action="'+esc(action)+'">'+esc(button)+'</button>':"")+'</div>';}
 function openEditor(type,id){
+  closeItemDetail();
   if(state.preview)return toast("Exit preview to make changes.");
   if(!canEdit()&&type!=="trip")return toast("You have read-only access.");
   if(type==="invite"&&!isOwner())return toast("Only the trip owner can invite people.");
   if(type==="trip"&&id&&!isOwner())return toast("Only the trip owner can edit trip details.");
   const v=id?item(type,id):{};
+  if(!id&&state.selectedDay){if(type==="activity")v.activity_date=state.selectedDay;if(type==="leg")v.activity_date=state.selectedDay;if(type==="booking")v.start_date=state.selectedDay;if(type==="stop")v.starts_on=state.selectedDay;}
   const fields=FIELDS[type]?.filter(f=>f.name!=="visibility"||isOwner());if(!fields)return;
   const titles={trip:"Trip",task:"Task",stop:"Stay",activity:"Activity or journey",booking:"Booking",decision:"Decision",invite:"Invitation",leg:"Journey",asset:"Attachment"};
   $("#editor-title").textContent=(id?"Edit ":"Add ")+titles[type];
@@ -372,7 +307,7 @@ async function saveEditor(event){
   try{
     if(state.demo){
       if(type==="invite")throw new Error("Connect Supabase to invite people.");
-      if(type==="trip"&&!id){const newTrip={...data,id:uid(),created_by:"demo"};state.trips.push(newTrip);state.tripId=newTrip.id;state.data={tasks:[],trip_stops:[],activities:[],bookings:[],decisions:[]};}
+      if(type==="trip"&&!id){const newTrip={...data,id:uid(),created_by:"demo"};state.trips.push(newTrip);state.tripId=newTrip.id;state.data={tasks:[],trip_stops:[],activities:[],bookings:[],decisions:[],transport_legs:[],trip_assets:[]};}
       else if(type==="trip")Object.assign(trip(),data);
       else if(id)Object.assign(item(type,id),data);
       else state.data[TABLE[type]].push({...data,id:uid(),trip_id:state.tripId});
@@ -447,7 +382,7 @@ async function importTrip(file){
         const result=await state.client.from(key).insert(records);
         if(result.error)throw result.error;
       }
-      state.tripId=newId;await loadTrips();state.tab="home";render();
+      state.tripId=newId;await loadTrips();state.tab="plan";render();
     }
     toast("Trip imported successfully");
   }catch(error){
@@ -455,20 +390,25 @@ async function importTrip(file){
     throw error;
   }
 }
-function changeTrip(id){state.preview=false;closePrivateDialogs();if(!state.trips.some(t=>t.id===id))return;state.tripId=id;state.tab="home";state.moreTab="decisions";state.selectedDay=null;if(state.demo){state.data={tasks:[],trip_stops:[],activities:[],bookings:[],decisions:[],transport_legs:[],trip_assets:[]};render();}else loadTrip().catch(fail);}
+function changeTrip(id){state.preview=false;closePrivateDialogs();if(!state.trips.some(t=>t.id===id))return;state.tripId=id;state.tab="plan";state.moreTab="decisions";state.selectedDay=null;if(state.demo){state.data={tasks:[],trip_stops:[],activities:[],bookings:[],decisions:[],transport_legs:[],trip_assets:[]};render();}else loadTrip().catch(fail);}
 async function refresh(){if(state.demo){render();toast("Preview mode — changes are not saved.");return;}try{await loadTrips();toast("Up to date");}catch(error){fail(error);}}
 function attachEvents(){
   document.addEventListener("click",async e=>{
     const navEl=e.target.closest("[data-tab]");if(navEl){e.preventDefault();state.tab=navEl.dataset.tab;if(navEl.dataset.more)state.moreTab=navEl.dataset.more;state.search="";render();window.scrollTo({top:0,behavior:"instant"});return;}
+    const planDay=e.target.closest("[data-plan-day]");if(planDay){const date=planDay.dataset.planDay;const toggle=planDay.hasAttribute("aria-expanded");state.selectedDay=toggle&&state.selectedDay===date?null:date;render();const target=document.querySelector('[data-plan-day="'+date+'"][aria-expanded]');target?.focus({preventScroll:true});if(!toggle)target?.scrollIntoView({behavior:"smooth",block:"start"});return;}
+    const detail=e.target.closest("[data-detail]");if(detail){openItemDetail(detail.dataset.detail);return;}
+    const walletFilter=e.target.closest("[data-wallet-filter]");if(walletFilter){state.walletFilter=walletFilter.dataset.walletFilter;render();return;}
     const dayEl=e.target.closest("[data-day]");if(dayEl){state.selectedDay=dayEl.dataset.day;render();requestAnimationFrame(()=>document.querySelector('.day-chip.active')?.scrollIntoView({behavior:"smooth",inline:"center",block:"nearest"}));return;}
     const ticketEl=e.target.closest("[data-ticket-index]");if(ticketEl){state.ticketIndex=Number(ticketEl.dataset.ticketIndex)||0;return renderTicketWallet();}
     const more=e.target.closest("[data-more]");if(more){state.moreTab=more.dataset.more;render();return;}
     const t=e.target.closest("[data-trip]");if(t){changeTrip(t.dataset.trip);return;}
     const action=e.target.closest("[data-action]");if(!action)return;
     const name=action.dataset.action,id=action.dataset.id;
+    if(name==="close-detail")return closeItemDetail();
+    if(name==="open-asset"){const asset=state.data.trip_assets.find(a=>a.id===id);if(!asset)return;activeTicketAssets=[asset];state.ticketIndex=0;$("#ticket-dialog").showModal();renderTicketWallet();return;}
     if(name==="preview-shared"){
       if(!isOwner())return;
-      state.preview=!state.preview;closePrivateDialogs();state.tab="home";
+      state.preview=!state.preview;closePrivateDialogs();state.tab="plan";
       if(state.demo){if(state.preview){state.demoFullData=state.data;state.data=sharedOnlyData();}else state.data=state.demoFullData;render();return;}
       state.data=Object.fromEntries(Object.keys(state.data).map(k=>[k,[]]));render();await loadTrip().catch(fail);return;
     }
@@ -492,6 +432,7 @@ function attachEvents(){
     if(e.target.id==="import-file"){const file=e.target.files?.[0];if(file){try{await importTrip(file);}catch(error){fail(error);}}e.target.value="";}
   });
   document.addEventListener("input",e=>{
+    if(e.target.id==="wallet-search"){const start=e.target.selectionStart;state.walletSearch=e.target.value;render();const input=$("#wallet-search");input?.focus();if(input&&start!=null)input.setSelectionRange(start,start);return;}
     if(e.target.id==="task-search"){const start=e.target.selectionStart;state.search=e.target.value;render();const input=$("#task-search");input?.focus();if(input&&start!=null)input.setSelectionRange(start,start);}
   });
   document.addEventListener("submit",async e=>{
@@ -543,6 +484,8 @@ function attachEvents(){
     e.target.disabled=true;
     try{const {data,error}=await state.client.auth.verifyOtp({email,token,type:"email"});if(error)throw error;state.user=data.user;await loadTrips();}catch(error){$("#auth-message").textContent=error.message;}finally{e.target.disabled=false;}
   });
+  $("#item-detail").addEventListener("click",e=>{if(e.target===$("#item-detail"))closeItemDetail();});
+  $("#item-detail").addEventListener("cancel",()=>{state.detailKey=null;});
   $("#editor-close").addEventListener("click",closeEditor);
   $("#editor-cancel").addEventListener("click",closeEditor);
   $("#editor-delete").addEventListener("click",()=>{const form=$("#editor-form");const type=form.dataset.type,id=form.dataset.id;closeEditor();if(id)remove(type,id);});

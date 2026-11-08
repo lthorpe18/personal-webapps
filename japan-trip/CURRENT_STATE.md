@@ -67,3 +67,7 @@ Check that the current main SHA is deployed to GitHub Pages. User acceptance: op
 ## Record privacy (8 November 2026)
 
 Shared/Private record access is enforced in Supabase across all seven content tables. Owner-controlled private grants, inherited linked-record restrictions, member role/revocation controls and shared-member preview are implemented. Shared exports/images omit private content. Existing public view retains its safe projection through a security-invoker view and non-exposed shared-only function. Original data and policy/view definitions are retained in a protected database snapshot. See PRIVACY.md for verification and acceptance limitations. No real member invitation was created during this work.
+
+## Unified Plan / Wallet navigation (8 November 2026)
+
+The navigation is now Plan, Tasks, Wallet, More. Home, Days and Itinerary are consolidated into expandable days in Plan, with colour-coded items and one shared detail-sheet component for Plan/Wallet. Bookings are compact searchable Wallet rows. Source records, Supabase schema/RLS and public audience are unchanged. The no-login public page uses the same presentation module against its restricted projection. See README.md for behaviour, checks and device acceptance limits. Frontend rollback point: 0737cdcdf199bb48e38341399e40c60d00e61538.
