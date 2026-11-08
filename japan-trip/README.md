@@ -47,3 +47,7 @@ Wallet replaces the long booking-card screen with search and category filters. A
 The public read-only page uses the same renderer with the existing restricted database projection. It does not fetch authenticated rows, private attachments or additional booking details. Privacy preview, safe itinerary images/JSON exports, editing, invitations and trip switching are retained.
 
 Checks: `node japan-trip/trip-view.test.mjs` and `node japan-trip/privacy.test.mjs`. The model tests cover deduplication, legacy/public data, shared detail identity, search, check-in/out, cancelled reservations, HTML escaping, source immutability and private-parent filtering. Browser QA covers a 390px mobile frame, day expansion, detail sheets, Wallet search and ticket access. Physical iPhone/PWA/native sharing remain device acceptance checks.
+
+## Accommodation listing links
+
+Accommodation detail sheets in Plan and Wallet include a separate Listing / website button. Public property links are stored in `listing_url` on the stay, or on a standalone booking. Edit the stay to change its URL; if a URL belongs to its linked booking instead, the editor directs you there. Listing links follow existing record/parent visibility and appear in the safe public projection only for Shared records. Private confirmation links and reservation data remain separate.

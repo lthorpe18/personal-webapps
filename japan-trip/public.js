@@ -1,4 +1,4 @@
-import {navigationIcon,buildTripView,renderPlan,renderWallet,renderItemDetail} from './trip-view.js?v=1';
+import {navigationIcon,buildTripView,renderPlan,renderWallet,renderItemDetail} from './trip-view.js?v=2';
 const $=s=>document.querySelector(s),esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const config=window.TRIP_PLANNER_CONFIG||{};
 const state={tab:'plan',selectedDay:null,detailKey:null,walletSearch:'',walletFilter:'all',trip:null,data:{tasks:[],trip_stops:[],activities:[],bookings:[],decisions:[],transport_legs:[],trip_assets:[]}};

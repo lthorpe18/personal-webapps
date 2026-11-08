@@ -1,4 +1,4 @@
-import { navigationIcon, buildTripView, renderPlan as renderUnifiedPlan, renderWallet, renderItemDetail } from "./trip-view.js?v=1";
+import { navigationIcon, buildTripView, renderPlan as renderUnifiedPlan, renderWallet, renderItemDetail } from "./trip-view.js?v=2";
 import { sharedData } from "./privacy-ui.js?v=1";
 /* Trip Planner v1 — plain browser JavaScript; no private trip data in source control. */
 import { buildItineraryExportRows, makeItineraryPng } from "./itinerary-export.js?v=2";
@@ -26,6 +26,8 @@ const FIELDS = {
   decision:[FIELD("subject","Decision","text",{required:true,full:true}),FIELD("status","Status","select",{options:STATUSES.decision}),FIELD("outcome","Agreed outcome","textarea",{required:true,full:true}),FIELD("notes","Context or next steps","textarea",{full:true})],
   invite:[FIELD("email","Person's email","email",{required:true,full:true}),FIELD("role","Access","select",{options:[["viewer","Read only"],["editor","Can edit"]]})]
 };
+FIELDS.stop.push(FIELD("listing_url","Public listing / hotel website","url",{full:true,placeholder:"https://…"}));
+FIELDS.booking.push(FIELD("listing_url","Public listing / website","url",{full:true,placeholder:"https://…"}));
 FIELDS.leg=[FIELD("departure_name","From","text",{required:true}),FIELD("arrival_name","To","text",{required:true}),FIELD("activity_date","Date","date",{required:true}),FIELD("notes","Notes","textarea",{full:true})];
 FIELDS.asset=[FIELD("title","Attachment title","text",{required:true,full:true})];
 for(const type of ["task","stop","activity","booking","decision","leg","asset"]){
@@ -70,7 +72,7 @@ function demoFixture(){
 }
 async function init(){
   if("serviceWorker" in navigator && (location.protocol==="https:"||location.hostname==="localhost")){
-    navigator.serviceWorker.register("./sw.js?v=14",{updateViaCache:"none"}).catch(()=>{});
+    navigator.serviceWorker.register("./sw.js?v=15",{updateViaCache:"none"}).catch(()=>{});
   }
   if(state.demo){const v=demoFixture();state.trips=[v.t];state.tripId=v.t.id;state.data=v.d;render();return;}
   if(!(config.url && config.publishableKey)){
@@ -271,7 +273,9 @@ function openEditor(type,id){
   if(type==="trip"&&id&&!isOwner())return toast("Only the trip owner can edit trip details.");
   const v=id?item(type,id):{};
   if(!id&&state.selectedDay){if(type==="activity")v.activity_date=state.selectedDay;if(type==="leg")v.activity_date=state.selectedDay;if(type==="booking")v.start_date=state.selectedDay;if(type==="stop")v.starts_on=state.selectedDay;}
-  const fields=FIELDS[type]?.filter(f=>f.name!=="visibility"||isOwner());if(!fields)return;
+  const stay=!id?null:type==="stop"?buildTripView(trip(),state.data).stays.find(s=>s.stop?.id===id):type==="booking"?buildTripView(trip(),state.data).stays.find(s=>s.booking?.id===id):null;
+  const listingOnStay=!!stay?.stop?.listing_url;
+  const fields=FIELDS[type]?.filter(f=>(f.name!=="visibility"||isOwner())&&(f.name!=="listing_url"||!(type==="stop"&&stay?.booking&&!listingOnStay)&&!(type==="booking"&&listingOnStay)));if(!fields)return;
   const titles={trip:"Trip",task:"Task",stop:"Stay",activity:"Activity or journey",booking:"Booking",decision:"Decision",invite:"Invitation",leg:"Journey",asset:"Attachment"};
   $("#editor-title").textContent=(id?"Edit ":"Add ")+titles[type];
   $("#editor-form").dataset.type=type;$("#editor-form").dataset.id=id||"";
@@ -281,6 +285,7 @@ function openEditor(type,id){
     const control=f.type==="textarea"?'<textarea'+attrs+' rows="3">'+esc(value)+'</textarea>':f.type==="select"?'<select'+attrs+'>'+f.options.map(([k,n])=>'<option value="'+esc(k)+'" '+(String(k)===String(value)?"selected":"")+'>'+esc(n)+'</option>').join("")+'</select>':'<input type="'+esc(f.type)+'"'+attrs+' value="'+esc(value)+'">';
     return '<div class="field '+(f.full?"full":"")+'"><label for="field-'+esc(f.name)+'">'+esc(f.label)+'</label>'+control+'</div>';
   }).join("");
+  if(stay&&(type==="stop"&&stay.booking&&!listingOnStay||type==="booking"&&listingOnStay))$("#editor-fields").insertAdjacentHTML("beforeend",'<p class="hint full">The listing link is managed on the linked '+(listingOnStay?'stay':'booking')+'.</p>');
   if(isOwner()&&FIELDS[type]?.some(f=>f.name==="visibility")){
     $("#editor-fields").insertAdjacentHTML("beforeend",'<fieldset class="field full"><legend>Private access (optional)</legend><p class="hint">The owner always has access. Selected people also need access to any linked private parent. Shared items are visible to every member.</p>'+state.members.filter(m=>m.user_id!==state.user?.id).map(m=>'<label><input type="checkbox" name="private_user_ids" value="'+esc(m.user_id)+'" '+(v?.private_user_ids?.includes(m.user_id)?'checked':'')+'> Member '+esc(m.email||m.user_id.slice(0,8))+' · '+esc(m.role)+'</label>').join('')+'</fieldset>');
   }
@@ -297,6 +302,7 @@ async function saveEditor(event){
   const form=event.target,type=form.dataset.type,id=form.dataset.id;
   const fd=new FormData(form),data=Object.fromEntries(fd.entries());
   if(isOwner()&&FIELDS[type]?.some(f=>f.name==="visibility"))data.private_user_ids=fd.getAll("private_user_ids");
+  if(data.listing_url){const url=safeUrl(data.listing_url.trim());if(!url)return editorError("Use an http or https website link.");data.listing_url=url;}
   if(data.email)data.email=data.email.trim().toLowerCase();
   if(data.start_date&&data.end_date&&data.end_date<data.start_date)return editorError("End date cannot be before the start date.");
   if(data.starts_on&&data.ends_on&&data.ends_on<=data.starts_on)return editorError("Departure must be after arrival.");
