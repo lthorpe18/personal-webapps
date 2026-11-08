@@ -197,3 +197,5 @@
   .ticket-shell{padding:14px}
   .ticket-stage{min-height:300px;padding:14px}
 }
+
+.private-badge{margin-inline:6px;background:#f3e8ff;color:#663399}.privacy-list{margin-top:18px}.privacy-list summary{cursor:pointer;padding:12px 0}.privacy-list .task-row{overflow-wrap:anywhere}.privacy-list h3{margin-top:24px}

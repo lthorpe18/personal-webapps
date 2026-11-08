@@ -63,3 +63,7 @@ Check that the current main SHA is deployed to GitHub Pages. User acceptance: op
 - Backfilled confirmed Tokyo Airbnb, Shibu Hotel and Haneda accommodation metadata; Snow Monkey admission is a first-class booking linked to its activity/assets; confirmed SAS flight sectors are stored as transport legs.
 - V1 intentionally does not cache private Supabase data offline. QR payloads can be rendered in the ticket wallet while online; an explicit secure offline-trip feature remains later work.
 - Static JavaScript syntax and source-presence checks passed on the feature branch. Real signed-in mobile visual/interaction acceptance remains required after GitHub Pages deployment.
+
+## Record privacy (8 November 2026)
+
+Shared/Private record access is enforced in Supabase across all seven content tables. Owner-controlled private grants, inherited linked-record restrictions, member role/revocation controls and shared-member preview are implemented. Shared exports/images omit private content. Existing public view retains its safe projection through a security-invoker view and non-exposed shared-only function. Original data and policy/view definitions are retained in a protected database snapshot. See PRIVACY.md for verification and acceptance limitations. No real member invitation was created during this work.

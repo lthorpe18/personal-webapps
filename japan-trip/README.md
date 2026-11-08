@@ -30,6 +30,10 @@ Only trip title, dates, stay locations and activity titles/places are included b
 
 The static GitHub Pages frontend is publicly accessible. Private itinerary and booking details live only in the authenticated Supabase database. The service worker caches public app files, never Supabase responses or private travel records. Private data requires an internet connection.
 
-Edits sync through Supabase, with refresh, foreground refresh and optional realtime change subscriptions. Export downloads a JSON copy of a trip, including private booking references; keep it secure. Import creates a new trip and never replaces an existing trip.
+Edits sync through Supabase, with refresh, foreground refresh and optional realtime change subscriptions. Shared export downloads the records visible to all trip members, excluding Private records and their linked descendants. Shared booking references remain included; keep the file secure. Import creates a new trip and never replaces an existing trip.
 
 The app is destination-independent: each holiday has its own tasks, overnight bases, activities, bookings, decisions and members. The Japan import should reflect the current decision that Fuji-Q is dropped, and USJ and Nagashima are the two theme parks.
+
+## Record privacy (8 November 2026)
+
+See [PRIVACY.md](PRIVACY.md) for Shared/Private records, member access, owner preview, safe exports, verification and recovery. Use More → Settings → Privacy & access. Public sharing now enforces record and linked-parent visibility.
