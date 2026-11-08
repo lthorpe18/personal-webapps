@@ -62,7 +62,7 @@ function demoFixture(){
 }
 async function init(){
   if("serviceWorker" in navigator && (location.protocol==="https:"||location.hostname==="localhost")){
-    navigator.serviceWorker.register("./sw.js?v=12",{updateViaCache:"none"}).catch(()=>{});
+    navigator.serviceWorker.register("./sw.js?v=13",{updateViaCache:"none"}).catch(()=>{});
   }
   if(state.demo){const v=demoFixture();state.trips=[v.t];state.tripId=v.t.id;state.data=v.d;render();return;}
   if(!(config.url && config.publishableKey)){
@@ -171,9 +171,9 @@ function renderHome(){
   const stays=[...state.data.trip_stops].sort((a,b)=>String(a.starts_on).localeCompare(String(b.starts_on)));
   return '<section class="hero"><div><p class="eyebrow">YOUR NEXT ADVENTURE</p><h2>'+esc(t.destination||t.title)+'</h2><p>'+esc(day(t.start_date))+' – '+esc(day(t.end_date))+' '+esc(String(t.end_date||t.start_date).slice(0,4))+'</p></div><div class="hero-stat"><b>'+until(t.start_date)+'</b><span>Days to go</span></div></section>'+
     '<div class="stats"><div class="stat"><b>'+open.length+'</b><span>To do</span></div><div class="stat"><b>'+confirmed+'</b><span>Booked</span></div><div class="stat"><b>'+done+'/'+state.data.tasks.length+'</b><span>Done</span></div></div>'+
-    '<div class="section-head"><div><h2>Up next</h2><p>Highest priority outstanding tasks</p></div><a href="#" data-tab="tasks">View all →</a></div><div class="stack">'+(open.length?open.slice(0,4).map(v=>taskRow(v,true)).join(""):emptySmall("All caught up","There are no outstanding tasks.","new-task","Add task"))+'</div>'+
-    '<div class="section-head"><div><h2>Where you’ll be</h2><p>Your planned overnight bases</p></div><a href="#" data-tab="itinerary">Full itinerary →</a></div><div class="stack">'+(stays.length?stays.slice(0,4).map(stopRow).join(""):emptySmall("Build your route","Add your first overnight stop.","new-stop","Add stop"))+'</div>'+
-    '<div class="section-head"><div><h2>Useful shortcuts</h2></div></div><div class="panel"><button class="button button-primary" data-action="new-task">+ Add task</button> <button class="button" data-action="new-booking">+ Add booking</button> <button class="button" data-tab="more" data-more="decisions">Decisions →</button></div>';
+    '<div class="section-head"><div><h2>Up next</h2><p>Highest priority outstanding tasks</p></div><a href="#" data-tab="tasks">View all →</a></div><div class="stack">'+(open.length?open.slice(0,4).map(v=>taskRow(v,true)).join(""):emptySmall("All caught up","There are no outstanding tasks.",canEdit()?"new-task":"","Add task"))+'</div>'+
+    '<div class="section-head"><div><h2>Where you’ll be</h2><p>Your planned overnight bases</p></div><a href="#" data-tab="itinerary">Full itinerary →</a></div><div class="stack">'+(stays.length?stays.slice(0,4).map(stopRow).join(""):emptySmall("Build your route","Add your first overnight stop.",canEdit()?"new-stop":"","Add stop"))+'</div>'+
+    '<div class="section-head"><div><h2>Useful shortcuts</h2></div></div><div class="panel">'+(canEdit()?'<button class="button button-primary" data-action="new-task">+ Add task</button> <button class="button" data-action="new-booking">+ Add booking</button> ':'')+'<button class="button" data-tab="more" data-more="decisions">Decisions →</button></div>';
 }
 function taskSort(a,b){return Number(a.priority||3)-Number(b.priority||3)||String(a.due_date||"9999").localeCompare(String(b.due_date||"9999"))||String(a.title).localeCompare(String(b.title));}
 

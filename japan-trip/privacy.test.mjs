@@ -18,7 +18,7 @@ const sample=demoFixture();state.demo=true;state.trips=[sample.t];state.tripId=s
 for(const tab of ['home','days','tasks','itinerary','bookings','more']){state.tab=tab;render();if(!$('#app').innerHTML.includes('layout'))throw new Error('Render failed: '+tab);}
 openEditor('task');if(!$('#editor-fields').innerHTML.includes('Visibility'))throw new Error('Missing visibility control');
 state.demo=false;state.user={id:'viewer'};state.trips[0].created_by='owner';state.member={role:'viewer'};if(canEdit())throw new Error('Viewer can edit');
-state.user.id='owner';state.preview=true;if(canEdit())throw new Error('Preview can edit');render();if(!$('#app').innerHTML.includes('Shared member preview'))throw new Error('Missing preview banner');
+state.user.id='owner';state.preview=true;if(canEdit())throw new Error('Preview can edit');render();if($('#app').innerHTML.includes('data-action="new-task"'))throw new Error('Preview shows an edit action');if(!$('#app').innerHTML.includes('Shared member preview'))throw new Error('Missing preview banner');
 state.preview=false;state.data.tasks[0].visibility='private';if(!privacyBadge(state.data.tasks[0]).includes('Private'))throw new Error('Private badge missing');
 `,context);
 await vm.runInContext(`(async()=>{
