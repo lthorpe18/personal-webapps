@@ -1,4 +1,5 @@
-import { navigationIcon, buildTripView, renderPlan as renderUnifiedPlan, renderWallet, renderItemDetail } from "./trip-view.js?v=2";
+import { renderCosts, splitRow, validateExpense, equalShares, percentShare } from "./costs.js?v=1";
+import { navigationIcon, buildTripView, renderPlan as renderUnifiedPlan, renderWallet, renderItemDetail } from "./trip-view.js?v=3";
 import { sharedData } from "./privacy-ui.js?v=1";
 /* Trip Planner v1 — plain browser JavaScript; no private trip data in source control. */
 import { buildItineraryExportRows, makeItineraryPng } from "./itinerary-export.js?v=2";
@@ -6,8 +7,8 @@ const $ = selector => document.querySelector(selector);
 const esc = value => String(value == null ? "" : value).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const config = window.TRIP_PLANNER_CONFIG || {};
 const isDemo = new URLSearchParams(location.search).get("demo") === "1";
-const NAV = [["plan","◇","Plan"],["tasks","☑","Tasks"],["wallet","▤","Wallet"],["more","⋯","More"]];
-const TABLE = {task:"tasks",stop:"trip_stops",activity:"activities",booking:"bookings",decision:"decisions",trip:"trips",invite:"trip_invitations",leg:"transport_legs",asset:"trip_assets"};
+const NAV = [["plan","◇","Plan"],["tasks","☑","Tasks"],["wallet","▤","Wallet"],["costs","£","Costs"],["more","⋯","More"]];
+const TABLE = {task:"tasks",stop:"trip_stops",activity:"activities",booking:"bookings",decision:"decisions",trip:"trips",invite:"trip_invitations",leg:"transport_legs",asset:"trip_assets",expense:"trip_expenses"};
 const PRIORITIES = [["1","Urgent"],["2","High"],["3","Normal"]];
 const STATUSES = {
   task:[["todo","To do"],["doing","In progress"],["blocked","Blocked"],["done","Done"]],
@@ -29,11 +30,12 @@ const FIELDS = {
 FIELDS.stop.push(FIELD("listing_url","Public listing / hotel website","url",{full:true,placeholder:"https://…"}));
 FIELDS.booking.push(FIELD("listing_url","Public listing / website","url",{full:true,placeholder:"https://…"}));
 FIELDS.leg=[FIELD("departure_name","From","text",{required:true}),FIELD("arrival_name","To","text",{required:true}),FIELD("activity_date","Date","date",{required:true}),FIELD("notes","Notes","textarea",{full:true})];
+FIELDS.expense=[FIELD("title","Cost name","text",{required:true,full:true}),FIELD("amount","Total cost","number",{required:true,min:"0",step:"any"}),FIELD("currency","Currency","text",{required:true,placeholder:"GBP / JPY"}),FIELD("paid_by","Person paying the vendor","text",{required:true,full:true}),FIELD("vendor_paid","Paid to vendor so far","number",{min:"0",step:"any",placeholder:"Blank = not recorded"}),FIELD("due_date","Vendor payment due (optional)","date"),FIELD("notes","Notes","textarea",{full:true})];
 FIELDS.asset=[FIELD("title","Attachment title","text",{required:true,full:true})];
-for(const type of ["task","stop","activity","booking","decision","leg","asset"]){
+for(const type of ["task","stop","activity","booking","decision","leg","asset","expense"]){
   FIELDS[type].push(FIELD("visibility","Visibility","select",{options:[["shared","Shared — trip members"],["private","Private — owner and selected members"]],full:true}));
 }
-const state={preview:false,members:[],client:null,user:null,trips:[],tripId:null,tab:"plan",moreTab:"decisions",filter:"open",category:"all",search:"",selectedDay:null,detailKey:null,walletSearch:"",walletFilter:"all",ticketIndex:0,data:{tasks:[],trip_stops:[],activities:[],bookings:[],decisions:[],transport_legs:[],trip_assets:[]},invites:[],member:null,demo:isDemo,busy:false,refreshVersion:0,channel:null};
+const state={preview:false,members:[],client:null,user:null,trips:[],tripId:null,tab:"plan",moreTab:"decisions",filter:"open",category:"all",search:"",selectedDay:null,detailKey:null,walletSearch:"",walletFilter:"all",ticketIndex:0,data:{tasks:[],trip_stops:[],activities:[],bookings:[],decisions:[],transport_legs:[],trip_assets:[],trip_expenses:[]},invites:[],member:null,demo:isDemo,busy:false,refreshVersion:0,channel:null};
 const day=date => date ? new Date(date+"T12:00:00Z").toLocaleDateString("en-GB",{day:"numeric",month:"short",timeZone:"UTC"}) : "Date TBC";
 const longDay=date => date ? new Date(date+"T12:00:00Z").toLocaleDateString("en-GB",{weekday:"short",day:"numeric",month:"short",year:"numeric",timeZone:"UTC"}) : "Date TBC";
 const nights=(from,to)=>from&&to?Math.max(0,Math.round((Date.parse(to+"T00:00:00Z")-Date.parse(from+"T00:00:00Z"))/86400000)):0;
@@ -60,7 +62,7 @@ function demoFixture(){
     {id:uid(),location:"Tokyo",starts_on:"2027-02-02",ends_on:"2027-02-07",status:"planned",accommodation_name:"",notes:"Example city stay."},
     {id:uid(),location:"Kyoto",starts_on:"2027-02-07",ends_on:"2027-02-11",status:"planned",accommodation_name:"",notes:"Example city stay."}
   ],activities:[{id:uid(),title:"Explore the old city",location:"Kyoto",activity_date:"2027-02-08",type:"sightseeing",status:"planned",notes:"Example activity."}],
-  bookings:[],decisions:[{id:uid(),subject:"Which cities to visit?",outcome:"Tokyo and Kyoto",status:"confirmed",notes:"Example decision."}],transport_legs:[],trip_assets:[]};
+  bookings:[],decisions:[{id:uid(),subject:"Which cities to visit?",outcome:"Tokyo and Kyoto",status:"confirmed",notes:"Example decision."}],transport_legs:[],trip_assets:[],trip_expenses:[]};
   d.trip_stops[0].accommodation_name="City apartment Tokyo";
   d.trip_stops[1].accommodation_name="Garden House Kyoto";
   const stayId=uid(),railId=uid(),activityId=uid();
@@ -68,11 +70,13 @@ function demoFixture(){
   d.activities.push({id:activityId,title:"Travel to Kyoto",type:"transport",activity_date:"2027-02-07",location:"Tokyo → Kyoto",status:"booked",booking_id:railId});
   d.transport_legs=[{id:uid(),activity_date:"2027-02-07",departure_name:"Tokyo",arrival_name:"Kyoto",departs_at:"2027-02-07T01:00:00Z",arrives_at:"2027-02-07T03:15:00Z",mode:"shinkansen",booking_id:railId,reservation_status:"booked",operator:"Example railway",service_number:"Demo service",seat:"12A",notes:"Illustrative times only."}];
   d.trip_assets=[{id:uid(),title:"Example rail ticket",kind:"ticket_qr",mime_type:"application/x-qr-payload",data_url:"qr:DEMO-ONLY-NOT-A-VALID-TICKET",booking_id:railId,activity_id:activityId}];
+  d.bookings[0].amount=500;d.bookings[0].currency='GBP';
+  d.trip_expenses=[{id:uid(),trip_id:t.id,title:'Example rail tickets',amount:240,currency:'GBP',paid_by:'Me',vendor_paid:240,visibility:'shared',splits:[{person:'Alex',share:80,repaid:30}]}];
   return {t,d};
 }
 async function init(){
   if("serviceWorker" in navigator && (location.protocol==="https:"||location.hostname==="localhost")){
-    navigator.serviceWorker.register("./sw.js?v=16",{updateViaCache:"none"}).catch(()=>{});
+    navigator.serviceWorker.register("./sw.js?v=17",{updateViaCache:"none"}).catch(()=>{});
   }
   if(state.demo){const v=demoFixture();state.trips=[v.t];state.tripId=v.t.id;state.data=v.d;render();return;}
   if(!(config.url && config.publishableKey)){
@@ -87,7 +91,7 @@ async function init(){
     if(error)throw error;
     state.user=data.session?.user||null;
     state.client.auth.onAuthStateChange((event,session)=>{
-      if(event==="SIGNED_OUT"){closePrivateDialogs();state.data={tasks:[],trip_stops:[],activities:[],bookings:[],decisions:[],transport_legs:[],trip_assets:[]};state.members=[];state.invites=[];state.preview=false;state.user=null;state.trips=[];state.tripId=null;state.channel&&state.client.removeChannel(state.channel);state.channel=null;render();return;}
+      if(event==="SIGNED_OUT"){closePrivateDialogs();state.data={tasks:[],trip_stops:[],activities:[],bookings:[],decisions:[],transport_legs:[],trip_assets:[],trip_expenses:[]};state.members=[];state.invites=[];state.preview=false;state.user=null;state.trips=[];state.tripId=null;state.channel&&state.client.removeChannel(state.channel);state.channel=null;render();return;}
       if(session?.user && state.user?.id!==session.user.id){state.user=session.user;setTimeout(()=>loadTrips().catch(fail),0);}
     });
     if(state.user)await loadTrips();
@@ -111,7 +115,7 @@ async function loadTrips(){
   const last=localStorage.getItem("trip-planner-last-trip");
   state.tripId=state.trips.some(t=>t.id===state.tripId)?state.tripId:(state.trips.find(t=>t.id===last)?.id||state.trips[0]?.id||null);
   if(state.tripId)await loadTrip();
-  else{state.member=null;state.data={tasks:[],trip_stops:[],activities:[],bookings:[],decisions:[],transport_legs:[],trip_assets:[]};render();}
+  else{state.member=null;state.data={tasks:[],trip_stops:[],activities:[],bookings:[],decisions:[],transport_legs:[],trip_assets:[],trip_expenses:[]};render();}
 }
 async function loadTrip(){
   const id=state.tripId;if(!id)return;
@@ -123,18 +127,18 @@ async function loadTrip(){
     state.data=snapshot.data;subscribe(id);render();return;
   }
   const jobs=[
-    ...["tasks","trip_stops","activities","bookings","decisions","transport_legs","trip_assets"].map(name=>state.client.from(name).select("*").eq("trip_id",id)),
+    ...["tasks","trip_stops","activities","bookings","decisions","transport_legs","trip_assets","trip_expenses"].map(name=>state.client.from(name).select("*").eq("trip_id",id)),
     isOwner()?state.client.rpc("trip_member_directory",{p_trip_id:id}):state.client.from("trip_members").select("*").eq("trip_id",id)
   ];
   if(isOwner())jobs.push(state.client.from("trip_invitations").select("*").eq("trip_id",id).order("created_at",{ascending:false}));
   const results=await Promise.all(jobs);
   if(current!==state.refreshVersion||id!==state.tripId)return;
   for(const result of results)if(result.error)throw result.error;
-  const loadedData=Object.fromEntries(["tasks","trip_stops","activities","bookings","decisions","transport_legs","trip_assets"].map((key,i)=>[key,results[i].data||[]]));
-  state.members=results[7].data||[];
+  const loadedData=Object.fromEntries(["tasks","trip_stops","activities","bookings","decisions","transport_legs","trip_assets","trip_expenses"].map((key,i)=>[key,results[i].data||[]]));
+  state.members=results[8].data||[];
   state.member=state.members.find(m=>m.user_id===state.user.id);
   state.data=loadedData;
-  state.invites=isOwner()?results[8].data||[]:[];
+  state.invites=isOwner()?results[9].data||[]:[];
   localStorage.setItem("trip-planner-last-trip",id);
   subscribe(id);
   render();
@@ -145,7 +149,7 @@ function subscribe(id){
   // Realtime is optional: visibility changes and a manual refresh also reload shared data.
   let schedule;
   const channel=state.client.channel("trip-"+id);
-  ["tasks","trip_stops","activities","bookings","decisions","transport_legs","trip_assets","trip_invitations"].forEach(table=>
+  ["tasks","trip_stops","activities","bookings","decisions","transport_legs","trip_assets","trip_expenses","trip_invitations"].forEach(table=>
     channel.on("postgres_changes",{event:"*",schema:"public",table,filter:"trip_id=eq."+id},()=>{
       clearTimeout(schedule);schedule=setTimeout(()=>{if(state.tripId===id)loadTrip().catch(fail);},450);
     })
@@ -156,14 +160,14 @@ function nav(){return NAV.map(([id,ico,title])=>'<button type="button" class="na
 function render(){
   if(!state.demo&&!state.user){renderAuth();return;}
   const t=trip();
-  const names={plan:"Your plan",tasks:"Checklist",wallet:"Travel wallet",more:"Trip details"};
+  const names={plan:"Your plan",tasks:"Checklist",wallet:"Travel wallet",costs:"Trip costs",more:"Trip details"};
   const title=t?names[state.tab]:"Your trips";
   const back=state.trips.length>1?'<button class="icon-button" data-action="trips" title="Switch trip" aria-label="Switch trip">⇄</button>':"";
   $("#app").className="";
   $("#app").innerHTML='<div class="layout"><aside class="sidebar"><div class="brand"><span class="brand-mark">✦</span><span>Trip Planner</span></div><nav class="side-nav" aria-label="Main">'+nav()+'</nav><div class="side-foot"><small>'+esc(state.user?.email||"Demo mode")+'</small><button class="button button-small" data-action="trips">Switch / add trip</button></div></aside><main class="main view-'+esc(state.tab)+'"><div class="topline"><div class="topline-left"><p class="eyebrow">'+esc(t?.title||"TRIP PLANNER")+'</p><h1>'+esc(title)+'</h1><p class="sub">'+esc(t?.destination||"Plan your next adventure")+(t?.start_date?" · "+esc(day(t.start_date))+" – "+esc(day(t.end_date)):"")+'</p></div><div class="head-actions">'+back+'<button class="icon-button" data-action="refresh" title="Refresh" aria-label="Refresh">↻</button></div></div>'+
     (state.preview?'<div class="status-banner"><strong>Shared member preview</strong> — read-only access with no private grants. <button class="button button-small" data-action="preview-shared">Exit preview</button></div>':'')+
     (state.demo?'<div class="status-banner"><strong>Preview only.</strong> These are fictional examples. Changes are not saved and no personal information is stored. Connect your own Supabase project to activate private, shared trips.</div>':!navigator.onLine?'<div class="status-banner"><strong>Offline.</strong> Your private trip data needs a network connection.</div>':"")+
-    (!t && state.tab!=="more"?renderNoTrips():state.tab==="plan"?renderPlanView():state.tab==="tasks"?renderTasks():state.tab==="wallet"?renderWallet(trip(),state.data,{search:state.walletSearch,filter:state.walletFilter,canEdit:canEdit()}):renderMore())+
+    (!t && state.tab!=="more"?renderNoTrips():state.tab==="plan"?renderPlanView():state.tab==="tasks"?renderTasks():state.tab==="wallet"?renderWallet(trip(),state.data,{search:state.walletSearch,filter:state.walletFilter,canEdit:canEdit()}):state.tab==="costs"?renderCosts(state.data,{canEdit:canEdit(),filter:state.costFilter||"all"}):renderMore())+
     '</main><nav class="bottom-nav" aria-label="Main">'+nav()+'</nav></div>';
   syncItemDetail();
 }
@@ -242,10 +246,10 @@ function renderDecisions(){
 }
 function sharedOnlyData(){return sharedData(state.data);}
 function privacyBadge(v){return v.visibility==="private"?'<span class="pill private-badge">🔒 Private</span>':'';}
-function closePrivateDialogs(){state.walletSearch="";state.walletFilter="all";state.search="";closeItemDetail();for(const selector of ["#editor","#ticket-dialog","#itinerary-share-dialog"]){const el=$(selector);if(el?.open)el.close();}releaseItineraryPreview();activeTicketAssets=[];ticketRenderVersion++;$("#ticket-dialog-image")?.removeAttribute("src");state.ticketIndex=0;}
+function closePrivateDialogs(){state.walletSearch="";state.walletFilter="all";state.costFilter="all";state.search="";closeItemDetail();for(const selector of ["#editor","#ticket-dialog","#itinerary-share-dialog"]){const el=$(selector);if(el?.open)el.close();}releaseItineraryPreview();activeTicketAssets=[];ticketRenderVersion++;$("#ticket-dialog-image")?.removeAttribute("src");state.ticketIndex=0;}
 function renderPrivacySettings(){
   if(!isOwner()||state.preview)return '';
-  const types={tasks:"task",trip_stops:"stop",activities:"activity",bookings:"booking",decisions:"decision",transport_legs:"leg",trip_assets:"asset"};
+  const types={tasks:"task",trip_stops:"stop",activities:"activity",bookings:"booking",decisions:"decision",transport_legs:"leg",trip_assets:"asset",trip_expenses:"expense"};
   return '<div class="panel settings-section"><h2>Privacy & access</h2><p>Shared items are visible to trip members. Private items are visible to you and members you select. Linked items inherit their parent’s restrictions. Trip overview notes are shared; put confidential notes in a Private decision.</p><button class="button button-primary" data-action="preview-shared">Preview shared member view</button> <button class="button" data-action="private-note">+ Private note</button><details class="privacy-list"><summary>Manage item privacy</summary>'+Object.entries(types).map(([table,type])=>'<h3>'+esc(table.replaceAll('_',' '))+'</h3>'+(state.data[table]||[]).map(v=>'<div class="task-row"><div class="task-body">'+esc(v.title||v.subject||v.location||[v.departure_name,v.arrival_name].filter(Boolean).join(' → '))+privacyBadge(v)+'<small> '+esc(v.visibility||'shared')+'</small></div><button class="button button-small" data-action="edit-'+type+'" data-id="'+esc(v.id)+'">Edit</button></div>').join('')).join('')+'</details><h3>Current members</h3>'+state.members.filter(m=>m.user_id!==state.user?.id).map(m=>'<div class="task-row"><div class="task-body">Member '+esc(m.email||m.user_id.slice(0,8))+' · '+esc(m.role)+'</div><button class="button button-small" data-action="member-role" data-id="'+esc(m.user_id)+'">'+(m.role==='viewer'?'Allow editing':'Make read only')+'</button><button class="button button-small" data-action="member-remove" data-id="'+esc(m.user_id)+'">Remove</button></div>').join('')+'</div>';
 }
 async function manageMember(action,id){
@@ -261,7 +265,7 @@ function renderSettings(){
   const trips=state.trips.map(v=>'<button type="button" class="trip-option '+(v.id===state.tripId?"active":"")+'" data-trip="'+esc(v.id)+'"><p class="eyebrow">'+esc(v.destination||"Trip")+'</p><h3>'+esc(v.title)+'</h3><p>'+esc(day(v.start_date))+' – '+esc(day(v.end_date))+'</p></button>').join("");
   return '<div class="panel settings-section"><h2>Your trips</h2><p>Switch trips or create a new holiday using the same planner.</p><div class="trip-list">'+trips+'</div><button class="button button-primary" data-action="new-trip">+ New trip</button> '+(isOwner()?'<button class="button" data-action="edit-trip">Edit current trip</button>':"")+'</div>'+
     renderPrivacySettings()+'<div class="panel settings-section"><h2>Share this trip</h2>'+(!t?'<p>Create a trip before inviting others.</p>':state.demo?'<p>Cloud storage must be connected before inviting other people.</p>':isOwner()?'<p>Invite somebody by email. They can sign in with that exact address and select this trip. No automatic invitation email is sent: share the app link with them yourself.</p><button class="button" data-action="new-invite">+ Invite person</button>'+(state.invites.length?'<div class="stack" style="margin-top:14px">'+state.invites.map(v=>'<div class="task-row"><div class="task-body"><span class="task-title">'+esc(v.email)+'</span><div class="task-meta">'+esc(v.role)+" · "+(v.accepted_at?"Joined":"Pending")+' <button class="button button-small" data-action="cancel-invite" data-id="'+esc(v.id)+'">Remove invitation</button>'+'</div></div></div>').join("")+"</div>":""):'<p>Your trip owner manages invitations. You have '+esc(state.member?.role||"member")+' access.</p>')+'</div>'+
-    '<div class="panel settings-section"><h2>Back up and import</h2><p>Exports and itinerary images exclude private records and anything linked to them. Booking references in shared records are included. Import creates a new trip; it never overwrites another holiday.</p><button class="button" data-action="export">Export shared trip</button> <button class="button" data-action="import">Import trip JSON</button><input id="import-file" type="file" accept="application/json,.json" hidden></div>'+
+    '<div class="panel settings-section"><h2>Back up and import</h2><p>Exports and itinerary images exclude private records and anything linked to them. Booking references in shared records are included. Cost tracking and repayments are not included in general trip exports or public pages. Import creates a new trip; it never overwrites another holiday.</p><button class="button" data-action="export">Export shared trip</button> <button class="button" data-action="import">Import trip JSON</button><input id="import-file" type="file" accept="application/json,.json" hidden></div>'+
     '<div class="panel settings-section"><h2>Account & connection</h2><p>'+esc(state.user?.email||"Preview mode")+'</p>'+(state.demo?'<p>This site is a fictional preview. Changes are not saved.</p>':'<form id="account-password-form" class="stack" autocomplete="on"><p class="panel-sub">Set or change your password. Once saved, you can sign in on another device without opening email there.</p><div class="field"><label for="account-new-password">New password (at least 12 characters)</label><input id="account-new-password" type="password" name="password" autocomplete="new-password" minlength="12" required></div><div class="field"><label for="account-confirm-password">Confirm new password</label><input id="account-confirm-password" type="password" name="confirm_password" autocomplete="new-password" minlength="12" required></div><button class="button button-primary" type="submit">Save password</button><p class="hint" id="account-password-message" role="status"></p></form><button class="button" data-action="signout">Sign out</button>')+'</div>';
 }
 function emptySmall(title,description,action,button){return '<div class="empty"><strong>'+esc(title)+'</strong><p>'+esc(description)+'</p>'+(action?'<button class="button" data-action="'+esc(action)+'">'+esc(button)+'</button>':"")+'</div>';}
@@ -272,11 +276,12 @@ function openEditor(type,id){
   if(type==="invite"&&!isOwner())return toast("Only the trip owner can invite people.");
   if(type==="trip"&&id&&!isOwner())return toast("Only the trip owner can edit trip details.");
   const v=id?item(type,id):{};
+  if(type==="expense"&&!id)v.paid_by=state.demo?"Me":(state.user?.user_metadata?.full_name||"Trip owner");
   if(!id&&state.selectedDay){if(type==="activity")v.activity_date=state.selectedDay;if(type==="leg")v.activity_date=state.selectedDay;if(type==="booking")v.start_date=state.selectedDay;if(type==="stop")v.starts_on=state.selectedDay;}
   const stay=!id?null:type==="stop"?buildTripView(trip(),state.data).stays.find(s=>s.stop?.id===id):type==="booking"?buildTripView(trip(),state.data).stays.find(s=>s.booking?.id===id):null;
   const listingOnStay=!!stay?.stop?.listing_url;
   const fields=FIELDS[type]?.filter(f=>(f.name!=="visibility"||isOwner())&&(f.name!=="listing_url"||!(type==="stop"&&stay?.booking&&!listingOnStay)&&!(type==="booking"&&listingOnStay)));if(!fields)return;
-  const titles={trip:"Trip",task:"Task",stop:"Stay",activity:"Activity or journey",booking:"Booking",decision:"Decision",invite:"Invitation",leg:"Journey",asset:"Attachment"};
+  const titles={trip:"Trip",task:"Task",stop:"Stay",activity:"Activity or journey",booking:"Booking",decision:"Decision",invite:"Invitation",leg:"Journey",asset:"Attachment",expense:"Cost"};
   $("#editor-title").textContent=(id?"Edit ":"Add ")+titles[type];
   $("#editor-form").dataset.type=type;$("#editor-form").dataset.id=id||"";
   $("#editor-fields").innerHTML=fields.map(f=>{
@@ -288,6 +293,11 @@ function openEditor(type,id){
   if(stay&&(type==="stop"&&stay.booking&&!listingOnStay||type==="booking"&&listingOnStay))$("#editor-fields").insertAdjacentHTML("beforeend",'<p class="hint full">The listing link is managed on the linked '+(listingOnStay?'stay':'booking')+'.</p>');
   if(isOwner()&&FIELDS[type]?.some(f=>f.name==="visibility")){
     $("#editor-fields").insertAdjacentHTML("beforeend",'<fieldset class="field full"><legend>Private access (optional)</legend><p class="hint">The owner always has access. Selected people also need access to any linked private parent. Shared items are visible to every member.</p>'+state.members.filter(m=>m.user_id!==state.user?.id).map(m=>'<label><input type="checkbox" name="private_user_ids" value="'+esc(m.user_id)+'" '+(v?.private_user_ids?.includes(m.user_id)?'checked':'')+'> Member '+esc(m.email||m.user_id.slice(0,8))+' · '+esc(m.role)+'</label>').join('')+'</fieldset>');
+  }
+  if(type==="expense"){
+    const names=[...new Set((state.data.trip_expenses||[]).flatMap(e=>[e.paid_by,...(e.splits||[]).map(s=>s.person)]))];
+    $("#editor-fields").insertAdjacentHTML("beforeend",'<section class="full cost-splits-section"><h3>Split this cost</h3><p class="hint">Add the other people sharing this cost. The remainder is the vendor payer’s own share. Repayments go to the person paying the vendor.</p><div id="cost-split-rows">'+(v.splits||[]).map(splitRow).join('')+'</div><datalist id="cost-person-names">'+names.map(n=>'<option value="'+esc(n)+'">').join('')+'</datalist><div class="cost-tools"><button type="button" class="button button-small" data-action="add-cost-split">+ Person</button><button type="button" class="button button-small" data-action="equal-cost-split">Split equally incl. payer</button></div><p class="hint">For percentages, enter 20 for a 20% share. Equal splits assign any rounding remainder to the payer.</p></section>');
+    const form=$("#editor-form");form.dataset.bookingId=v.booking_id||"";form.dataset.updatedAt=v.updated_at||"";
   }
   $("#editor-error").hidden=true;
   $("#editor-delete").hidden=!id;
@@ -309,11 +319,19 @@ async function saveEditor(event){
   for(const f of FIELDS[type])if(f.type==="date"&&!data[f.name])data[f.name]=null;
   if(type==="task")data.priority=Number(data.priority);
   if(type==="booking")data.amount=data.amount===""?null:Number(data.amount);
+  if(type==="expense"){
+    try{
+      data.vendor_paid=data.vendor_paid===""?null:Number(data.vendor_paid);
+      data.booking_id=form.dataset.bookingId||null;
+      data.splits=[...$("#cost-split-rows").querySelectorAll('[data-cost-split]')].map(row=>({person:row.querySelector('[data-split-person]').value,share:row.querySelector('[data-split-mode]').value==='percent'?percentShare(data.amount,String(data.currency).trim().toUpperCase(),row.querySelector('[data-split-share]').value):row.querySelector('[data-split-share]').value,repaid:row.querySelector('[data-split-repaid]').value}));
+      Object.assign(data,validateExpense(data));
+    }catch(error){return editorError(error.message);}
+  }
   state.busy=true;$("#editor-submit").disabled=true;
   try{
     if(state.demo){
       if(type==="invite")throw new Error("Connect Supabase to invite people.");
-      if(type==="trip"&&!id){const newTrip={...data,id:uid(),created_by:"demo"};state.trips.push(newTrip);state.tripId=newTrip.id;state.data={tasks:[],trip_stops:[],activities:[],bookings:[],decisions:[],transport_legs:[],trip_assets:[]};}
+      if(type==="trip"&&!id){const newTrip={...data,id:uid(),created_by:"demo"};state.trips.push(newTrip);state.tripId=newTrip.id;state.data={tasks:[],trip_stops:[],activities:[],bookings:[],decisions:[],transport_legs:[],trip_assets:[],trip_expenses:[]};}
       else if(type==="trip")Object.assign(trip(),data);
       else if(id)Object.assign(item(type,id),data);
       else state.data[TABLE[type]].push({...data,id:uid(),trip_id:state.tripId});
@@ -323,7 +341,9 @@ async function saveEditor(event){
     }else{
       const name=TABLE[type];
       if(type!=="trip")data.trip_id=state.tripId;
-      const result=id?await state.client.from(name).update(data).eq("id",id).select("id").single():await state.client.from(name).insert(data).select("id").single();
+      let update=id?state.client.from(name).update(data).eq("id",id):null;
+      if(update&&type==="expense"&&form.dataset.updatedAt)update=update.eq("updated_at",form.dataset.updatedAt);
+      const result=id?await update.select("id").single():await state.client.from(name).insert(data).select("id").single();
       if(result.error)throw result.error;
       if(type==="trip"&&!id)state.tripId=result.data.id;
     }
@@ -376,7 +396,7 @@ async function importTrip(file){
   try{
     if(state.demo){
       newId=uid();state.trips.push({...data,id:newId,created_by:"demo"});state.tripId=newId;
-      state.data={tasks:[],trip_stops:[],activities:[],bookings:[],decisions:[],transport_legs:[],trip_assets:[]};
+      state.data={tasks:[],trip_stops:[],activities:[],bookings:[],decisions:[],transport_legs:[],trip_assets:[],trip_expenses:[]};
       for(const [type,key] of keys)state.data[key]=(payload[key]||[]).map(v=>({...stripRow(type,v),id:uid(),trip_id:newId}));
       render();
     }else{
@@ -396,11 +416,12 @@ async function importTrip(file){
     throw error;
   }
 }
-function changeTrip(id){state.preview=false;closePrivateDialogs();if(!state.trips.some(t=>t.id===id))return;state.tripId=id;state.tab="plan";state.moreTab="decisions";state.selectedDay=null;if(state.demo){state.data={tasks:[],trip_stops:[],activities:[],bookings:[],decisions:[],transport_legs:[],trip_assets:[]};render();}else loadTrip().catch(fail);}
+function changeTrip(id){state.preview=false;closePrivateDialogs();if(!state.trips.some(t=>t.id===id))return;state.tripId=id;state.tab="plan";state.moreTab="decisions";state.selectedDay=null;if(state.demo){state.data={tasks:[],trip_stops:[],activities:[],bookings:[],decisions:[],transport_legs:[],trip_assets:[],trip_expenses:[]};render();}else loadTrip().catch(fail);}
 async function refresh(){if(state.demo){render();toast("Preview mode — changes are not saved.");return;}try{await loadTrips();toast("Up to date");}catch(error){fail(error);}}
 function attachEvents(){
   document.addEventListener("click",async e=>{
     const navEl=e.target.closest("[data-tab]");if(navEl){e.preventDefault();state.tab=navEl.dataset.tab;if(navEl.dataset.more)state.moreTab=navEl.dataset.more;state.search="";render();window.scrollTo({top:0,behavior:"instant"});return;}
+    const costFilter=e.target.closest('[data-cost-filter]');if(costFilter){state.costFilter=costFilter.dataset.costFilter;render();return;}
     const planDay=e.target.closest("[data-plan-day]");if(planDay){const date=planDay.dataset.planDay;const toggle=planDay.hasAttribute("aria-expanded");state.selectedDay=toggle&&state.selectedDay===date?null:date;render();const target=document.querySelector('[data-plan-day="'+date+'"][aria-expanded]');target?.focus({preventScroll:true});if(!toggle)target?.scrollIntoView({behavior:"smooth",block:"start"});return;}
     const detail=e.target.closest("[data-detail]");if(detail){openItemDetail(detail.dataset.detail);return;}
     const walletFilter=e.target.closest("[data-wallet-filter]");if(walletFilter){state.walletFilter=walletFilter.dataset.walletFilter;render();return;}
@@ -410,6 +431,19 @@ function attachEvents(){
     const t=e.target.closest("[data-trip]");if(t){changeTrip(t.dataset.trip);return;}
     const action=e.target.closest("[data-action]");if(!action)return;
     const name=action.dataset.action,id=action.dataset.id;
+    if(name==="add-cost-split"){if(!canEdit())return;$('#cost-split-rows').insertAdjacentHTML('beforeend',splitRow({},$('#cost-split-rows').querySelectorAll('[data-cost-split]').length));return;}
+    if(name==="remove-cost-split"){action.closest('[data-cost-split]').remove();return;}
+    if(name==="equal-cost-split"){
+      try{const rows=[...$('#cost-split-rows').querySelectorAll('[data-cost-split]')];if(!rows.length)throw new Error('Add at least one person first.');const share=equalShares($('#field-amount').value,$('#field-currency').value.trim().toUpperCase(),rows.length);for(const row of rows){row.querySelector('[data-split-mode]').value='amount';row.querySelector('[data-split-share]').value=share;}}catch(error){editorError(error.message);}return;
+    }
+    if(name==="track-booking-cost"){
+      if(!canEdit())return;const b=item('booking',id);if(!b)return;
+      openEditor('expense');$('#editor-form').dataset.bookingId=b.id;
+      for(const k of ['title','amount','currency','visibility'])if($('#field-'+k))$('#field-'+k).value=b[k]??(k==='visibility'?'shared':'');
+      for(const cb of $('#editor-fields').querySelectorAll('[name="private_user_ids"]'))cb.checked=(b.private_user_ids||[]).includes(cb.value);
+      return;
+    }
+    if(name==="settle-expense")return settleExpense(id,action.dataset.part);
     if(name==="close-detail")return closeItemDetail();
     if(name==="open-asset"){const asset=state.data.trip_assets.find(a=>a.id===id);if(!asset)return;activeTicketAssets=[asset];state.ticketIndex=0;$("#ticket-dialog").showModal();renderTicketWallet();return;}
     if(name==="preview-shared"){
@@ -643,3 +677,16 @@ function bindItineraryShare(){
 attachEvents();
 bindItineraryShare();
 init();
+
+async function settleExpense(id,part){
+  if(!canEdit()||state.busy)return;
+  const original=item('expense',id);if(!original)return;
+  const data={vendor_paid:original.vendor_paid,splits:(original.splits||[]).map(s=>({...s}))};
+  if(part==='vendor')data.vendor_paid=original.amount;else if(data.splits[Number(part)])data.splits[Number(part)].repaid=data.splits[Number(part)].share;else return;
+  state.busy=true;
+  try{
+    if(state.demo){Object.assign(original,data);render();}
+    else{let q=state.client.from('trip_expenses').update(data).eq('id',id).eq('trip_id',state.tripId);if(original.updated_at)q=q.eq('updated_at',original.updated_at);const r=await q.select('id').single();if(r.error)throw new Error('Could not update this cost. Refresh to check for changes, then try again.');await loadTrip();}
+    toast(part==='vendor'?'Vendor payment recorded':'Repayment recorded');
+  }catch(error){fail(error);}finally{state.busy=false;}
+}
