@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import {minor,equalShares,percentShare,validateExpense,costSummary,renderCosts,paymentDue} from './costs.js';
+import {minor,equalShares,percentShare,validateExpense,costSummary,renderCosts,paymentDue,costEntries} from './costs.js';
 import {sharedData} from './privacy-ui.js';
 const cost={title:'Hotel',amount:100,currency:'GBP',paid_by:'Me',vendor_paid:30,splits:[{person:'Hannah',share:20,repaid:5}]};
 assert.equal(equalShares(100,'GBP',2),33.33);
@@ -37,3 +37,15 @@ assert(dueHTML.includes('Overdue · 8 Nov'));
 assert(dueHTML.includes('data-cost-id="test" open'));
 assert(!renderCosts({trip_expenses:[{...cost,due_date:'2026-11-08',vendor_paid:100}]},{today:'2026-11-09'}).includes('Overdue'));
 console.log('PASS: due today, overdue, upcoming, paid-date suppression, year boundaries and expanded state');
+
+const bookings=[{id:'booking1',trip_id:'t',title:'Known hotel',amount:500,currency:'GBP',visibility:'shared'}, {id:'cancelled',amount:50,status:'cancelled'}, {id:'unknown',amount:null}];
+const initial=costEntries({bookings,trip_expenses:[]});
+assert.equal(initial.length,1);assert.equal(initial[0].vendor_paid,null);assert.equal(initial[0].amount,500);
+const automaticHTML=renderCosts({bookings,trip_expenses:[]});
+assert(automaticHTML.includes('Known hotel'));assert(!automaticHTML.includes('No matching costs'));assert(!automaticHTML.includes('Track an existing booking'));assert(automaticHTML.includes('Not recorded'));
+const saved={...cost,id:'cost1',booking_id:'booking1'};
+assert.equal(costEntries({bookings,trip_expenses:[saved]}).length,1,'Saved booking costs must replace the automatic row');
+assert.equal(costEntries({bookings,trip_expenses:[saved]})[0].vendor_paid,30,'Saved payment records win over booking data');
+assert.equal(costEntries(sharedData({bookings:[{...bookings[0],visibility:'private'}],trip_expenses:[]})).length,0,'Private bookings cannot create shared preview cost rows');
+assert(!renderCosts({bookings,trip_expenses:[]},{canEdit:false}).includes('settle-expense'));
+console.log('PASS: existing bookings appear automatically, payment status remains unknown, cancelled/unpriced bookings excluded, saved costs deduplicate, shared preview and read-only access preserved');

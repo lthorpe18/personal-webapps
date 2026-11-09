@@ -1,4 +1,4 @@
-import {renderCosts,splitRow,validateExpense,equalShares,percentShare} from './costs.js';
+import {costEntries,renderCosts,splitRow,validateExpense,equalShares,percentShare} from './costs.js';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import vm from 'node:vm';
@@ -13,7 +13,7 @@ const element=()=>({innerHTML:'',textContent:'',hidden:false,dataset:{},classLis
 const context={console,URL,URLSearchParams,crypto:globalThis.crypto,setTimeout,clearTimeout,location:{search:'',protocol:'http:',hostname:'test'},navigator:{onLine:true},window:{TRIP_PLANNER_CONFIG:{},addEventListener(){}},document:{querySelector(s){if(!nodes.has(s))nodes.set(s,element());return nodes.get(s)},addEventListener(){}},localStorage:{getItem(){return null},setItem(){}},Blob};
 vm.createContext(context);
 let source=fs.readFileSync(new URL('./app.js',import.meta.url),'utf8').replace(/^import .*;\n/gm,'').replace(/^init\(\);$/m,'');
-Object.assign(context,{renderCosts,splitRow,validateExpense,equalShares,percentShare,sharedData,navigationIcon,buildTripView,renderUnifiedPlan,renderWallet,renderItemDetail});
+Object.assign(context,{costEntries,renderCosts,splitRow,validateExpense,equalShares,percentShare,sharedData,navigationIcon,buildTripView,renderUnifiedPlan,renderWallet,renderItemDetail});
 vm.runInContext(source,context);
 vm.runInContext(`
 const sample=demoFixture();state.demo=true;state.trips=[sample.t];state.tripId=sample.t.id;state.data={transport_legs:[],trip_assets:[],...sample.d};state.members=[];
@@ -34,3 +34,16 @@ await vm.runInContext(`(async()=>{
   if(state.data.tasks.length)throw new Error('Stale preview overwrote the current view');
 })()`,context);
 console.log('PASS: export parent filtering, immutability, main view rendering, privacy editor, read-only controls and asynchronous preview isolation');
+
+await vm.runInContext(`(async()=>{
+ const sample=demoFixture();state.demo=true;state.preview=false;state.trips=[sample.t];state.tripId=sample.t.id;state.data=sample.d;
+ const booking=state.data.bookings.find(b=>b.amount!=null),key='booking:'+booking.id;
+ if(!item('expense',key)?.from_booking)throw new Error('Automatic booking lookup missing');
+ const count=costEntries(state.data).length;
+ await settleExpense(key,'vendor');
+ if(costEntries(state.data).length!==count)throw new Error('First payment duplicated booking cost');
+ const saved=state.data.trip_expenses.find(e=>e.booking_id===booking.id);
+ if(!saved||saved.vendor_paid!==booking.amount)throw new Error('First payment was not saved');
+ if(booking.vendor_paid!==undefined)throw new Error('Booking record modified');
+})()`,context);
+console.log('PASS: first booking payment persists as one cost without modifying the booking');

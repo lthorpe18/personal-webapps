@@ -1,4 +1,4 @@
-import { renderCosts, splitRow, validateExpense, equalShares, percentShare } from "./costs.js?v=2";
+import { costEntries, renderCosts, splitRow, validateExpense, equalShares, percentShare } from "./costs.js?v=3";
 import { navigationIcon, buildTripView, renderPlan as renderUnifiedPlan, renderWallet, renderItemDetail } from "./trip-view.js?v=3";
 import { sharedData } from "./privacy-ui.js?v=1";
 /* Trip Planner v1 — plain browser JavaScript; no private trip data in source control. */
@@ -44,7 +44,7 @@ const uid=()=>crypto.randomUUID();
 const trip=()=>state.trips.find(t=>t.id===state.tripId);
 const canEdit=()=>!state.preview && (state.demo || !!(trip() && (trip().created_by===state.user?.id || state.member?.role==="owner" || state.member?.role==="editor")));
 const isOwner=()=>state.demo || !!(trip() && trip().created_by===state.user?.id);
-const item=(type,id)=>type==="trip"?trip():type==="invite"?state.invites.find(v=>v.id===id):state.data[TABLE[type]].find(v=>v.id===id);
+const item=(type,id)=>type==="trip"?trip():type==="invite"?state.invites.find(v=>v.id===id):type==='expense'&&id?.startsWith('booking:')?costEntries(state.data,{paidBy:state.demo?'Me':(state.user?.user_metadata?.full_name||'Trip owner')}).find(v=>v.id===id):state.data[TABLE[type]].find(v=>v.id===id);
 const safeUrl=value=>{try{const u=new URL(value);return u.protocol==="https:"||u.protocol==="http:"?u.href:"";}catch{return "";}};
 const link=(url,label)=>{const safe=safeUrl(url);return safe?'<a target="_blank" rel="noopener noreferrer" href="'+esc(safe)+'">'+esc(label)+" ↗</a>":"";};
 const label=(type,value)=> (type==="priority"?PRIORITIES:STATUSES[type]||[]).find(x=>x[0]===String(value))?.[1]||String(value||"");
@@ -76,7 +76,7 @@ function demoFixture(){
 }
 async function init(){
   if("serviceWorker" in navigator && (location.protocol==="https:"||location.hostname==="localhost")){
-    navigator.serviceWorker.register("./sw.js?v=18",{updateViaCache:"none"}).catch(()=>{});
+    navigator.serviceWorker.register("./sw.js?v=19",{updateViaCache:"none"}).catch(()=>{});
   }
   if(state.demo){const v=demoFixture();state.trips=[v.t];state.tripId=v.t.id;state.data=v.d;render();return;}
   if(!(config.url && config.publishableKey)){
@@ -167,7 +167,7 @@ function render(){
   $("#app").innerHTML='<div class="layout"><aside class="sidebar"><div class="brand"><span class="brand-mark">✦</span><span>Trip Planner</span></div><nav class="side-nav" aria-label="Main">'+nav()+'</nav><div class="side-foot"><small>'+esc(state.user?.email||"Demo mode")+'</small><button class="button button-small" data-action="trips">Switch / add trip</button></div></aside><main class="main view-'+esc(state.tab)+'"><div class="topline"><div class="topline-left"><p class="eyebrow">'+esc(t?.title||"TRIP PLANNER")+'</p><h1>'+esc(title)+'</h1><p class="sub">'+esc(t?.destination||"Plan your next adventure")+(t?.start_date?" · "+esc(day(t.start_date))+" – "+esc(day(t.end_date)):"")+'</p></div><div class="head-actions">'+back+'<button class="icon-button" data-action="refresh" title="Refresh" aria-label="Refresh">↻</button></div></div>'+
     (state.preview?'<div class="status-banner"><strong>Shared member preview</strong> — read-only access with no private grants. <button class="button button-small" data-action="preview-shared">Exit preview</button></div>':'')+
     (state.demo?'<div class="status-banner"><strong>Preview only.</strong> These are fictional examples. Changes are not saved and no personal information is stored. Connect your own Supabase project to activate private, shared trips.</div>':!navigator.onLine?'<div class="status-banner"><strong>Offline.</strong> Your private trip data needs a network connection.</div>':"")+
-    (!t && state.tab!=="more"?renderNoTrips():state.tab==="plan"?renderPlanView():state.tab==="tasks"?renderTasks():state.tab==="wallet"?renderWallet(trip(),state.data,{search:state.walletSearch,filter:state.walletFilter,canEdit:canEdit()}):state.tab==="costs"?renderCosts(state.data,{canEdit:canEdit(),filter:state.costFilter||"all",today:tripToday(),expandedId:state.costOpen}):renderMore())+
+    (!t && state.tab!=="more"?renderNoTrips():state.tab==="plan"?renderPlanView():state.tab==="tasks"?renderTasks():state.tab==="wallet"?renderWallet(trip(),state.data,{search:state.walletSearch,filter:state.walletFilter,canEdit:canEdit()}):state.tab==="costs"?renderCosts(state.data,{canEdit:canEdit(),filter:state.costFilter||"all",today:tripToday(),expandedId:state.costOpen,paidBy:state.demo?"Me":(state.user?.user_metadata?.full_name||"Trip owner")}):renderMore())+
     '</main><nav class="bottom-nav" aria-label="Main">'+nav()+'</nav></div>';
   syncItemDetail();
 }
@@ -275,14 +275,15 @@ function openEditor(type,id){
   if(!canEdit()&&type!=="trip")return toast("You have read-only access.");
   if(type==="invite"&&!isOwner())return toast("Only the trip owner can invite people.");
   if(type==="trip"&&id&&!isOwner())return toast("Only the trip owner can edit trip details.");
-  const v=id?item(type,id):{};
+  const virtual=type==='expense'&&id?.startsWith('booking:');
+  const v=id?item(type,id):{};if(!v)return;if(virtual)id=null;
   if(type==="expense"&&!id)v.paid_by=state.demo?"Me":(state.user?.user_metadata?.full_name||"Trip owner");
   if(!id&&state.selectedDay){if(type==="activity")v.activity_date=state.selectedDay;if(type==="leg")v.activity_date=state.selectedDay;if(type==="booking")v.start_date=state.selectedDay;if(type==="stop")v.starts_on=state.selectedDay;}
   const stay=!id?null:type==="stop"?buildTripView(trip(),state.data).stays.find(s=>s.stop?.id===id):type==="booking"?buildTripView(trip(),state.data).stays.find(s=>s.booking?.id===id):null;
   const listingOnStay=!!stay?.stop?.listing_url;
   const fields=FIELDS[type]?.filter(f=>(f.name!=="visibility"||isOwner())&&(f.name!=="listing_url"||!(type==="stop"&&stay?.booking&&!listingOnStay)&&!(type==="booking"&&listingOnStay)));if(!fields)return;
   const titles={trip:"Trip",task:"Task",stop:"Stay",activity:"Activity or journey",booking:"Booking",decision:"Decision",invite:"Invitation",leg:"Journey",asset:"Attachment",expense:"Cost"};
-  $("#editor-title").textContent=(id?"Edit ":"Add ")+titles[type];
+  $("#editor-title").textContent=(id||virtual?"Edit ":"Add ")+titles[type];
   $("#editor-form").dataset.type=type;$("#editor-form").dataset.id=id||"";
   $("#editor-fields").innerHTML=fields.map(f=>{
     const value=v?.[f.name]??(f.name==="priority"?"2":f.name==="currency"?(trip()?.currency||"GBP"):f.name==="timezone"?"Asia/Tokyo":f.options?.[0]?.[0]||"");
@@ -305,7 +306,7 @@ function openEditor(type,id){
     const group=document.createElement('div');group.className='editor-fields';extra.append(group);
     for(const name of ['paid_by','vendor_paid','notes','visibility']){const field=$('#field-'+name)?.closest('.field');if(field)group.append(field);}
     const grants=$('#editor-fields fieldset');if(grants)group.append(grants);
-    $('#editor-fields').append(extra);if(id)extra.open=true;
+    $('#editor-fields').append(extra);if(id||virtual)extra.open=true;
   }
   $("#editor-error").hidden=true;
   $("#editor-delete").hidden=!id;
@@ -444,13 +445,6 @@ function attachEvents(){
     if(name==="remove-cost-split"){action.closest('[data-cost-split]').remove();return;}
     if(name==="equal-cost-split"){
       try{const rows=[...$('#cost-split-rows').querySelectorAll('[data-cost-split]')];if(!rows.length)throw new Error('Add at least one person first.');const share=equalShares($('#field-amount').value,$('#field-currency').value.trim().toUpperCase(),rows.length);for(const row of rows){row.querySelector('[data-split-mode]').value='amount';row.querySelector('[data-split-share]').value=share;}}catch(error){editorError(error.message);}return;
-    }
-    if(name==="track-booking-cost"){
-      if(!canEdit())return;const b=item('booking',id);if(!b)return;
-      openEditor('expense');$('#editor-form').dataset.bookingId=b.id;
-      for(const k of ['title','amount','currency','visibility'])if($('#field-'+k))$('#field-'+k).value=b[k]??(k==='visibility'?'shared':'');
-      for(const cb of $('#editor-fields').querySelectorAll('[name="private_user_ids"]'))cb.checked=(b.private_user_ids||[]).includes(cb.value);
-      return;
     }
     if(name==="settle-expense")return settleExpense(id,action.dataset.part);
     if(name==="close-detail")return closeItemDetail();
@@ -692,10 +686,17 @@ async function settleExpense(id,part){
   const original=item('expense',id);if(!original)return;
   const data={vendor_paid:original.vendor_paid,splits:(original.splits||[]).map(s=>({...s}))};
   if(part==='vendor')data.vendor_paid=original.amount;else if(data.splits[Number(part)])data.splits[Number(part)].repaid=data.splits[Number(part)].share;else return;
+  const payload=original.from_booking?{trip_id:state.tripId,booking_id:original.booking_id,title:original.title,amount:original.amount,currency:original.currency,paid_by:original.paid_by,due_date:null,visibility:isOwner()?original.visibility:'shared',private_user_ids:isOwner()?original.private_user_ids:[],...data}:data;
   state.busy=true;
   try{
-    if(state.demo){Object.assign(original,data);render();}
-    else{let q=state.client.from('trip_expenses').update(data).eq('id',id).eq('trip_id',state.tripId);if(original.updated_at)q=q.eq('updated_at',original.updated_at);const r=await q.select('id').single();if(r.error)throw new Error('Could not update this cost. Refresh to check for changes, then try again.');await loadTrip();}
+    if(state.demo){if(original.from_booking){const row={...payload,id:uid()};state.data.trip_expenses.push(row);state.costOpen=row.id;}else Object.assign(original,data);render();}
+    else{
+      let q=original.from_booking?state.client.from('trip_expenses').insert(payload):state.client.from('trip_expenses').update(data).eq('id',id).eq('trip_id',state.tripId);
+      if(!original.from_booking&&original.updated_at)q=q.eq('updated_at',original.updated_at);
+      const r=await q.select('id').single();
+      if(r.error){if(r.error.code==='23505'){await loadTrip();throw new Error('This booking already has a cost. Review the refreshed payment details.');}throw new Error('Could not update this cost. Refresh to check for changes, then try again.');}
+      state.costOpen=r.data.id;await loadTrip();
+    }
     toast(part==='vendor'?'Vendor payment recorded':'Repayment recorded');
   }catch(error){fail(error);}finally{state.busy=false;}
 }
