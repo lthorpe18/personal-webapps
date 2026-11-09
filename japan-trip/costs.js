@@ -1,4 +1,4 @@
-/* Cost accounting is kept in currency minor units; no implicit FX conversions. */
+/* Payments stay in original currency; only the overview uses a dated FX estimate. */
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 export const digits=currency=>new Intl.NumberFormat('en',{style:'currency',currency}).resolvedOptions().maximumFractionDigits;
 export function minor(value,currency){
@@ -37,6 +37,17 @@ export function costSummary(expenses){
   }
   return {currencies:[...currencies.values()].map(g=>({...g,total:g.total/10**digits(g.currency),paid:g.paid/10**digits(g.currency),vendorDue:g.vendorDue/10**digits(g.currency),repayDue:g.repayDue/10**digits(g.currency)})),people:[...people.values()].map(p=>({...p,due:p.due/10**digits(p.currency)}))};
 }
+// Rounded from Wise GBP/JPY on 9 November 2026. Deliberately never fetched live.
+export const COST_FX=Object.freeze({gbpJpy:212,asOf:'2026-11-09',source:'https://wise.com/gb/currency-converter/gbp-to-jpy-rate/history/09-11-2026'});
+export function estimateSummary(expenses,target='GBP'){
+  target=target==='JPY'?'JPY':'GBP';
+  const included=expenses.filter(e=>['GBP','JPY'].includes(e.currency));
+  const groups=costSummary(included).currencies;
+  const out={currency:target,count:included.length,unknown:0,total:0,paid:0,vendorDue:0,repayDue:0,converted:included.some(e=>e.currency!==target),excluded:[...new Set(expenses.filter(e=>!['GBP','JPY'].includes(e.currency)).map(e=>e.currency))]};
+  for(const g of groups){const rate=g.currency===target?1:target==='JPY'?COST_FX.gbpJpy:1/COST_FX.gbpJpy;out.unknown+=g.unknown;for(const key of ['total','paid','vendorDue','repayDue'])out[key]+=g[key]*rate;}
+  const scale=10**digits(target);for(const key of ['total','paid','vendorDue','repayDue'])out[key]=Math.round(out[key]*scale)/scale;
+  return out;
+}
 export function paymentDue(e,today=new Date().toISOString().slice(0,10)){
   if(!e.due_date)return {label:'',kind:''};
   const date=new Date(e.due_date+'T12:00:00Z').toLocaleDateString('en-GB',{day:'numeric',month:'short',...(e.due_date.slice(0,4)!==today.slice(0,4)?{year:'numeric'}:{}),timeZone:'UTC'});
@@ -51,11 +62,15 @@ export function costEntries(data,{paidBy='Trip owner'}={}){
   const saved=data.trip_expenses||[],linked=new Set(saved.map(e=>e.booking_id).filter(Boolean));
   return [...saved,...(data.bookings||[]).filter(b=>b.status!=='cancelled'&&b.amount!=null&&!linked.has(b.id)).map(b=>({id:'booking:'+b.id,trip_id:b.trip_id,booking_id:b.id,title:b.title,amount:b.amount,currency:b.currency||'GBP',paid_by:paidBy,vendor_paid:null,splits:[],due_date:null,notes:null,visibility:b.visibility||'shared',private_user_ids:b.private_user_ids||[],from_booking:true}))];
 }
-export function renderCosts(data,{canEdit=false,filter='all',today,expandedId,paidBy}={}){
-  const costs=costEntries(data,{paidBy}),summary=costSummary(costs);
+export function renderCosts(data,{canEdit=false,filter='all',today,expandedId,paidBy,summaryCurrency='GBP',summaryOpen=false}={}){
+  const costs=costEntries(data,{paidBy}),summary=costSummary(costs),estimate=estimateSummary(costs,summaryCurrency);
+  const estimated=v=>(estimate.converted?'≈ ':'')+new Intl.NumberFormat('en-GB',{style:'currency',currency:estimate.currency,currencyDisplay:'narrowSymbol'}).format(v);
   const cards=costs.filter(e=>filter!=='outstanding'||e.vendor_paid===null||Number(e.vendor_paid)<Number(e.amount)||(e.splits||[]).some(s=>Number(s.repaid)<Number(s.share)));
   return `<div class="cost-simple-head"><p>Payments & repayments</p>${canEdit?'<button class="button button-primary button-small" data-action="new-expense">+ Add</button>':''}</div>
-  <div class="cost-overviews">${summary.currencies.map(g=>`<section class="cost-overview" aria-label="${esc(g.currency)} balances">${summary.currencies.length>1?`<p class="eyebrow">${esc(g.currency)}</p>`:''}<div class="cost-two-totals"><div><span>Left to pay vendors${g.unknown&&g.unknown<costs.filter(e=>e.currency===g.currency).length?' (known)':''}</span><strong>${g.unknown&&g.unknown===costs.filter(e=>e.currency===g.currency).length?'Not recorded':money(g.vendorDue,g.currency)}</strong></div><div><span>Repayments owed</span><strong>${money(g.repayDue,g.currency)}</strong></div></div>${g.unknown?`<p class="hint">${g.unknown} payment status${g.unknown===1?'':'es'} to confirm.</p>`:''}</section>`).join('')}</div>
+  <details class="cost-summary-panel" id="cost-summary" ${summaryOpen?'open':''}><summary><strong>Balance summary</strong><span>${estimate.currency==='GBP'?'£ GBP':'¥ JPY'}</span></summary>
+    <div class="cost-summary-content"><div class="cost-currency-toggle" role="group" aria-label="Summary currency">${[['GBP','£ Pounds'],['JPY','¥ Yen']].map(([c,label])=>`<button type="button" data-cost-currency="${c}" aria-pressed="${estimate.currency===c}">${label}</button>`).join('')}</div>
+    ${estimate.count?`<div class="cost-two-totals"><div><span>Left to pay vendors${estimate.unknown&&estimate.unknown<estimate.count?' (known)':''}</span><strong>${estimate.unknown===estimate.count?'Not recorded':estimated(estimate.vendorDue)}</strong></div><div><span>Repayments owed</span><strong>${estimated(estimate.repayDue)}</strong></div></div>${estimate.unknown?`<p class="hint">${estimate.unknown} payment status${estimate.unknown===1?'':'es'} to confirm.</p>`:''}`:'<p class="hint">No GBP or JPY costs recorded.</p>'}
+    <p class="cost-fx-note">£1 ≈ ¥${COST_FX.gbpJpy} · 9 Nov 2026 · fixed estimate<br>Summary only; amounts below stay in their original currency.</p>${estimate.excluded.length?`<p class="hint">${esc(estimate.excluded.join(', '))} totals are kept separately under “Totals & balances by person”.</p>`:''}</div></details>
   <div class="cost-list-toolbar"><div class="cost-switch" aria-label="Cost filter"><button class="${filter==='all'?'active':''}" data-cost-filter="all" aria-pressed="${filter==='all'}">All costs</button><button class="${filter==='outstanding'?'active':''}" data-cost-filter="outstanding" aria-pressed="${filter==='outstanding'}">Outstanding</button></div><span>Tap to manage</span></div>
   <div class="cost-simple-list">${cards.map(e=>{
     const c=e.currency,left=e.vendor_paid===null?null:Number(e.amount)-Number(e.vendor_paid),booking=(data.bookings||[]).find(b=>b.id===e.booking_id),due=paymentDue(e,today);

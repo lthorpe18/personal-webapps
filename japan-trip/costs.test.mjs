@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import {minor,equalShares,percentShare,validateExpense,costSummary,renderCosts,paymentDue,costEntries} from './costs.js';
+import {minor,equalShares,percentShare,validateExpense,costSummary,renderCosts,paymentDue,costEntries,estimateSummary,COST_FX} from './costs.js';
 import {sharedData} from './privacy-ui.js';
 const cost={title:'Hotel',amount:100,currency:'GBP',paid_by:'Me',vendor_paid:30,splits:[{person:'Hannah',share:20,repaid:5}]};
 assert.equal(equalShares(100,'GBP',2),33.33);
@@ -49,3 +49,16 @@ assert.equal(costEntries({bookings,trip_expenses:[saved]})[0].vendor_paid,30,'Sa
 assert.equal(costEntries(sharedData({bookings:[{...bookings[0],visibility:'private'}],trip_expenses:[]})).length,0,'Private bookings cannot create shared preview cost rows');
 assert(!renderCosts({bookings,trip_expenses:[]},{canEdit:false}).includes('settle-expense'));
 console.log('PASS: existing bookings appear automatically, payment status remains unknown, cancelled/unpriced bookings excluded, saved costs deduplicate, shared preview and read-only access preserved');
+
+const fxCosts=[{...cost,amount:100,vendor_paid:40,splits:[{person:'Hannah',share:20,repaid:5}]},{...cost,amount:21200,currency:'JPY',vendor_paid:10600,splits:[{person:'Hannah',share:4240,repaid:2120}]}];
+const beforeFX=JSON.stringify(fxCosts);
+const gbp=estimateSummary(fxCosts,'GBP'),jpy=estimateSummary(fxCosts,'JPY');
+assert.equal(COST_FX.gbpJpy,212);assert.equal(gbp.total,200);assert.equal(gbp.vendorDue,110);assert.equal(gbp.repayDue,25);
+assert.equal(jpy.total,42400);assert.equal(jpy.vendorDue,23320);assert.equal(jpy.repayDue,5300);
+assert.equal(JSON.stringify(fxCosts),beforeFX,'Conversions must not change saved amounts');
+assert.equal(estimateSummary([{...cost,vendor_paid:null}]).unknown,1);
+assert.deepEqual(estimateSummary([{...cost,currency:'EUR'}]).excluded,['EUR']);
+const fxHTML=renderCosts({trip_expenses:fxCosts},{summaryOpen:true,summaryCurrency:'JPY'});
+assert(fxHTML.includes('id="cost-summary" open'));assert(fxHTML.includes('data-cost-currency="JPY" aria-pressed="true"'));assert(fxHTML.includes('¥23,320'));
+assert(fxHTML.includes('9 Nov 2026'));assert(!renderCosts({trip_expenses:fxCosts}).includes('id="cost-summary" open'));
+console.log('PASS: combined GBP/JPY estimates, reciprocal conversion, unknown payments, untouched source amounts, unsupported currencies, collapsed state and toggle rendering');

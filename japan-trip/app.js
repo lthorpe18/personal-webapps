@@ -1,4 +1,4 @@
-import { costEntries, renderCosts, splitRow, validateExpense, equalShares, percentShare } from "./costs.js?v=3";
+import { costEntries, renderCosts, splitRow, validateExpense, equalShares, percentShare } from "./costs.js?v=4";
 import { navigationIcon, buildTripView, renderPlan as renderUnifiedPlan, renderWallet, renderItemDetail } from "./trip-view.js?v=3";
 import { sharedData } from "./privacy-ui.js?v=1";
 /* Trip Planner v1 — plain browser JavaScript; no private trip data in source control. */
@@ -35,7 +35,7 @@ FIELDS.asset=[FIELD("title","Attachment title","text",{required:true,full:true})
 for(const type of ["task","stop","activity","booking","decision","leg","asset","expense"]){
   FIELDS[type].push(FIELD("visibility","Visibility","select",{options:[["shared","Shared — trip members"],["private","Private — owner and selected members"]],full:true}));
 }
-const state={preview:false,members:[],client:null,user:null,trips:[],tripId:null,tab:"plan",moreTab:"decisions",filter:"open",category:"all",search:"",selectedDay:null,detailKey:null,walletSearch:"",walletFilter:"all",ticketIndex:0,data:{tasks:[],trip_stops:[],activities:[],bookings:[],decisions:[],transport_legs:[],trip_assets:[],trip_expenses:[]},invites:[],member:null,demo:isDemo,busy:false,refreshVersion:0,channel:null};
+const state={costSummaryOpen:localStorage.getItem('trip-planner-cost-summary-open')==='1',costCurrency:localStorage.getItem('trip-planner-cost-currency')==='JPY'?'JPY':'GBP',preview:false,members:[],client:null,user:null,trips:[],tripId:null,tab:"plan",moreTab:"decisions",filter:"open",category:"all",search:"",selectedDay:null,detailKey:null,walletSearch:"",walletFilter:"all",ticketIndex:0,data:{tasks:[],trip_stops:[],activities:[],bookings:[],decisions:[],transport_legs:[],trip_assets:[],trip_expenses:[]},invites:[],member:null,demo:isDemo,busy:false,refreshVersion:0,channel:null};
 const day=date => date ? new Date(date+"T12:00:00Z").toLocaleDateString("en-GB",{day:"numeric",month:"short",timeZone:"UTC"}) : "Date TBC";
 const longDay=date => date ? new Date(date+"T12:00:00Z").toLocaleDateString("en-GB",{weekday:"short",day:"numeric",month:"short",year:"numeric",timeZone:"UTC"}) : "Date TBC";
 const nights=(from,to)=>from&&to?Math.max(0,Math.round((Date.parse(to+"T00:00:00Z")-Date.parse(from+"T00:00:00Z"))/86400000)):0;
@@ -76,7 +76,7 @@ function demoFixture(){
 }
 async function init(){
   if("serviceWorker" in navigator && (location.protocol==="https:"||location.hostname==="localhost")){
-    navigator.serviceWorker.register("./sw.js?v=19",{updateViaCache:"none"}).catch(()=>{});
+    navigator.serviceWorker.register("./sw.js?v=20",{updateViaCache:"none"}).catch(()=>{});
   }
   if(state.demo){const v=demoFixture();state.trips=[v.t];state.tripId=v.t.id;state.data=v.d;render();return;}
   if(!(config.url && config.publishableKey)){
@@ -167,7 +167,7 @@ function render(){
   $("#app").innerHTML='<div class="layout"><aside class="sidebar"><div class="brand"><span class="brand-mark">✦</span><span>Trip Planner</span></div><nav class="side-nav" aria-label="Main">'+nav()+'</nav><div class="side-foot"><small>'+esc(state.user?.email||"Demo mode")+'</small><button class="button button-small" data-action="trips">Switch / add trip</button></div></aside><main class="main view-'+esc(state.tab)+'"><div class="topline"><div class="topline-left"><p class="eyebrow">'+esc(t?.title||"TRIP PLANNER")+'</p><h1>'+esc(title)+'</h1><p class="sub">'+esc(t?.destination||"Plan your next adventure")+(t?.start_date?" · "+esc(day(t.start_date))+" – "+esc(day(t.end_date)):"")+'</p></div><div class="head-actions">'+back+'<button class="icon-button" data-action="refresh" title="Refresh" aria-label="Refresh">↻</button></div></div>'+
     (state.preview?'<div class="status-banner"><strong>Shared member preview</strong> — read-only access with no private grants. <button class="button button-small" data-action="preview-shared">Exit preview</button></div>':'')+
     (state.demo?'<div class="status-banner"><strong>Preview only.</strong> These are fictional examples. Changes are not saved and no personal information is stored. Connect your own Supabase project to activate private, shared trips.</div>':!navigator.onLine?'<div class="status-banner"><strong>Offline.</strong> Your private trip data needs a network connection.</div>':"")+
-    (!t && state.tab!=="more"?renderNoTrips():state.tab==="plan"?renderPlanView():state.tab==="tasks"?renderTasks():state.tab==="wallet"?renderWallet(trip(),state.data,{search:state.walletSearch,filter:state.walletFilter,canEdit:canEdit()}):state.tab==="costs"?renderCosts(state.data,{canEdit:canEdit(),filter:state.costFilter||"all",today:tripToday(),expandedId:state.costOpen,paidBy:state.demo?"Me":(state.user?.user_metadata?.full_name||"Trip owner")}):renderMore())+
+    (!t && state.tab!=="more"?renderNoTrips():state.tab==="plan"?renderPlanView():state.tab==="tasks"?renderTasks():state.tab==="wallet"?renderWallet(trip(),state.data,{search:state.walletSearch,filter:state.walletFilter,canEdit:canEdit()}):state.tab==="costs"?renderCosts(state.data,{canEdit:canEdit(),filter:state.costFilter||"all",today:tripToday(),expandedId:state.costOpen,summaryCurrency:state.costCurrency,summaryOpen:state.costSummaryOpen,paidBy:state.demo?"Me":(state.user?.user_metadata?.full_name||"Trip owner")}):renderMore())+
     '</main><nav class="bottom-nav" aria-label="Main">'+nav()+'</nav></div>';
   syncItemDetail();
 }
@@ -428,9 +428,10 @@ async function importTrip(file){
 function changeTrip(id){state.preview=false;closePrivateDialogs();if(!state.trips.some(t=>t.id===id))return;state.tripId=id;state.tab="plan";state.moreTab="decisions";state.selectedDay=null;if(state.demo){state.data={tasks:[],trip_stops:[],activities:[],bookings:[],decisions:[],transport_legs:[],trip_assets:[],trip_expenses:[]};render();}else loadTrip().catch(fail);}
 async function refresh(){if(state.demo){render();toast("Preview mode — changes are not saved.");return;}try{await loadTrips();toast("Up to date");}catch(error){fail(error);}}
 function attachEvents(){
-  document.addEventListener('toggle',e=>{const el=e.target;if(!el.matches?.('details[data-cost-id]'))return;if(el.open)state.costOpen=el.dataset.costId;else if(state.costOpen===el.dataset.costId)state.costOpen=null;},true);
+  document.addEventListener('toggle',e=>{const el=e.target;if(el.id==='cost-summary'){state.costSummaryOpen=el.open;localStorage.setItem('trip-planner-cost-summary-open',el.open?'1':'0');return;}if(!el.matches?.('details[data-cost-id]'))return;if(el.open)state.costOpen=el.dataset.costId;else if(state.costOpen===el.dataset.costId)state.costOpen=null;},true);
   document.addEventListener("click",async e=>{
     const navEl=e.target.closest("[data-tab]");if(navEl){e.preventDefault();state.tab=navEl.dataset.tab;if(navEl.dataset.more)state.moreTab=navEl.dataset.more;state.search="";render();window.scrollTo({top:0,behavior:"instant"});return;}
+    const costCurrency=e.target.closest('[data-cost-currency]');if(costCurrency){state.costCurrency=costCurrency.dataset.costCurrency==='JPY'?'JPY':'GBP';state.costSummaryOpen=true;localStorage.setItem('trip-planner-cost-currency',state.costCurrency);render();return;}
     const costFilter=e.target.closest('[data-cost-filter]');if(costFilter){state.costFilter=costFilter.dataset.costFilter;render();return;}
     const planDay=e.target.closest("[data-plan-day]");if(planDay){const date=planDay.dataset.planDay;const toggle=planDay.hasAttribute("aria-expanded");state.selectedDay=toggle&&state.selectedDay===date?null:date;render();const target=document.querySelector('[data-plan-day="'+date+'"][aria-expanded]');target?.focus({preventScroll:true});if(!toggle)target?.scrollIntoView({behavior:"smooth",block:"start"});return;}
     const detail=e.target.closest("[data-detail]");if(detail){openItemDetail(detail.dataset.detail);return;}
