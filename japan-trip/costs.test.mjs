@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import {minor,equalShares,percentShare,validateExpense,costSummary,renderCosts} from './costs.js';
+import {minor,equalShares,percentShare,validateExpense,costSummary,renderCosts,paymentDue} from './costs.js';
 import {sharedData} from './privacy-ui.js';
 const cost={title:'Hotel',amount:100,currency:'GBP',paid_by:'Me',vendor_paid:30,splits:[{person:'Hannah',share:20,repaid:5}]};
 assert.equal(equalShares(100,'GBP',2),33.33);
@@ -21,6 +21,19 @@ assert.equal(summary.people[0].due,15);
 const safe=sharedData({bookings:[{id:'secret',trip_id:'t',visibility:'private'}],trip_expenses:[{...cost,id:'e',trip_id:'t',booking_id:'secret',visibility:'shared'},{...cost,id:'p',visibility:'private'}]});
 assert.equal(safe.trip_expenses.length,0);
 assert(!renderCosts({trip_expenses:[cost]},{canEdit:false}).includes('settle-expense'));
-assert(renderCosts({trip_expenses:[cost]},{canEdit:true}).includes('Mark repaid'));
+assert(renderCosts({trip_expenses:[cost]},{canEdit:true}).includes('Hannah repaid'));
 assert(!renderCosts({trip_expenses:[{...cost,title:'<img onerror=x>'}]}).includes('<img'));
 console.log('PASS: money precision, split rounding, partial payments, validation, separate currencies, parent privacy, read-only actions, escaping');
+
+assert.deepEqual(paymentDue({...cost,due_date:'2026-11-08'},'2026-11-09'),{label:'Overdue · 8 Nov',kind:'overdue'});
+assert.deepEqual(paymentDue({...cost,due_date:'2026-11-09'},'2026-11-09'),{label:'Due today',kind:'soon'});
+assert.deepEqual(paymentDue({...cost,due_date:'2026-11-12'},'2026-11-09'),{label:'Due 12 Nov',kind:'soon'});
+assert.equal(paymentDue({...cost,due_date:'2026-12-24'},'2026-11-09').kind,'upcoming');
+assert.equal(paymentDue({...cost,due_date:'2026-11-08',vendor_paid:100},'2026-11-09').kind,'paid');
+assert.equal(paymentDue(cost,'2026-11-09').label,'');
+assert(paymentDue({...cost,due_date:'2027-01-10'},'2026-11-09').label.includes('2027'));
+const dueHTML=renderCosts({trip_expenses:[{...cost,id:'test',due_date:'2026-11-08'}]},{today:'2026-11-09',expandedId:'test'});
+assert(dueHTML.includes('Overdue · 8 Nov'));
+assert(dueHTML.includes('data-cost-id="test" open'));
+assert(!renderCosts({trip_expenses:[{...cost,due_date:'2026-11-08',vendor_paid:100}]},{today:'2026-11-09'}).includes('Overdue'));
+console.log('PASS: due today, overdue, upcoming, paid-date suppression, year boundaries and expanded state');

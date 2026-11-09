@@ -1,4 +1,4 @@
-import { renderCosts, splitRow, validateExpense, equalShares, percentShare } from "./costs.js?v=1";
+import { renderCosts, splitRow, validateExpense, equalShares, percentShare } from "./costs.js?v=2";
 import { navigationIcon, buildTripView, renderPlan as renderUnifiedPlan, renderWallet, renderItemDetail } from "./trip-view.js?v=3";
 import { sharedData } from "./privacy-ui.js?v=1";
 /* Trip Planner v1 — plain browser JavaScript; no private trip data in source control. */
@@ -71,12 +71,12 @@ function demoFixture(){
   d.transport_legs=[{id:uid(),activity_date:"2027-02-07",departure_name:"Tokyo",arrival_name:"Kyoto",departs_at:"2027-02-07T01:00:00Z",arrives_at:"2027-02-07T03:15:00Z",mode:"shinkansen",booking_id:railId,reservation_status:"booked",operator:"Example railway",service_number:"Demo service",seat:"12A",notes:"Illustrative times only."}];
   d.trip_assets=[{id:uid(),title:"Example rail ticket",kind:"ticket_qr",mime_type:"application/x-qr-payload",data_url:"qr:DEMO-ONLY-NOT-A-VALID-TICKET",booking_id:railId,activity_id:activityId}];
   d.bookings[0].amount=500;d.bookings[0].currency='GBP';
-  d.trip_expenses=[{id:uid(),trip_id:t.id,title:'Example rail tickets',amount:240,currency:'GBP',paid_by:'Me',vendor_paid:240,visibility:'shared',splits:[{person:'Alex',share:80,repaid:30}]}];
+  d.trip_expenses=[{id:uid(),trip_id:t.id,title:'Example rail tickets',due_date:'2027-01-25',amount:240,currency:'GBP',paid_by:'Me',vendor_paid:240,visibility:'shared',splits:[{person:'Alex',share:80,repaid:30}]}];
   return {t,d};
 }
 async function init(){
   if("serviceWorker" in navigator && (location.protocol==="https:"||location.hostname==="localhost")){
-    navigator.serviceWorker.register("./sw.js?v=17",{updateViaCache:"none"}).catch(()=>{});
+    navigator.serviceWorker.register("./sw.js?v=18",{updateViaCache:"none"}).catch(()=>{});
   }
   if(state.demo){const v=demoFixture();state.trips=[v.t];state.tripId=v.t.id;state.data=v.d;render();return;}
   if(!(config.url && config.publishableKey)){
@@ -167,7 +167,7 @@ function render(){
   $("#app").innerHTML='<div class="layout"><aside class="sidebar"><div class="brand"><span class="brand-mark">✦</span><span>Trip Planner</span></div><nav class="side-nav" aria-label="Main">'+nav()+'</nav><div class="side-foot"><small>'+esc(state.user?.email||"Demo mode")+'</small><button class="button button-small" data-action="trips">Switch / add trip</button></div></aside><main class="main view-'+esc(state.tab)+'"><div class="topline"><div class="topline-left"><p class="eyebrow">'+esc(t?.title||"TRIP PLANNER")+'</p><h1>'+esc(title)+'</h1><p class="sub">'+esc(t?.destination||"Plan your next adventure")+(t?.start_date?" · "+esc(day(t.start_date))+" – "+esc(day(t.end_date)):"")+'</p></div><div class="head-actions">'+back+'<button class="icon-button" data-action="refresh" title="Refresh" aria-label="Refresh">↻</button></div></div>'+
     (state.preview?'<div class="status-banner"><strong>Shared member preview</strong> — read-only access with no private grants. <button class="button button-small" data-action="preview-shared">Exit preview</button></div>':'')+
     (state.demo?'<div class="status-banner"><strong>Preview only.</strong> These are fictional examples. Changes are not saved and no personal information is stored. Connect your own Supabase project to activate private, shared trips.</div>':!navigator.onLine?'<div class="status-banner"><strong>Offline.</strong> Your private trip data needs a network connection.</div>':"")+
-    (!t && state.tab!=="more"?renderNoTrips():state.tab==="plan"?renderPlanView():state.tab==="tasks"?renderTasks():state.tab==="wallet"?renderWallet(trip(),state.data,{search:state.walletSearch,filter:state.walletFilter,canEdit:canEdit()}):state.tab==="costs"?renderCosts(state.data,{canEdit:canEdit(),filter:state.costFilter||"all"}):renderMore())+
+    (!t && state.tab!=="more"?renderNoTrips():state.tab==="plan"?renderPlanView():state.tab==="tasks"?renderTasks():state.tab==="wallet"?renderWallet(trip(),state.data,{search:state.walletSearch,filter:state.walletFilter,canEdit:canEdit()}):state.tab==="costs"?renderCosts(state.data,{canEdit:canEdit(),filter:state.costFilter||"all",today:tripToday(),expandedId:state.costOpen}):renderMore())+
     '</main><nav class="bottom-nav" aria-label="Main">'+nav()+'</nav></div>';
   syncItemDetail();
 }
@@ -246,7 +246,7 @@ function renderDecisions(){
 }
 function sharedOnlyData(){return sharedData(state.data);}
 function privacyBadge(v){return v.visibility==="private"?'<span class="pill private-badge">🔒 Private</span>':'';}
-function closePrivateDialogs(){state.walletSearch="";state.walletFilter="all";state.costFilter="all";state.search="";closeItemDetail();for(const selector of ["#editor","#ticket-dialog","#itinerary-share-dialog"]){const el=$(selector);if(el?.open)el.close();}releaseItineraryPreview();activeTicketAssets=[];ticketRenderVersion++;$("#ticket-dialog-image")?.removeAttribute("src");state.ticketIndex=0;}
+function closePrivateDialogs(){state.walletSearch="";state.walletFilter="all";state.costFilter="all";state.costOpen=null;state.search="";closeItemDetail();for(const selector of ["#editor","#ticket-dialog","#itinerary-share-dialog"]){const el=$(selector);if(el?.open)el.close();}releaseItineraryPreview();activeTicketAssets=[];ticketRenderVersion++;$("#ticket-dialog-image")?.removeAttribute("src");state.ticketIndex=0;}
 function renderPrivacySettings(){
   if(!isOwner()||state.preview)return '';
   const types={tasks:"task",trip_stops:"stop",activities:"activity",bookings:"booking",decisions:"decision",transport_legs:"leg",trip_assets:"asset",trip_expenses:"expense"};
@@ -299,6 +299,14 @@ function openEditor(type,id){
     $("#editor-fields").insertAdjacentHTML("beforeend",'<section class="full cost-splits-section"><h3>Split this cost</h3><p class="hint">Add the other people sharing this cost. The remainder is the vendor payer’s own share. Repayments go to the person paying the vendor.</p><div id="cost-split-rows">'+(v.splits||[]).map(splitRow).join('')+'</div><datalist id="cost-person-names">'+names.map(n=>'<option value="'+esc(n)+'">').join('')+'</datalist><div class="cost-tools"><button type="button" class="button button-small" data-action="add-cost-split">+ Person</button><button type="button" class="button button-small" data-action="equal-cost-split">Split equally incl. payer</button></div><p class="hint">For percentages, enter 20 for a 20% share. Equal splits assign any rounding remainder to the payer.</p></section>');
     const form=$("#editor-form");form.dataset.bookingId=v.booking_id||"";form.dataset.updatedAt=v.updated_at||"";
   }
+  if(type==="expense"){
+    const extra=document.createElement('details');extra.className='cost-editor-options full';
+    const heading=document.createElement('summary');heading.textContent='Payment details, notes & privacy';extra.append(heading);
+    const group=document.createElement('div');group.className='editor-fields';extra.append(group);
+    for(const name of ['paid_by','vendor_paid','notes','visibility']){const field=$('#field-'+name)?.closest('.field');if(field)group.append(field);}
+    const grants=$('#editor-fields fieldset');if(grants)group.append(grants);
+    $('#editor-fields').append(extra);if(id)extra.open=true;
+  }
   $("#editor-error").hidden=true;
   $("#editor-delete").hidden=!id;
   $("#editor").showModal();
@@ -350,7 +358,7 @@ async function saveEditor(event){
     closeEditor();
     if(!state.demo){if(type==="trip")await loadTrips();else await loadTrip();}
     else render();
-    toast((id?"Updated ":"Added ")+(type==="invite"?"invitation":type));
+    toast((id?"Updated ":"Added ")+(type==="invite"?"invitation":type==="expense"?"cost":type));
   }catch(error){editorError(error?.message||"Could not save.");console.error(error);}
   finally{state.busy=false;$("#editor-submit").disabled=false;}
 }
@@ -419,6 +427,7 @@ async function importTrip(file){
 function changeTrip(id){state.preview=false;closePrivateDialogs();if(!state.trips.some(t=>t.id===id))return;state.tripId=id;state.tab="plan";state.moreTab="decisions";state.selectedDay=null;if(state.demo){state.data={tasks:[],trip_stops:[],activities:[],bookings:[],decisions:[],transport_legs:[],trip_assets:[],trip_expenses:[]};render();}else loadTrip().catch(fail);}
 async function refresh(){if(state.demo){render();toast("Preview mode — changes are not saved.");return;}try{await loadTrips();toast("Up to date");}catch(error){fail(error);}}
 function attachEvents(){
+  document.addEventListener('toggle',e=>{const el=e.target;if(!el.matches?.('details[data-cost-id]'))return;if(el.open)state.costOpen=el.dataset.costId;else if(state.costOpen===el.dataset.costId)state.costOpen=null;},true);
   document.addEventListener("click",async e=>{
     const navEl=e.target.closest("[data-tab]");if(navEl){e.preventDefault();state.tab=navEl.dataset.tab;if(navEl.dataset.more)state.moreTab=navEl.dataset.more;state.search="";render();window.scrollTo({top:0,behavior:"instant"});return;}
     const costFilter=e.target.closest('[data-cost-filter]');if(costFilter){state.costFilter=costFilter.dataset.costFilter;render();return;}
