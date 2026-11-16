@@ -169,11 +169,27 @@ Direct combat is part of ordinary exploration. The player moves, positions, dodg
 
 **OPEN for prototypes:** Target selection, temporal eligibility/readability, moving-tree and physics collision edge cases, short history duration, costs and timings, enemy resistance, and which environmental motions warrant genuine gameplay support. The Harbour sea-creature fight must involve **all three** along with direct action and the great bird's intervention; its precise choreography remains **DIRECTION**.
 
-### Community defence — LOCKED fantasy / DIRECTION scope
+### Community defence — LOCKED fantasy and frequency / DIRECTION examples
 
 Important battles combine the player fighting on the ground with occasional broader decisions informed by a bird's overhead view. Local leaders retain command; the player is **not an RTS general**. Trust earned through past actions, rescues and warnings determines who heeds the bird-carried signals. Possible commands: defend a chokepoint, protect civilians, reposition a small group or prioritise a threat. Tribal defence can introduce the idea; Harbour is its major Act 1 expression.
 
-The exact command set, size of forces, complexity and frequency remain **OPEN**. Do not let this subsystem dominate the first ground-combat prototype.
+**LOCKED — frequency:** **Occasional major set pieces (Option A)**, not recurring routine skirmishes with a strategy overlay or a second game-length strategy pillar. Direct weapon combat remains available in normal exploration; bird time powers augment **both** direct fighting and battlefield coordination. The same protagonist combat and enemy fundamentals should underpin defence battles rather than requiring an entirely separate RTS.
+
+**DIRECTION — candidate encounter ladder (not five locked missions):**
+
+| Act | Candidate scenario | Distinct defence problem | Status |
+|---|---|---|---|
+| **Act 1, Present v1** | **Inland village under attack**: the player helps the tribe against dangerous creatures | First earned trust, protect civilians, choose one defensive priority, then fight personally | **LOCKED story beat**, encounter specifics flexible |
+| **Act 1, Past** | **Harbour's catastrophe**: refugees, defenders and the prehistoric marine creature collide | Several simultaneous fronts, de-escalate human conflict, save the great bird, and exploit all three temporal powers against the beast | **LOCKED story beat**, precise choreography open |
+| **Act 2, Past** | **Loom containment failure**: assist workers and local defenders in keeping people safe while an artificial seam destabilises | Changing passages and hazards rather than a straightforward assault; a short-term success demonstrates why people still trust the Curator | **CANDIDATE** |
+| **Act 3, Past** | **Evacuation of an anchor-dependent district**: protect a moving civilian withdrawal as maintained infrastructure fails and security forces oppose the operation | Manage routes, escorts, rearguards and minimal harm, rather than simply holding territory | **CANDIDATE** |
+| **Act 3, Past** | **Marine fault / final departure**: protect the evacuation and gain access to the main gate before closing the deep-time breach | A moving, multi-location finale with limited aerial coordination; prevent the creature's arrival rather than fighting it a second time | **CANDIDATE** |
+
+**ALTERNATIVES, not added required battles:** An Act 2 **Present** survivor camp defending against a temporary prehistoric incursion could replace the Past containment encounter; an Act 3 defence of an evacuation corridor against the Curator's forces could replace a more static anchor-district evacuation. Avoid adding all alternatives merely to fill every region.
+
+**Design constraint:** Each major defence should test a **different tactical question**—hold ground, reconcile hostile groups, manage unstable terrain, protect a retreat, or prevent a final catastrophe. Protecting people and manipulating surroundings are often more interesting than counting killed enemies. The player issues a few consequential orders and returns to direct control, not micromanaging individuals.
+
+The exact command set, force sizes, encounter choreography, final number (rough working target: **about five total**), and technical implementation remain **OPEN**. Do not let this subsystem dominate the first ground-combat prototype.
 
 **EXPERIMENTAL:** A time-displacement weapon that temporarily sends enemies to another era. It is not part of the locked combat kit.
 
