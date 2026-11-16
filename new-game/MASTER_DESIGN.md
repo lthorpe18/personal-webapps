@@ -167,7 +167,7 @@ This should not become a full generational life simulator. Important families wo
 
 ## Player Origin
 
-The player originates in the same broad historical era as the game's Past. During the collapse of an advanced eastern civilisation, someone deliberately attempts to remove one person from ordinary causality so that the civilisation's history-altering system cannot rewrite them.
+The player originates in the same broad historical era as the game's Past. **LOCKED — the displacement experiment occurs as the eastern crisis is developing, before the refugee evacuation begins.** Someone deliberately attempts to remove one person from ordinary causality so that the civilisation's history-altering system cannot rewrite them. **OPEN:** The Curator might personally authorise the experiment as a desperate safeguard rather than an act of straightforward villainy, but this motivation and the experiment's precise timing are not yet settled.
 
 The experiment forces the player through a temporal rupture and throws them forward into the first future state their severed existence can occupy. Their companion bird is caught in or affected by the same displacement and arrives temporally weakened.
 
@@ -199,7 +199,9 @@ The western landmass. Harbour Village sits on its coast. This is where the game 
 
 The eastern landmass, homeland of the refugees. It contains the civilisation that built the history-manipulation network and becomes the primary setting of Acts 2 and 3.
 
-The sea contains a deep natural temporal fault. **LOCKED — prehistoric sea creature:** Under extreme Loom-driven instability, this fault can tear into a deep-time rip through which a colossal prehistoric marine animal enters Harbour's historical era. The animal is not malicious or ordinarily resident in the human era; the refugee fleet inadvertently triggers or encounters the breach. The original Harbour catastrophe kills the creature and leaves its enormous skeleton. In the Act 1 rewritten history, the player and defenders must defeat it before it destroys Harbour. In the final rewritten history, the fleet avoids the fault, the creature never enters this era, and closure of the catastrophic rips leaves it in its own prehistoric time. The precise biological nature and mechanics of the breach are open.
+The sea contains a deep natural temporal fault. **LOCKED — prehistoric sea creature:** Under extreme Loom-driven instability, this fault can tear into a deep-time rip through which a colossal prehistoric marine animal enters Harbour's historical era. The animal is not malicious or ordinarily resident in the human era; the refugee fleet inadvertently triggers or encounters the breach. The original Harbour catastrophe kills the creature and leaves its enormous skeleton; survivors flee the devastated settlement inland, **not** because the creature continues hunting them for generations. In the Act 1 rewritten history, the player and defenders defeat it before it destroys Harbour.
+
+**DIRECTION — final anchor:** The Loom's main anchor/gate exploits the powerful marine temporal fault; deactivating/destroying it at the climax should close the artificial deep-time breach, so in Present v3 the creature never enters the human era at all. The final solution should not depend solely on rerouting the fleet. The exact position of the installation, triggering of the original breach, and how the gate is closed safely are not yet specified.
 
 ## Three-Act Story Structure
 
@@ -215,7 +217,7 @@ The opening progression is deliberately directed:
 
 Before the first crossing, seams can already provide useful information. They should teach the player that looking into another era can answer questions about the current landscape, not merely serve as glowing doors.
 
-The player encounters a small inland tribal culture whose people are descended from survivors of a legendary catastrophe at Harbour Village on the coast.
+The player encounters a small inland tribal culture whose people are descended from survivors of a legendary catastrophe at Harbour Village on the coast. **LOCKED — historical continuity:** In the rewrites where Harbour survives, the original inland tribal society need not form in the same way, but its ancestral Harbour families are not simply erased wholesale. Recognisable families, customs, bird-keeper traditions, or their cultural descendants should appear within the integrated Harbour civilisation, with an emotional callback in Present v3. Individual people need not remain identical across rewritten centuries.
 
 Their oral history says that a hostile fleet crossed the sea, a sea beast rose from the water, Harbour fell, and the survivors fled inland. Over generations, their temporary refuge became permanent and their culture formed around displacement and fear of the lost shore.
 
@@ -236,11 +238,11 @@ In the original history:
 
 The player intervenes using normal world actions, combat, preparation, social persuasion, rescue, and bird abilities. They prevent the two populations destroying one another and help Harbour survive the beast attack. The player/bird combination makes the decisive difference because the player carries future knowledge that the defenders cannot possess. The smaller bird supplies battlefield awareness and **Foresee, Pin, and Recall** in direct combat, all of which are meaningfully used to create opportunities against the creature; the rescued great bird intervenes at the critical moment. The great bird does not win alone.
 
-When the player returns to the Present, history has been rewritten into **Present v2**. The tribe no longer exists in the form the player knew. Harbour has instead grown into a prosperous coastal civilisation combining descendants of the original villagers and the refugees.
+When the player returns to the Present, history has been rewritten into **Present v2**. The tribe no longer exists in the form the player knew, though its ancestral families and some cultural traditions continue in other forms. Harbour has instead grown into a prosperous coastal civilisation combining descendants of the original villagers and the refugees.
 
 The visual state of seams/rips should also respond to this rewrite. If Present v2 is causally healthier than Present v1, the world should visibly contain fewer or calmer seams. This gives the player an immediate, environmental sense that history has become more coherent without requiring a numerical stability score.
 
-Present v2 preserves records that were lost in the original timeline. Those records reveal that the refugees were fleeing something much greater on Land #2.
+Present v2 preserves records that were lost in the original timeline. Those records reveal that the refugees were fleeing something much greater on Land #2. Together with the small and great birds' instinctive responses to severe disturbances from the east, these records give the player a concrete reason to travel to the refugees' homeland. The mount enables that journey; it is not the entire motivation.
 
 Act 1 also pays off the great-bird thread. In the original history the great bird encountered around Harbour died during the catastrophe, leaving it absent or mythical in Present v1. The player saves it, its nesting site, or the conditions necessary for its survival in the rewritten history. In Present v2, a surviving **great-bird lineage** now exists; a bird of that lineage recognises the player's causal imprint and becomes mountable. The centuries-later mount need not be the exact individual rescued in the Past. The player uses it to cross the sea toward Land #2, making the end of Act 1 both a narrative consequence and a major traversal unlock.
 
@@ -250,11 +252,11 @@ Act 1 therefore ends with apparent success, but also the realisation that the Ha
 
 The player travels to Land #2 in Present v2, retracing the refugees' route in reverse.
 
-The eastern landmass is ruined, abandoned, or temporally scarred. The player encounters evidence of overwritten histories: structures that retain contradictory forms, records of disasters that apparently never happened, echoes of lives that no longer belong to the current Present, and increasingly severe seams/rips where reality is struggling to maintain a single historical state. Exceptional breaches may expose fragments of far more distant history; this helps explain the prehistoric creature's appearance at Harbour without adding another playable era.
+The eastern landmass is ruined, abandoned, or temporally scarred. The player encounters evidence of overwritten histories: structures that retain contradictory forms, records of disasters that apparently never happened, echoes of lives that no longer belong to the current Present, and increasingly severe seams/rips where reality is struggling to maintain a single historical state. At its worst, roads and buildings visibly flicker between mutually incompatible historical versions, districts lose reliable geography, and rare severe breaches allow objects or creatures from the distant Past to intrude. This helps explain the prehistoric creature's appearance at Harbour without adding another playable era. **EXPERIMENTAL:** Intrusions from future periods beyond the player's Present; do not assume these exist when scoping levels or systems.
 
 The player eventually reaches Land #2 in the Past, before and during the same broad historical period as the Harbour events.
 
-They discover the advanced civilisation that once existed there and the system it built to manipulate history.
+They discover the advanced civilisation that once existed there and the system it built to manipulate history. **DIRECTION — Act 2 gameplay:** Explore paired Past/Present regions, investigate local temporal damage, use the bird and physical causality to attempt to protect communities, and gradually learn that isolated repairs cannot cure a network-wide problem. Avoid reducing this act to an exposition tour of ruins.
 
 #### The Concordance
 
@@ -277,7 +279,9 @@ Placeholder name for the network of causal anchors used to repeatedly force pref
 
 The Loom does not create a multiverse. It repeatedly rewrites the one history.
 
-Small natural changes are normally absorbed by history. The Loom performs thousands of deliberate corrections, leaving accumulated causal residue from incompatible former histories.
+Small natural changes are normally absorbed by history. The Loom performs thousands of deliberate corrections, leaving accumulated causal residue from incompatible former histories. **LOCKED — outcome:** Its forced corrections are the underlying cause of the Unravelling and eventually of the original eastern exodus; the Curator continues to operate and defend it even as reality destabilises.
+
+**OPEN — precise mechanism:** One candidate is that anchors exploit natural seams to observe causal turning points and induce targeted changes in an earlier state, forcing a preferred Present. The network may artificially hold particular seams/gates open to sustain that access, with a local gate closing when its anchor is disabled. This is a **working model**, not a rule to build technical architecture around yet. Distinguish ending an ongoing artificial connection from magically undoing every physical consequence of old historical changes.
 
 #### The Unravelling
 
@@ -292,7 +296,8 @@ Its symptoms escalate from subtle to physical:
 - roads or buildings briefly belong to different former histories;
 - seams multiply and widen into rips;
 - people experience memories of lives they never lived;
-- eventually whole regions struggle to maintain one coherent history.
+- eventually whole regions struggle to maintain one coherent history;
+- in the most damaged regions, rare material intrusions from much older periods become possible, including dangerous animals.
 
 The visible seam/rip language introduced in the opening is therefore a readable symptom of the Unravelling. By the time the player reaches severely affected regions, they already understand intuitively that a landscape dense with rips is causally dangerous.
 
@@ -306,7 +311,7 @@ To preserve the core civilisation, the Curator pushes accumulated instability ou
 
 Most ordinary citizens do not understand this. They experience the Loom as one of civilisation's greatest achievements and may believe the Unravelling is an external disaster that the Curator is heroically containing.
 
-The Curator sees the player as an uncontrolled causal anomaly and attempts first to recruit rather than kill them. Their ideological argument is powerful: the player changed Harbour because its history was unacceptable; the Concordance merely learned to do the same thing systematically.
+The Curator sees the player as an uncontrolled causal anomaly and attempts first to recruit rather than kill them. **OPEN:** It is possible the Curator previously helped send the player forward, recognising that someone outside the Loom's control might become necessary to save what could be saved. This would complicate the antagonism without requiring the Curator to be secretly benevolent. Their ideological argument is powerful: the player changed Harbour because its history was unacceptable; the Concordance merely learned to do the same thing systematically.
 
 Act 2 culminates in the player understanding that every further Loom correction makes eventual collapse worse. The network has to be dismantled. The Curator refuses because doing so means accepting enormous suffering now to prevent a far greater disaster later.
 
@@ -316,34 +321,31 @@ The player commits to destroying the Loom. By this stage the great bird gained a
 
 The player begins dismantling the Loom's major causal anchors across Land #2.
 
-Every destroyed anchor improves long-term historical stability, but its immediate visible effects are catastrophic:
+Each safely deactivated or destroyed anchor can help restore long-term historical stability, but the immediate consequences are severe:
 
-- infrastructure fails;
-- cities lose protections they depended on;
-- political order collapses;
-- some people or institutions cease to exist in their current form;
-- populations evacuate;
+- critical infrastructure and protections dependent on the Loom may fail;
+- already damaged districts may become temporarily unsafe as their artificial support ends;
+- communities must evacuate, relocate, or adapt;
+- political order and public trust fracture;
 - defenders fight the player believing they are destroying civilisation.
+
+**LOCKED — character and gameplay intent:** The player is not deliberately razing cities or murdering refugees. Act 3 should involve warning people, arranging safer exits, protecting evacuations and limiting suffering while disabling systems that cannot safely remain. Ruins and loss are consequences of dependence on the Loom and its collapse, not the player's desired objective. Do not treat deactivating an anchor as automatically rewriting whole populations out of existence.
 
 The Curator is remembered by much of the population as the last great defender of the old realm. The player increasingly becomes the feared **Bird-Rider**, the figure apparently tearing the civilisation apart.
 
-As evacuations intensify, the player recognises the people preparing to flee west across the sea. They are the refugees from Act 1.
+As evacuations intensify, the player recognises the people preparing to flee west across the sea. They are the refugees from Act 1, though the circumstances of their exodus have changed.
 
-The player finally understands the causal loop: their own Act 3 campaign is what drives the refugee population toward Harbour Village.
+**LOCKED — distinction between histories:** The **original** refugee exodus was caused by the Loom's accumulating failure and the Unravelling, independently of the player's later intervention. In the revised history, the player's intentional dismantling of the failing network accelerates the loss of its remaining protections but also enables evacuation before a still worse collapse. Their actions change *how* the people flee; they did not cause the original flight in an unchangeable predestination loop.
 
-However, the player now knows something history did not. In the earlier history the desperate refugee fleet took a route through an unstable deep-sea temporal fault, triggering the breach that brought a prehistoric creature into their era.
+The player knows that the earlier fleet's passage through a deep-sea temporal fault coincided with the rupture that brought a prehistoric creature into Harbour's era. **DIRECTION — final intervention:** They confront the main Loom anchor/gate exploiting this fault and shut it down, permanently ending the artificial deep-time breach before the fleet's catastrophic encounter. The fleet does not necessarily need rerouting. The refugees witnessing their last great mechanism destroyed may see this as one final assault by the Bird-Rider, not as their salvation.
 
-One of the player's final interventions therefore changes the evacuation route. They may destroy a familiar navigation beacon, open an older safe channel, collapse a causeway, or otherwise force the fleet onto a safer course.
-
-To the refugees this appears to be yet another attack by the Bird-Rider. In reality it prevents the beast from ever waking.
-
-This rewrites Harbour history again.
+This intervention rewrites Harbour history again.
 
 #### Final Present — Present v3
 
-The refugees reach Harbour without the sea-beast catastrophe. The two populations eventually coexist and build a prosperous shared civilisation. The Unravelling has been stopped at its source: the catastrophic deep-time breach is closed, the creature remains in its prehistoric world, and the enormous Harbour skeleton has never existed.
+The refugees reach Harbour without the sea-beast catastrophe. The two populations eventually coexist and build a prosperous shared civilisation. Families and cultural threads familiar from the inland tribe of Present v1 survive within this different society, allowing a deliberate emotional callback even though the original tribal settlement's history has changed. The Unravelling has been stopped at its source: the catastrophic deep-time breach is closed, the creature remains in its prehistoric world, and the enormous Harbour skeleton has never existed.
 
-The original Harbour battle from Act 1 no longer happened at all. Therefore even the player's positive legacy as Harbour's defender may disappear from history.
+The original Harbour battle from Act 1 no longer happened at all. **LOCKED — persistence across rewrites:** The player's earlier Past Harbour interventions (including the great bird's rescue and viable relationships or preparations) remain historical actions where consistent with the new circumstances. They need not be undone merely because the sea creature never arrives. The great-bird lineage and the integrated Harbour society therefore have an ongoing causal basis, although the specific battle-based heroic legend may disappear.
 
 What remains visible to future generations is the destruction on Land #2.
 
@@ -422,6 +424,10 @@ Current target direction:
 - Save-state and branching-history representation.
 - Exact bird progression and mount mechanics beyond the locked early seam unlock.
 - Exact form of the final sacrifice.
+- Whether the Curator arranged or enabled the protagonist's pre-evacuation displacement, and to what end.
+- Exact mechanical relationship among the Loom, natural seams, artificial anchor gates, and temporary local protections; how to disable anchors without an implausible instant undoing of history.
+- Which Act 2 regional investigations first communicate the Unravelling's danger, and how their outcomes teach the player about the Loom.
+- Precise narrative callback linking Present v1 inland families/traditions with Present v3 integrated Harbour society.
 - Names, cultures, geography, and final lore terminology.
 
 ## Locked Design Update — Temporal Seams (11 September 2026)
