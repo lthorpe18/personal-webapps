@@ -240,6 +240,8 @@ Recognisable world motifs: natural great birds versus exploited bird traditions,
 
 ## 7. Story and chronology
 
+**Companion reading:** [STORY_DRAFT.md](./STORY_DRAFT.md) is a readable, three-act **short-story adaptation** of the current plot. It is illustrative rather than a replacement for the locked chronology and open design decisions recorded here.
+
 ### The original history, before the player's interventions — LOCKED outline
 
 1. The eastern civilisation uses the Loom for repeated beneficial corrections. Accumulating instability becomes the Unravelling.
