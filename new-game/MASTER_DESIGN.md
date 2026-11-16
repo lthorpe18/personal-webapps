@@ -17,7 +17,7 @@ The player's greatest successes are often invisible to history because the catas
 - There are **two playable time periods**: Past and Present.
 - There are not parallel universes that coexist independently.
 - When history changes, the current Present is overwritten by a new Present.
-- The player remembers erased Presents because they have been severed from ordinary causal continuity.
+- **LOCKED — memory distinction:** At the opening, the protagonist has no usable autobiographical memory of their original life, the Loom, the Curator, or the late-collapse experiment. Their former life and its events still belong to the original history at that point; **the player has lost access to those memories, not erased their historical existence**. From the moment of waking onwards, they form ordinary memories and, because they are causally severed, retain personal experience of Present versions later overwritten by their interventions.
 - Certain birds instinctively sense causal significance, retain some awareness across rewritten histories, and interact with temporal seams. They are animals responding to an unusual natural sense, not consciously all-knowing guardians. Great birds have particularly strong sensitivity and can instinctively help preserve the stability of natural seams.
 - Most ordinary interactions do not survive across centuries. Persistent consequences arise when an action plausibly propagates through physical, ecological, social, political, or familial systems.
 - **Temporal seams** are visible joins where Past and Present press unusually close together. Through a seam the player may be able to glimpse, hear, or partially perceive the other era before they can cross.
@@ -171,7 +171,9 @@ The player originates in the eastern civilisation's **original, late-collapse hi
 
 The experiment forces the player through a temporal rupture and throws them forward into the first future state their severed existence can occupy. Their companion bird is caught in or affected by the same displacement and arrives temporally weakened.
 
-The player wakes in the Present with fragmented memory because their personal history has been disconnected from the timeline that created it. Their subsequent seam travel allows them to reach **events earlier than their own original displacement**, not simply revisit the point where the experiment happened. Because they remain causally severed, they continue to exist even when their interventions rewrite the original catastrophic history and potentially prevent the experiment that first displaced them.
+**LOCKED — starting memory:** The player wakes in Present v1 with effectively no accessible memories of their life before displacement, including their role in the late-collapse experiment or any knowledge of the Curator and Loom. The original life and crisis genuinely happened in the history that produced Present v1; it is the protagonist's recollection that was lost in transit. Their history can be pieced together through exploration, evidence, and encounters rather than recalled on demand. Their subsequent seam travel allows them to reach **events earlier than their own original displacement**, not simply revisit the point where the experiment happened. Because they remain causally severed, they continue to exist even when their interventions rewrite the original catastrophic history and potentially prevent the experiment that first displaced them.
+
+This loss of **pre-opening autobiographical memory** must not be conflated with their ability to **remember overwritten Presents experienced during play**. Both are required: the initial mystery remains meaningful, while the player can compare historical changes they personally caused.
 
 This explains why the player:
 
@@ -185,7 +187,9 @@ The player is not a foretold Chosen One. The experiment creates the possibility 
 
 The opening therefore presents three apparently separate mysteries that should gradually prove related:
 
-**Why am I here? Why is the bird damaged? Why is this Present coming apart?**
+**Who was I, and why am I here? Why is the bird damaged? Why is this Present coming apart?**
+
+These should be answered by discoveries the player makes in the world, not by conveniently remembered prior knowledge.
 
 ## Geographic Structure
 
@@ -311,7 +315,7 @@ To preserve the core civilisation, the Curator pushes accumulated instability ou
 
 Most ordinary citizens do not understand this. They experience the Loom as one of civilisation's greatest achievements and may believe the Unravelling is an external disaster that the Curator is heroically containing.
 
-The Curator encounters the player at an **earlier point than the desperate late-collapse displacement experiment in the original history**. They see the player as an uncontrolled causal anomaly and attempt first to recruit rather than kill them. They **do not personally recognise the player as someone they have already sent forward**, although an impression of familiarity or an unexplained connection can be used subtly as foreshadowing. The original late-collapse Curator (or their surviving institution) may have been involved in the last-gasp experiment, without having personally known or chosen the individual who would become the protagonist. Their ideological argument is powerful: the player changed Harbour because its history was unacceptable; the Concordance merely learned to do the same thing systematically.
+The Curator encounters the player at an **earlier point than the desperate late-collapse displacement experiment in the original history**. This earlier Curator still believes the Loom is recoverable and necessary for the civilisation's survival. They have not yet reached the desperate conclusion that motivated the experiment in the original late-collapse history; they therefore have a coherent reason to oppose dismantling anchors rather than automatically work with the player. They see the player as an uncontrolled causal anomaly and attempt first to recruit rather than kill them. They **do not recognise the player as someone they previously sent forward**; at most, a faint sense of familiarity may be used as optional foreshadowing, without revealing the answer. The late-collapse Curator (or their surviving institution) may have been involved in a desperate final attempt to save the world without having personally known or selected the protagonist. Their ideological argument is powerful: the player changed Harbour because its history was unacceptable; the Concordance merely learned to do the same thing systematically.
 
 Act 2 culminates in the player understanding that every further Loom correction makes eventual collapse worse. The network has to be dismantled. The Curator refuses because doing so means accepting enormous suffering now to prevent a far greater disaster later.
 
@@ -424,7 +428,8 @@ Current target direction:
 - Save-state and branching-history representation.
 - Exact bird progression and mount mechanics beyond the locked early seam unlock.
 - Exact form of the final sacrifice.
-- Who designed or executed the Curator-associated, late-collapse displacement experiment; how directly the Curator was involved, and whether their earlier self recognises only an uncanny familiarity rather than the protagonist's identity.
+- Who designed or executed the Curator-associated, late-collapse displacement experiment, how directly the Curator was involved, and whether any subtle familiarity is useful as foreshadowing. The Curator does not personally identify the player from a previous encounter.
+- Exact fictional reason the displacement erased the protagonist's accessible pre-opening memories while preserving their later memories of overwritten Presents. No need to define detailed neuroscience or time physics before the narrative requires it.
 - How the player's two accessible era states are fixed when the original displacement happened later than the playable Past; precise chronology relative to the refugee evacuation.
 - Exact mechanical relationship among the Loom, natural seams, artificial anchor gates, and temporary local protections; how to disable anchors without an implausible instant undoing of history.
 - Which Act 2 regional investigations first communicate the Unravelling's danger, and how their outcomes teach the player about the Loom.
