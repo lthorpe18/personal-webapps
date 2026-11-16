@@ -54,6 +54,7 @@ A small universal interaction vocabulary should support situations across the ga
 Century-scale effects must be understandable and plausible. Leaving a wooden door open is not automatically significant centuries later; changing a river course, stone foundation, ecology, institution, settlement, archive, migration or lineage plausibly could be.
 
 - Prefer **authored causal states** and readable consequences to a simulation of all historical possibilities.
+- **LOCKED — causal density:** A region built around historical intervention should usually have **one substantial, legible causal change** plus **several smaller optional interventions** or discoveries. These can affect exploration, characters, wildlife, or the environment, but should not require a combinatorial historical simulator. Not every region needs a mandatory causal puzzle: some focus primarily on movement, combat, atmosphere, or story.
 - The **landslide / dam / river / waterfall** concept is a good **DIRECTION** for a prototype investigation: see a landscape's Present consequences, discover how the watercourse or blockage changed in the Past, intervene physically, and return to a credible altered route/ecology. Its exact geography, solution and inclusion in the finished game are **not locked**.
 - **DIRECTION:** Important NPC families can carry authored causal consequences through survival, standing, vocation and memory/history. This is **not** a generational life simulator.
 - **OPEN:** When to apply updated Present states (at crossings or sooner), how to communicate a change, and which consequences are persistent.
@@ -240,7 +241,9 @@ The Loom has ceased destabilising history. The player's actions to prevent catas
 
 **DIRECTION:** Local causal permutations arise through physical, combat and social decisions. The macro-story is authored and coherent, rather than allowing a free simulation of arbitrary civilisations. Changes may affect routes, ecology, buildings, survivors, descendants, recorded history, dialogue and institution states; not every choice needs a centuries-long consequence.
 
-**OPEN:** Density and variety of causal choices per region, replay incentives, authored state combinations, progression of aerial capabilities, detailed save/state representation and effects of earlier choices late in the story.
+**LOCKED — level causal pattern:** Typically one major change with smaller optional interactions in intervention-focused regions, but not as a rigid formula for every region.
+
+**OPEN:** Number and variety of optional choices per region, replay incentives, authored state combinations, progression of aerial capabilities, detailed save/state representation and effects of earlier choices late in the story.
 
 **EXPERIMENTAL:** A formal run-based or roguelike structure. A separate grand-strategy spin-off could explore deeper generational social simulation; it is **not part of this action-adventure's scope**.
 
@@ -262,7 +265,7 @@ Dedicated prototype and technical planning belong in **PROTOTYPE_PLAN.md** and *
 2. **Era anchoring and chronology:** Why can the displaced traveller access the earlier playable Past even though the failed experiment occurred later? How do time-of-day/story chronology, seams and overwritten states remain consistent within only two accessible eras?
 3. **Core gameplay balance and feel:** How frequent and challenging should ground combat be relative to investigation and exploration? What is the minimum grounded movement kit and the typical bounded level size? Use hands-on tests for most tuning.
 4. **Bird abilities' boundary:** Are Foresee, Pin and Recall combat-only for the first prototype, or may some affect selected environmental actions? Test readability before expanding their universality.
-5. **One understandable causal prototype:** Define a small authored Past change and clear Present effect, including when the game reveals the updated state.
+5. **One understandable causal prototype:** Define a small authored Past change and clear Present effect, with optional minor interventions if useful. The pattern is agreed; still determine **when** the Present visibly updates and whether the player can refine or undo an intervention.
 
 ### OPEN — Can safely wait until later
 
