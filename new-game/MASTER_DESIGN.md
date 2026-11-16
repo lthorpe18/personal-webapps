@@ -84,6 +84,7 @@ These are **successive rewrites of the same history**, not three coexisting worl
 - **Rip:** A damaged, widened or dangerously unstable join. It is visually stronger and less predictable.
 - Seam/rip density and intensity communicate the world's causal condition **through the environment**, not primarily a numerical stability meter.
 - Initial travel is **location-bound**. The bird first learns to widen an existing seam, not shift the player anywhere.
+- **DIRECTION — natural self-limiting behaviour:** A natural seam may narrow or close after a sufficiently significant intervention, or after multiple smaller disturbances. This acts as a natural limit on changing history, not a fixed numerical quota. The precise thresholds, whether a closed seam can later reform, and how the player safely returns are **OPEN** and should not arbitrarily strand the player.
 - **DIRECTION:** Later bird abilities may stabilise rips, maintain openings or interact with weaker seams.
 - Exceptionally catastrophic **deep-time rips** can expose or permit intrusions from prehistoric eras, **without adding a playable prehistoric period**. Future-than-Present incursions are **EXPERIMENTAL**, not established lore.
 
@@ -91,13 +92,17 @@ These are **successive rewrites of the same history**, not three coexisting worl
 
 The opening world is **partially healed but permanently scarred after the original collapse**. With the Loom's continuous corrections largely ceased, nature and people have had centuries to recover. It is credible that the inland community has grown over generations. Most of Land #1 is inhabitable; particular sites have unsettling temporal behaviour. Land #2, nearer the Loom's heart, retains much worse scars. This balances wonder and danger without making the opening a constant visual apocalypse.
 
-### The Loom and historical changes — LOCKED outcome / OPEN mechanism
+### The Loom and historical changes — LOCKED core / DIRECTION dynamics
 
-**LOCKED:** The Concordance (placeholder name) built the Loom, a network exploiting causal anchors to repeatedly force supposedly preferable outcomes. It prevented famine, epidemics, wars and other disasters, but accumulated mutually incompatible history and caused the **Unravelling**. The original eastern exodus resulted from that failing network, **before any later actions by the player**.
+**LOCKED:** The Concordance (placeholder name) built the Loom to exploit natural temporal seams. **Artificial anchors hold these passages open and usable**, allowing the Curator or other agents to travel through and transport objects and equipment into the Past. History changes through **actual interventions** at consequential events; the Loom does **not** directly impose a desired outcome on reality. The changes propagate forward through ordinary causality. The system prevented famine, epidemics, wars and other disasters, but eventually caused the **Unravelling**. The original eastern exodus resulted from the failing network, **before any later actions by the player**.
 
-**OPEN — How it operates.** The most promising **working model** is an industrial amplification of what birds and the player can do naturally: identify important causal turning points, use natural seams held open by artificial anchors, and make targeted earlier interventions with consequences propagating forward. The Loom should **not** be able to wish a preferred future into existence without plausible causal steps. How machines/agents actually make an intervention, what an anchor powers or supports, and exactly what happens when one is disabled are unresolved.
+**LOCKED — two interacting sources of damage:** (1) Holding seams artificially open beyond their natural limits stresses the relationship between historical periods; (2) repeatedly forcing significant revisions creates accumulated contradictions between overwritten histories. These processes reinforce each other. The player and their bird interact with natural seams on a smaller scale; they are not intrinsically equivalent to industrial, continuously forced manipulation.
 
-**DIRECTION — Anchor shutdown:** Deactivating an artificial anchor should end its forced connection and reduce further instability, but should not automatically undo centuries of already-real historical effects. Communities may lose currently maintained protections and require evacuation. The proposed **main offshore anchor/gate**, built over a major marine temporal fault, is associated with the final deep-time rupture; its shutdown should end the threat, rather than merely destroying a navigation beacon.
+**DIRECTION — natural self-limitation:** After a sufficiently consequential historical change—or too many smaller changes—a natural seam tends to close or become inaccessible, giving the affected history time to settle. The Loom's anchors override this tendency to continue accessing turning points and imposing further revisions. There is **no locked numerical change limit** and no automatic expectation that every player intervention closes their exit route.
+
+**DIRECTION — Anchor shutdown:** Deactivating an artificial anchor ends its forced connection and should relieve further temporal stress, but does **not** automatically undo history that already occurred. Communities may lose ongoing support, transport or protections and require evacuation. The proposed **main offshore anchor/gate**, built over a major marine temporal fault, is associated with the final deep-time rupture; its shutdown should end that artificial breach, rather than merely destroying a navigation beacon.
+
+**OPEN — Detail, not the basic principle:** How the Curator identifies promising historical turning points; whether an anchor's sustained opening has an escalating cost; whether naturally closed seams reform; the precise timescale and visual process of healing; and how shutdowns avoid trapping travellers or instantly destabilising populated districts.
 
 ### The Unravelling — LOCKED
 
@@ -253,7 +258,7 @@ Dedicated prototype and technical planning belong in **PROTOTYPE_PLAN.md** and *
 
 ### OPEN — Important before / during earliest prototypes
 
-1. **Loom and anchor causal logic:** Does it physically intervene at earlier turning points? How do maintained gates/anchors function, why does switching them off stop further damage, and how can the final marine gate be closed without rewriting away every prior consequence? Resolve a credible high-level rule, not detailed science.
+1. **Natural seam closure and anchor shutdown:** The Loom's physical interventions through artificially maintained seams, and the combined damage from held-open passages plus repeated rewrites, are **LOCKED**. Clarify the natural closing tendency, what happens to travellers when a seam closes, and the safe consequences of deactivating a main anchor. Detailed mechanics can be prototyped later.
 2. **Era anchoring and chronology:** Why can the displaced traveller access the earlier playable Past even though the failed experiment occurred later? How do time-of-day/story chronology, seams and overwritten states remain consistent within only two accessible eras?
 3. **Core gameplay balance and feel:** How frequent and challenging should ground combat be relative to investigation and exploration? What is the minimum grounded movement kit and the typical bounded level size? Use hands-on tests for most tuning.
 4. **Bird abilities' boundary:** Are Foresee, Pin and Recall combat-only for the first prototype, or may some affect selected environmental actions? Test readability before expanding their universality.
