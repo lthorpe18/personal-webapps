@@ -48,7 +48,7 @@ Cross-era effects should obey the centuries-long timescale. A wooden door left o
 
 ### Temporal seams, rips, and travel
 
-The player cannot initially jump to arbitrary dates or shift anywhere at will. They are causally severed between exactly two historical states: their original era in the Past and the current Present centuries later.
+The player cannot initially jump to arbitrary dates or shift anywhere at will. They are causally severed, and normal playable travel is between an **earlier Past state**, predating the protagonist's original displacement, and the current Present centuries later. Their original departure took place later within the same broad historical era, as the original eastern civilisation was approaching terminal collapse. **OPEN:** Why the earlier Past is the specific accessible state rather than the precise moment of displacement; the design must keep only two normally playable eras.
 
 Travel occurs through **temporal seams**: places where the two eras overlap unusually strongly, often around deeper causal anchors such as unusual geology, ancient structures, bird nesting sites, or locations carrying strong historical significance. Birds can sense these joins more clearly than humans.
 
@@ -167,11 +167,11 @@ This should not become a full generational life simulator. Important families wo
 
 ## Player Origin
 
-The player originates in the same broad historical era as the game's Past. **LOCKED — the displacement experiment occurs as the eastern crisis is developing, before the refugee evacuation begins.** Someone deliberately attempts to remove one person from ordinary causality so that the civilisation's history-altering system cannot rewrite them. **OPEN:** The Curator might personally authorise the experiment as a desperate safeguard rather than an act of straightforward villainy, but this motivation and the experiment's precise timing are not yet settled.
+The player originates in the eastern civilisation's **original, late-collapse history**, near the desperate end of its attempts to prevent the Unravelling. **LOCKED — the displacement happens late in the original cycle of collapse, as a last-gasp effort associated with the Curator's attempt to save the realm, not as an early experiment before the crisis is understood.** The experiment removes the protagonist from ordinary causality so that the Loom cannot rewrite them. The Curator need not have personally selected or known the protagonist, and the earlier Curator encountered during gameplay must not recognise them as someone they have already sent forward. **OPEN:** Who designed and executed the experiment, how much the Curator knew or directly authorised, and its exact timing relative to the original evacuation.
 
 The experiment forces the player through a temporal rupture and throws them forward into the first future state their severed existence can occupy. Their companion bird is caught in or affected by the same displacement and arrives temporally weakened.
 
-The player wakes in the Present with fragmented memory because their personal history has been disconnected from the timeline that created it.
+The player wakes in the Present with fragmented memory because their personal history has been disconnected from the timeline that created it. Their subsequent seam travel allows them to reach **events earlier than their own original displacement**, not simply revisit the point where the experiment happened. Because they remain causally severed, they continue to exist even when their interventions rewrite the original catastrophic history and potentially prevent the experiment that first displaced them.
 
 This explains why the player:
 
@@ -254,7 +254,7 @@ The player travels to Land #2 in Present v2, retracing the refugees' route in re
 
 The eastern landmass is ruined, abandoned, or temporally scarred. The player encounters evidence of overwritten histories: structures that retain contradictory forms, records of disasters that apparently never happened, echoes of lives that no longer belong to the current Present, and increasingly severe seams/rips where reality is struggling to maintain a single historical state. At its worst, roads and buildings visibly flicker between mutually incompatible historical versions, districts lose reliable geography, and rare severe breaches allow objects or creatures from the distant Past to intrude. This helps explain the prehistoric creature's appearance at Harbour without adding another playable era. **EXPERIMENTAL:** Intrusions from future periods beyond the player's Present; do not assume these exist when scoping levels or systems.
 
-The player eventually reaches Land #2 in the Past, before and during the same broad historical period as the Harbour events.
+The player eventually reaches Land #2 in the Past, in an earlier accessible historical state before the late-stage collapse and experiment that originally displaced them, and during the same broad historical period as the Harbour events.
 
 They discover the advanced civilisation that once existed there and the system it built to manipulate history. **DIRECTION — Act 2 gameplay:** Explore paired Past/Present regions, investigate local temporal damage, use the bird and physical causality to attempt to protect communities, and gradually learn that isolated repairs cannot cure a network-wide problem. Avoid reducing this act to an exposition tour of ruins.
 
@@ -311,7 +311,7 @@ To preserve the core civilisation, the Curator pushes accumulated instability ou
 
 Most ordinary citizens do not understand this. They experience the Loom as one of civilisation's greatest achievements and may believe the Unravelling is an external disaster that the Curator is heroically containing.
 
-The Curator sees the player as an uncontrolled causal anomaly and attempts first to recruit rather than kill them. **OPEN:** It is possible the Curator previously helped send the player forward, recognising that someone outside the Loom's control might become necessary to save what could be saved. This would complicate the antagonism without requiring the Curator to be secretly benevolent. Their ideological argument is powerful: the player changed Harbour because its history was unacceptable; the Concordance merely learned to do the same thing systematically.
+The Curator encounters the player at an **earlier point than the desperate late-collapse displacement experiment in the original history**. They see the player as an uncontrolled causal anomaly and attempt first to recruit rather than kill them. They **do not personally recognise the player as someone they have already sent forward**, although an impression of familiarity or an unexplained connection can be used subtly as foreshadowing. The original late-collapse Curator (or their surviving institution) may have been involved in the last-gasp experiment, without having personally known or chosen the individual who would become the protagonist. Their ideological argument is powerful: the player changed Harbour because its history was unacceptable; the Concordance merely learned to do the same thing systematically.
 
 Act 2 culminates in the player understanding that every further Loom correction makes eventual collapse worse. The network has to be dismantled. The Curator refuses because doing so means accepting enormous suffering now to prevent a far greater disaster later.
 
@@ -424,7 +424,8 @@ Current target direction:
 - Save-state and branching-history representation.
 - Exact bird progression and mount mechanics beyond the locked early seam unlock.
 - Exact form of the final sacrifice.
-- Whether the Curator arranged or enabled the protagonist's pre-evacuation displacement, and to what end.
+- Who designed or executed the Curator-associated, late-collapse displacement experiment; how directly the Curator was involved, and whether their earlier self recognises only an uncanny familiarity rather than the protagonist's identity.
+- How the player's two accessible era states are fixed when the original displacement happened later than the playable Past; precise chronology relative to the refugee evacuation.
 - Exact mechanical relationship among the Loom, natural seams, artificial anchor gates, and temporary local protections; how to disable anchors without an implausible instant undoing of history.
 - Which Act 2 regional investigations first communicate the Unravelling's danger, and how their outcomes teach the player about the Loom.
 - Precise narrative callback linking Present v1 inland families/traditions with Present v3 integrated Harbour society.
