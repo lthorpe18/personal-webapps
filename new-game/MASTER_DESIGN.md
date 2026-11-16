@@ -311,7 +311,9 @@ The Loom has ceased destabilising history. The player's actions to prevent catas
 
 **LOCKED — level causal pattern:** Typically one major change with smaller optional interactions in intervention-focused regions, but not as a rigid formula for every region.
 
-**OPEN:** Number and variety of optional choices per region, replay incentives, authored state combinations, progression of aerial capabilities, detailed save/state representation and effects of earlier choices late in the story.
+**LOCKED — light, tangible player progression (Option B):** The protagonist should feel **noticeably stronger and more capable as the story advances**, without an XP-grind loop, character-level treadmill or conventional branching skill tree. Progression comes through a **small number of meaningful weapon/equipment improvements and upgrades to established combat actions**, acquired through discoveries, exploration rewards or authored story milestones. Upgrades should make existing tools feel more effective or versatile, while player mastery of positioning, defensive timing, bird powers and causality remains important. Avoid a complex statistics/inventory-management game. The exact upgrades, pacing, equipment types and whether improvements are automatic or selectable are **OPEN**; no additional player combat abilities are implied until chosen.
+
+**OPEN:** Number and variety of optional choices per region, replay incentives, authored state combinations, progression of aerial capabilities, exact upgrade sources/choices, detailed save/state representation and effects of earlier choices late in the story.
 
 **EXPERIMENTAL:** A formal run-based or roguelike structure. A separate grand-strategy spin-off could explore deeper generational social simulation; it is **not part of this action-adventure's scope**.
 
