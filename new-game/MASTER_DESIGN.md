@@ -41,7 +41,7 @@ Time travel is principally **investigation, information and consequence**, not a
 - Levels are not selected from a disconnected stage menu. Regions should have believable geographic and narrative connections and be revisited in both eras.
 - The story is broadly authored and sequential, but the player has room to explore within regions and pursue local causal variations.
 - **DIRECTION:** Readable objectives, strong landmarks, restrained local verticality and exploratory rewards without turning the game into an undirected open world.
-- **OPEN:** Typical region footprint, encounter frequency, backtracking and the balance of combat versus investigation.
+- **DIRECTION:** Exploration-led encounter pacing, with intermittent danger-heavy stretches rather than uniform enemy density. **OPEN:** Typical region footprint, exact encounter density, backtracking and tuning once playable.
 
 ### Physical movement and interaction — LOCKED principle / OPEN tuning
 
@@ -158,6 +158,8 @@ The contrast foreshadows the entire conflict: Harbour exploits causal birds crud
 ### Ground combat — LOCKED
 
 Direct combat is part of ordinary exploration. The player moves, positions, dodges, uses grounded melee and survives encounters with creatures and hostile people. Combat is physical, with temporal assistance from the bird, rather than a spell-driven replacement for action.
+
+**DIRECTION — exploration-led combat frequency (A leaning toward B):** Ordinary exploration is primarily about discovery, navigating spaces, investigating the two eras, and changing history. Combat is not ubiquitous or a mandatory checkpoint between every discovery. Some routes, wilderness areas, hostile districts, and especially story crises contain **clusters of more regular, meaningful skirmishes**, so the world still feels dangerous and weapon/bird mastery matters. Safe or conversational spaces should often allow uninterrupted exploration. Avoid filler waves, routine enemy respawns that discourage revisiting, or an arbitrary percentage of playtime reserved for fighting. The six major community-defence events remain distinct set pieces, not the default encounter format.
 
 **LOCKED — Three distinct short-time abilities:**
 
@@ -304,7 +306,7 @@ Dedicated prototype and technical planning belong in **PROTOTYPE_PLAN.md** and *
 
 1. **Natural seam closure and anchor shutdown:** The Loom's physical interventions through artificially maintained seams, and the combined damage from held-open passages plus repeated rewrites, are **LOCKED**. Clarify the natural closing tendency, what happens to travellers when a seam closes, and the safe consequences of deactivating a main anchor. Detailed mechanics can be prototyped later.
 2. **Era anchoring and chronology:** Story-driven forward progression of the playable Past and **limited revisiting of deliberately retained earlier connections** are **LOCKED**; bird-guided seam alignment is **DIRECTION**. Still resolve why the failed experiment displaced someone to Present v1 yet seams connect to earlier moments; which few return points to author; and how rewrites coexist with only two ordinary playable eras.
-3. **Core gameplay balance and feel:** How frequent and challenging should ground combat be relative to investigation and exploration? What is the minimum grounded movement kit and the typical bounded level size? Use hands-on tests for most tuning.
+3. **Core gameplay balance and feel:** Exploration-first with occasional clusters of more regular skirmishes is the current **DIRECTION**; test enemy challenge, pacing, weapon/defence feel, minimum grounded movement kit, and typical bounded level size hands-on.
 4. **Bird abilities and energy:** Foresee, Pin and Recall **should feel broadly applicable to meaningful motion** and have cooldowns. They draw from the same temporal-energy reserve that is drained by holding seams open. Determine regeneration and safe return-crossing behaviour; prototype a shared temporal-interaction interface, one animated environmental object and one moving physics object, and test readability, reverse motion and collisions.
 5. **One understandable causal prototype:** Define a small authored Past change and clear Present effect, with optional minor interventions if useful. The player should be able to revise ordinary interventions. Prototype a **limited authored seam preview** for the most important visual change and discover other effects by exploring the Present; test when updates are applied and how much visual information is useful.
 
