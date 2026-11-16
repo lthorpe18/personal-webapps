@@ -1,457 +1,286 @@
 # New Game — Master Design
 
-## Current Concept
+> **Canonical design source:** This file is authoritative for the game. Last consolidated: 16 November 2026. Earlier conversations are historical evidence, not competing specifications. Godot implementation has not started.
 
-A stylised 3D isometric action-adventure about changing history across two playable time periods: **Past** and **Present**. There is one world and one history, but the Present can be rewritten when the player changes sufficiently important events in the Past. Superseded Presents cease to exist for everyone except the player and certain birds, who retain awareness of overwritten histories.
+## How to read this document
 
-The game is not primarily a sequence of bespoke time puzzles. Time travel is instead a recurring **information, investigation, and consequence mechanic**: the player moves between the same regions in Past and Present, learns things in one era that are unknowable in the other, and uses that knowledge to make selective interventions where centuries-long causality makes sense. The player uses a small, consistent set of world-interaction verbs alongside combat and social choices. Most actions are absorbed by history; some persist and reshape the Present.
+- **LOCKED** — an agreed design principle or story fact. Change deliberately, not by accident.
+- **DIRECTION** — the intended experience or promising implementation, adjustable through prototyping.
+- **OPEN** — an unresolved question with meaningful consequences for narrative logic, gameplay, or scope.
+- **EXPERIMENTAL** — optional ideas that must not drive initial architecture.
+- **SUPERSEDED** — earlier proposals explicitly replaced by the current design.
 
-## Core Thematic Statement
+These labels govern the named topics, not every incidental example. Illustrative scenes, creature behaviour, locations, and mechanical timings are not automatically requirements.
+
+## 1. Core identity and theme
+
+**LOCKED — Concept.** A stylised **3D isometric action-adventure** about a displaced traveller and a small causally attuned bird exploring a world across **two playable eras: Past and Present**. The player investigates in one era, discovers information unavailable in another, makes selective interventions in the Past, and sees their consequences in rewritten Presents. Direct action combat, exploration, relationships, and consequential decisions coexist.
+
+The player fantasy is **historical hindsight and intervention**, not unrestricted time magic. There is one world and one history, which can be overwritten; no parallel universes exist alongside it. Most ordinary actions are absorbed over centuries, while plausible structural, ecological, political, social, and familial changes may persist.
+
+**LOCKED — Central theme:**
 
 > **History cannot record the disasters that didn't happen.**
 
-The player's greatest successes are often invisible to history because the catastrophes they prevent never occur. By contrast, the destructive acts they must perform are remembered clearly. The story ultimately explores the difference between what happened, what might have happened, and what history is capable of understanding.
+The player may be remembered for the damage caused by averting a catastrophe, while the catastrophe itself leaves no historical record. The story asks what responsibility means when the costs are visible but the benefits are erased.
 
-## World and Time Rules
+**DIRECTION — Tone.** Mystery, wild beauty, grounded danger, melancholy and occasional wonder. This is not a relentless apocalypse or a generic prophecy about a chosen hero.
 
-- There are **two playable time periods**: Past and Present.
-- There are not parallel universes that coexist independently.
-- When history changes, the current Present is overwritten by a new Present.
-- **LOCKED — memory distinction:** At the opening, the protagonist has no usable autobiographical memory of their original life, the Loom, the Curator, or the late-collapse experiment. Their former life and its events still belong to the original history at that point; **the player has lost access to those memories, not erased their historical existence**. From the moment of waking onwards, they form ordinary memories and, because they are causally severed, retain personal experience of Present versions later overwritten by their interventions.
-- Certain birds instinctively sense causal significance, retain some awareness across rewritten histories, and interact with temporal seams. They are animals responding to an unusual natural sense, not consciously all-knowing guardians. Great birds have particularly strong sensitivity and can instinctively help preserve the stability of natural seams.
-- Most ordinary interactions do not survive across centuries. Persistent consequences arise when an action plausibly propagates through physical, ecological, social, political, or familial systems.
-- **Temporal seams** are visible joins where Past and Present press unusually close together. Through a seam the player may be able to glimpse, hear, or partially perceive the other era before they can cross.
-- **Rips** are seams that have become badly damaged or widened by temporal instability. They are more visually violent, less predictable, and potentially dangerous.
-- Exceptionally severe rips may reach much further back than the player's two accessible eras, including prehistoric time. Such deep-time breaches are dangerous anomalies, **not** a third playable time period or a general-purpose travel system.
-- Seam/rip density is itself a world-state signal. A coherent timeline may contain very few visible seams; a badly destabilised timeline can become riddled with them.
-- The game should communicate timeline instability primarily through the world rather than through an abstract stability meter.
+## 2. Play experience and world structure
 
-## Core Time-Travel Gameplay
+### Core loop — LOCKED
 
-The game should not feel like “one Present level, then one Past level”. Each major region exists in paired Past and Present forms, and the player should revisit both repeatedly.
+**Explore and survive → encounter a question, contradiction, obstacle, person, or conflict → learn more by crossing between eras → act using hindsight and a small, consistent set of world actions → return to see the consequences.**
 
-The main gameplay loop is:
+Time travel is principally **investigation, information and consequence**, not a mandatory bespoke time puzzle at every turn. Present environments often reveal outcomes; Past environments allow context and interventions. Both should be playable, revisit-able places rather than alternate versions seen once.
 
-**Explore one era → discover a question, obstacle, person, or historical contradiction → cross to the other era → gain information or context → return and act with knowledge nobody in that era could normally possess → inspect the consequences.**
+### Level organisation — LOCKED principle / DIRECTION detail
 
-The central power fantasy is therefore **historical hindsight and direct access to history**, not constant magical object manipulation.
+- **Directed journeys** link important story locations and give a sense of moving through a continuous physical world.
+- These lead to **bounded, authored, explorable level areas** with optional paths, landmarks, shortcuts, environmental hazards, clues, combat, and meaningful local discoveries.
+- Levels are not selected from a disconnected stage menu. Regions should have believable geographic and narrative connections and be revisited in both eras.
+- The story is broadly authored and sequential, but the player has room to explore within regions and pursue local causal variations.
+- **DIRECTION:** Readable objectives, strong landmarks, restrained local verticality and exploratory rewards without turning the game into an undirected open world.
+- **OPEN:** Typical region footprint, encounter frequency, backtracking and the balance of combat versus investigation.
 
-Examples include:
+### Physical movement and interaction — LOCKED principle / OPEN tuning
 
-- investigating a ruined building in the Present, then visiting it intact in the Past to understand its layout or history;
-- meeting descendants in the Present, then interacting with their ancestors in the Past;
-- discovering contradictory records in the Present, then witnessing the event itself;
-- learning in the Present why a structure, ecological choice, political decision, or relationship mattered, then returning to the Past with that knowledge;
-- making a plausible persistent intervention in the Past and revisiting the Present to see how history absorbed it.
+The protagonist is a physically grounded person, **not** a superhuman platforming character. Traversal may include running, sensible small jumps, vaulting, ladders, simple ledges and limited plausible climbing. Avoid large magical leaps, extravagant parkour or complex traversal mechanics until tested.
 
-Cross-era effects should obey the centuries-long timescale. A wooden door left open is unlikely to matter centuries later; a family line, foundation, watercourse, institution, preserved archive, migration decision, or major ecological intervention plausibly can.
+A small universal interaction vocabulary should support situations across the game. **Candidate** verbs: move/push/pull, carry/place, cut/break, open/close, repair/build, redirect, give/take, talk/persuade/choose, fight/spare/kill. These are **not** a locked full input list: choose the minimum useful subset through prototyping. Combat, social choices and physical interventions can all have historical consequences.
 
-### Temporal seams, rips, and travel
+### Environmental causality — LOCKED rule / DIRECTION content
 
-The player cannot initially jump to arbitrary dates or shift anywhere at will. They are causally severed, and normal playable travel is between an **earlier Past state**, predating the protagonist's original displacement, and the current Present centuries later. Their original departure took place later within the same broad historical era, as the original eastern civilisation was approaching terminal collapse. **OPEN:** Why the earlier Past is the specific accessible state rather than the precise moment of displacement; the design must keep only two normally playable eras.
+Century-scale effects must be understandable and plausible. Leaving a wooden door open is not automatically significant centuries later; changing a river course, stone foundation, ecology, institution, settlement, archive, migration or lineage plausibly could be.
 
-Travel occurs through **temporal seams**: places where the two eras overlap unusually strongly, often around deeper causal anchors such as unusual geology, ancient structures, bird nesting sites, or locations carrying strong historical significance. Birds can sense these joins more clearly than humans.
+- Prefer **authored causal states** and readable consequences to a simulation of all historical possibilities.
+- The **landslide / dam / river / waterfall** concept is a good **DIRECTION** for a prototype investigation: see a landscape's Present consequences, discover how the watercourse or blockage changed in the Past, intervene physically, and return to a credible altered route/ecology. Its exact geography, solution and inclusion in the finished game are **not locked**.
+- **DIRECTION:** Important NPC families can carry authored causal consequences through survival, standing, vocation and memory/history. This is **not** a generational life simulator.
+- **OPEN:** When to apply updated Present states (at crossings or sooner), how to communicate a change, and which consequences are persistent.
 
-The first Present should make this system visible before it becomes fully usable. The landscape looks recognisable and physically believable, but subtly unstable: reality occasionally fails to agree with itself. A thin fracture in a rock face may show the same valley centuries earlier; a ruined bridge may continue for a moment as its intact Past version; paths, trees, buildings, sounds, or weather may fail to line up cleanly across the boundary. Larger seams can leak sound or movement from the other era.
+## 3. Time, history and temporal phenomena
 
-The player encounters several seams before gaining the ability to cross them. They can therefore function as mysteries, landmarks, foreshadowing, and light information puzzles before they become traversal points. Looking through a seam might reveal that a collapsed route once had stairs, that a structure formerly stood elsewhere, or that an object visible in the Present was deliberately placed in the Past.
+### One history; two playable eras — LOCKED
 
-The player's companion bird begins the game **temporally weakened by the same event that displaced the player**. It may appear injured, exhausted, or ill, but the underlying problem is causal rather than merely physical: its ability to perceive and hold multiple historical states has been damaged.
+The player accesses **Past and Present**, never an arbitrary date-picker or an unrestricted third era. "Past" refers to the earlier historical period explored throughout the story, rather than a requirement that every scene freezes at the same instant; its exact progression/calendar is **OPEN**. The playable Past precedes the protagonist's original displacement late in that era. The current Present lies centuries later.
 
-Early progression is therefore:
+Each major region can have different authored Present versions as the player changes history:
 
-**Wake → survive and explore → notice seams → realise the bird reacts to them → glimpse an inaccessible Past through them → help the bird recover → the bird can widen/open an existing seam → first deliberate timeline crossing.**
+| State | How it came about | What the player sees |
+|---|---|---|
+| **Present v1 — original** | Loom's catastrophic original collapse; Harbour fell | An inland descendant culture, ruined Harbour and a huge sea-creature skeleton; a mostly rewilded world with surviving temporal scars |
+| **Present v2 — after Act 1** | Harbour populations cooperate and defeat the creature | A thriving integrated Harbour civilisation; great-bird lineage survives; historical records point east |
+| **Present v3 — after Act 3** | Loom/main rupture is permanently resolved before the sea catastrophe | Harbour prospers without ever fighting the sea creature; familiar ancestral and cultural threads survive; history chiefly remembers the eastern destruction |
 
-This unlock should happen relatively early. The opening should establish the mystery and teach the player to read seams before withholding the central mechanic for too long.
+These are **successive rewrites of the same history**, not three coexisting worlds. The player's earlier Past actions persist into v3 **when still consistent** with the altered circumstances: rescuing the great bird and creating viable relationships need not be erased simply because the sea battle never occurs.
 
-The first seam ability does **not** grant unrestricted time travel. Initially the bird can widen an existing seam just enough for the player to pass. Later progression may allow it to stabilise dangerous rips, hold unstable seams open, or force open very weak/half-formed seams. The environment therefore determines where the timelines naturally touch; the bird determines what the player can do with those points.
+**LOCKED — Personal memory distinction.** The opening displacement leaves the protagonist without accessible **pre-opening autobiographical memories**: they do not know who they were, the Loom, the Curator or the experiment. Those events nonetheless **actually occurred** in the original history. From waking onward, the player forms new memories and retains experiences of overwritten Presents they personally visited. This asymmetry is central to investigation and mystery.
 
-A bird may sometimes remain in or cross into the opposite era without the player. This remains an exploratory mechanic rather than a requirement: any resulting puzzle must respect the centuries-long causal gap and focus on information, observation, or plausible persistent actions rather than implausible “live” mechanisms.
+**OPEN — Time-access explanation.** Why the malfunction initially throws the protagonist to Present v1, why subsequent seams connect to an earlier Past before the experiment, how the Past advances during the story, and how an erased original displacement can remain consistent with the player's severed existence. Keep exactly two normal playable eras; do not invent unrestricted travel to solve this.
 
-## Player Interaction Philosophy
+### Seams and rips — LOCKED
 
-The world should use a small universal action vocabulary rather than puzzle-specific interaction prompts. Candidate verbs include:
+- **Seam:** A relatively stable join where the two eras press close. The other era can sometimes be seen or heard through it before the player can cross.
+- **Rip:** A damaged, widened or dangerously unstable join. It is visually stronger and less predictable.
+- Seam/rip density and intensity communicate the world's causal condition **through the environment**, not primarily a numerical stability meter.
+- Initial travel is **location-bound**. The bird first learns to widen an existing seam, not shift the player anywhere.
+- **DIRECTION:** Later bird abilities may stabilise rips, maintain openings or interact with weaker seams.
+- Exceptionally catastrophic **deep-time rips** can expose or permit intrusions from prehistoric eras, **without adding a playable prehistoric period**. Future-than-Present incursions are **EXPERIMENTAL**, not established lore.
 
-- Move / push / pull
-- Carry / place
-- Cut / break
-- Open / close
-- Repair / build
-- Redirect
-- Give / take
-- Talk / persuade / choose
-- Fight / spare / kill
+### Present v1 — LOCKED
 
-Combat has causal consequences just as physical interaction does. Saving, killing, or displacing people can alter descendants, institutions, alliances, and later world states.
+The opening world is **partially healed but permanently scarred after the original collapse**. With the Loom's continuous corrections largely ceased, nature and people have had centuries to recover. It is credible that the inland community has grown over generations. Most of Land #1 is inhabitable; particular sites have unsettling temporal behaviour. Land #2, nearer the Loom's heart, retains much worse scars. This balances wonder and danger without making the opening a constant visual apocalypse.
 
-## Birds
+### The Loom and historical changes — LOCKED outcome / OPEN mechanism
 
-Birds are instinctively attuned to causality. As animals, they can sense when an action has a strong future thread and retain some awareness of overwritten histories, but do not consciously understand timelines, prophecies, or human history. Great birds are especially attuned: their natural behaviour around seams can help prevent or soothe temporal instability. They do not freely rewrite history or choose an ideal future.
+**LOCKED:** The Concordance (placeholder name) built the Loom, a network exploiting causal anchors to repeatedly force supposedly preferable outcomes. It prevented famine, epidemics, wars and other disasters, but accumulated mutually incompatible history and caused the **Unravelling**. The original eastern exodus resulted from that failing network, **before any later actions by the player**.
 
-The player's forced displacement has profoundly altered their causal presence. Birds recognise this unusual temporal imprint much as they recognise seams, rather than because the player is destined or chosen. The small companion's initial attention is instinctive; its loyalty develops through their shared experiences.
+**OPEN — How it operates.** The most promising **working model** is an industrial amplification of what birds and the player can do naturally: identify important causal turning points, use natural seams held open by artificial anchors, and make targeted earlier interventions with consequences propagating forward. The Loom should **not** be able to wish a preferred future into existence without plausible causal steps. How machines/agents actually make an intervention, what an anchor powers or supports, and exactly what happens when one is disabled are unresolved.
 
-The companion bird's opening condition is now part of the core progression. It was harmed by the same forced temporal displacement that carried the player into the Present. Its visible weakness gives the player an immediate reason to care for it while also fictionally limiting its causal abilities during the opening.
+**DIRECTION — Anchor shutdown:** Deactivating an artificial anchor should end its forced connection and reduce further instability, but should not automatically undo centuries of already-real historical effects. Communities may lose currently maintained protections and require evacuation. The proposed **main offshore anchor/gate**, built over a major marine temporal fault, is associated with the final deep-time rupture; its shutdown should end the threat, rather than merely destroying a navigation beacon.
 
-Its gameplay role expands over time:
+### The Unravelling — LOCKED
 
-- at first, weak reactions to nearby temporal seams and flashes of causal awareness;
-- early guidance, scouting, causal sensing, and seam detection;
-- after an early recovery beat, widening an existing seam enough for the player to cross;
-- later stabilising rips, holding difficult seams open, or interacting with weaker seams;
-- combat support, including distraction, marking, interruption, and revealing weaknesses;
-- acting as the player's tactical overview during major defence battles;
-- limited independent action or observation across timelines where the fiction remains plausible;
-- revealing causal echoes or traces of overwritten history;
-- at the end of Act 1, a great bird becomes mountable, enabling the player to cross the sea into Act 2 and later supporting aerial traversal and combat.
+Overcorrection causes the landscape to fail to maintain one consistent history. Symptoms escalate from contradictory memories, phantom structures, altered maps and vanishing routes to physical rips and short-lived states of buildings or terrain from other pasts. In extreme regions objects and rare dangerous creatures can enter through very distant-past breaches. The Curator's efforts to protect the centre push damage outward, giving the apparent success of the core civilisation a tragic cost.
 
-The exact thing the companion bird must recover, and the precise event that restores its first seam-opening ability, remain to be designed. The important locked principle is that the loss is temporal/causal in origin and that seam traversal is earned early rather than available immediately.
+## 4. Birds: world role and gameplay
 
-In Present v1, the great bird is absent because the last local great bird was killed before or during the original Harbour catastrophe. The inland tribe preserves a **cultural belief**, inherited from Past Harbour's bird-keepers, that great birds protect places from dangers people cannot see. This belief originated in genuine observations of birds sensing and sometimes stabilising temporal disturbances, but it was distorted through generations of oral history. Because Harbour fell despite the old stories, descendants disagree over whether the birds abandoned their ancestors or whether their ancestors failed to listen. It is **not a literal prophecy** guaranteeing that a bird or hero will save Harbour.
+### Natural causal attunement — LOCKED
 
-When the player reaches Past Harbour, they discover why its birds could not help. Traditional keepers tried to protect them, but Harbour society also learned that causally attuned birds have practical value and began hunting them. Their feathers, bones, behaviour, or other biological traits are used for navigation, reading dangerous currents or weather, finding temporal seams, and other forms of prediction that people only partly understand. The village therefore exploits the birds without understanding what they really are. Great birds are especially rare and valuable, and one of the last local great birds is due to be killed shortly before or during the Harbour catastrophe.
+Birds are **instinctive animals**, not humanlike seers or deliberate time-travelling guardians. Their unusual senses let them react to causal significance and temporal disturbances. Great birds are especially attuned and can instinctively help maintain natural temporal stability; they do **not** consciously choose good futures or freely rewrite history.
 
-The player, having heard the descendants' story of birds that failed to protect Harbour, realises that saving this hunted creature might allow its natural abilities to help during the catastrophe—not fulfil any predetermined prophecy. They intervene to save the bird, its nesting site, its keeper, or the conditions required for it to survive. During the Harbour battle the beast is already awake and must be fought directly; the player uses knowledge gained from the future, their smaller bird's battlefield coordination, and the saved great bird's late intervention to create a new way to defeat the beast early enough for Harbour to survive. The great bird does not win the battle alone: it creates the decisive opening that the player and defenders can exploit.
+The protagonist, transformed by catastrophic displacement, registers to these birds as an unusual causal anomaly. The small bird is initially drawn to that imprint; affection and loyalty are subsequently **earned through shared experience**, not destiny.
 
-When the player returns to Present v2, the inherited story of birds that failed to protect Harbour has changed, because Harbour's history was rewritten. A surviving great bird lineage now exists, and a great bird recognises the player's causal imprint and becomes their mount. This makes the mount a direct, tangible consequence of rewriting history rather than an arbitrary progression unlock.
+**LOCKED:** Harbour's belief that great birds offer protection is a **cultural tradition**, not an actual prophecy. In Past Harbour, some traditional bird-keepers defend birds while others exploit or kill them for navigation, prediction or other practical use. A survivor-descended Present v1 tradition preserves and distorts their observations. **DIRECTION:** A shaman-like keeper of bird knowledge helps teach the player these beliefs. **OPEN:** Whether such a human has any limited innate sensitivity; do not create a second fully gifted seer class by default.
 
-Harbour's exploitation of bird abilities is also intended to foreshadow Land #2. Harbour uses the birds crudely and locally for practical advantage; the Concordance later takes the same instinct to an industrial extreme by building the Loom around systematic causal manipulation.
+### Small companion progression — LOCKED milestones / DIRECTION details
 
-The birds are not merely magical companions. Their relationship with causality is central to the lore, the player's powers, and the civilisation that later attempts to industrialise history manipulation. The Concordance/Loom represents an **artificial attempt to imitate and override** what great birds do instinctively: birds help preserve temporal coherence, while the Curator forces supposedly preferable historical outcomes.
+1. At the opening, the bird is weakened by the same failed displacement as the protagonist; it senses seams but cannot open them.
+2. Relatively early, after a recovery event, it gains the ability to widen an existing seam so the player can cross.
+3. During **Act 1**, the bird gains combat abilities **Foresee → Pin → Recall**, all available and meaningfully used by the Harbour creature climax.
+4. **DIRECTION:** The rescued great bird may help the smaller bird develop or unlock the later powers, but the exact teaching mechanism and milestones remain flexible.
+5. Other possible abilities include sensing causal echoes, scouting, holding difficult seams open and helping communicate priorities during major defence battles.
 
-**LOCKED — Act 1 combat progression:** The small companion gains **Foresee → Pin → Recall**, with all three available before the Harbour sea-creature climax. That encounter must give the player meaningful reasons to use all three powers alongside direct combat and the great bird's intervention. **DIRECTION:** The rescued great bird may help the smaller bird understand, strengthen, or unlock its later abilities; the precise interaction and unlock beats remain flexible.
+**EXPERIMENTAL:** Independently controlling the bird across eras, extensive bird-only puzzles or additional powers that would dictate architecture.
 
-## Combat and Defence Systems
+### Great bird and Harbour — LOCKED
 
-The game should support two complementary scales of combat.
+In the original Past Harbour, one of the last local great birds is killed before or during the catastrophe. The survivor descendants retain a story of birds that failed to protect the shore, without a foreordained hero.
 
-### Direct exploration combat
+The player saves the bird, its habitat or the circumstances necessary for its survival. In the Act 1 battle it instinctively intervenes at a critical moment; the player and defenders must still fight the creature directly. This **preserves a great-bird lineage**. In Present v2, a great bird (not necessarily the same individual centuries later) recognises the player's causal imprint and becomes a mount, enabling the sea crossing to Land #2 and later offering aerial possibilities.
 
-Most roaming encounters use compact action combat: movement, melee attacks, dodging, positioning, bird-assisted abilities, and survival-oriented encounters with monsters or hostile people. The opening Present should feel wild and dangerous rather than like a safe RPG overworld.
+The contrast foreshadows the entire conflict: Harbour exploits causal birds crudely; the Concordance industrialises the same impulse through the Loom.
 
-**LOCKED — bird-assisted temporal combat abilities:**
+## 5. Combat and major encounters
 
-- **Foresee** shows an enemy's near-future movement/attack, for instance as a predictive ghost or readable projected action, rather than changing history.
-- **Pin** briefly arrests or disrupts an enemy's predicted action, creating an opening for positioning or attack.
-- **Recall** returns an enemy along its recent movement/action, enabling tactical repositioning; it does not simply restore lost health or undo all consequences.
+### Ground combat — LOCKED
 
-These are immediate, local combat-time effects, distinct from centuries-long historical rewriting through seams. Their precise durations, costs, enemy rules, presentation, and wider environmental applications remain tunable through prototypes. All three unlock in Act 1 in that order and are used during the Harbour climax.
+Direct combat is part of ordinary exploration. The player moves, positions, dodges, uses grounded melee and survives encounters with creatures and hostile people. Combat is physical, with temporal assistance from the bird, rather than a spell-driven replacement for action.
 
-### Community defence battles
+**LOCKED — Three distinct short-time abilities:**
 
-Major set pieces use a defence format in which the player fights directly while helping a community survive a dynamic attack. The player is **not a full-time commander or general**. Local leaders retain strategic authority.
+| Ability | Function | Boundary |
+|---|---|---|
+| **Foresee** | Reveals an enemy's imminent attack or movement, e.g. a predictive ghost | Information, not an automatic dodge or historical rewrite |
+| **Pin** | Briefly arrests or disrupts a predicted enemy action, creating an opening | Short/local effect, not globally freezing time |
+| **Recall** | Returns an enemy along part of its recent path or action, allowing repositioning | Not a general undo of damage or every consequence |
 
-The bird supplies the distinctive tactical layer: it can fly above the defended area and provide an overhead battlefield view. From this view the player can issue broad, lightweight priorities such as reinforcing a position, moving ranged defenders, protecting civilians, falling back, or concentrating on a threat. The player then returns to ground combat and personally intervenes at crisis points.
+**OPEN for prototypes:** Timing, cost, readability, enemy resistance, targeting, input handling and whether these powers ever apply to objects outside combat. The Harbour sea-creature fight must involve **all three** along with direct action and the great bird's intervention; its precise encounter choreography remains **DIRECTION**.
 
-This creates a rhythm of **overview → a few consequential tactical calls → direct action → new crisis → overview again**, without turning the game into an RTS.
+### Community defence — LOCKED fantasy / DIRECTION scope
 
-The player's ability to influence defenders must be earned. NPCs do not obey a mysterious outsider automatically. Trust built through rescue, warning, social choices, proven foresight, and earlier defence actions determines which leaders, roles, or groups will respond to the player's bird signals.
+Important battles combine the player fighting on the ground with occasional broader decisions informed by a bird's overhead view. Local leaders retain command; the player is **not an RTS general**. Trust earned through past actions, rescues and warnings determines who heeds the bird-carried signals. Possible commands: defend a chokepoint, protect civilians, reposition a small group or prioritise a threat. Tribal defence can introduce the idea; Harbour is its major Act 1 expression.
 
-The tribal camp can introduce this system on a small scale; the Harbour catastrophe is Act 1's full-scale expression of it. Major battles should be dynamic rather than simple wave survival, with simultaneous threats and meaningful losses.
+The exact command set, size of forces, complexity and frequency remain **OPEN**. Do not let this subsystem dominate the first ground-combat prototype.
 
-### Experimental temporal combat mechanic
+**EXPERIMENTAL:** A time-displacement weapon that temporarily sends enemies to another era. It is not part of the locked combat kit.
 
-A possible later mechanic is a **time-displacement weapon or bird-channelled ability** that temporarily blasts an enemy into the opposite era. This is currently exploratory, not locked. If retained, it should be explained as local Loom-derived causal severing rather than normal historical rewriting, with targets initially tethered back to their original era so ordinary combat does not create absurd ancestry paradoxes.
+## 6. Geography, cultures, and presentation
 
-## Lineage and Human Causality
+### World geography — LOCKED
 
-Certain significant NPC families may form a deeper systemic layer because human lineages naturally transmit consequences across centuries. Past actions could change whether a family survives, migrates, gains status, develops a profession, founds an institution, or preserves a particular version of history.
+- **Land #1 (west):** Wild, scarred but largely habitable in Present v1. Contains the inland descendant community, Harbour Village and the enormous skeleton in its ruined original future.
+- **Land #2 (east):** Refugees' homeland and centre of the Concordance/Loom. Explored in its badly scarred Present and in its technologically sophisticated but increasingly threatened Past.
+- **Sea between them:** Contains a major natural temporal fault; the ancient creature does **not** ordinarily live in the human era.
 
-A candidate lineage model tracks four authored dimensions:
+### Visual identity — DIRECTION
 
-- **Survival** — whether descendants exist and where they settle;
-- **Standing** — ordinary, influential, disgraced, wealthy, political, etc.;
-- **Calling** — trade, military, scholarship, religion, navigation, craft, or another inherited institutional role;
-- **Memory** — what version of historical events the lineage preserves or propagates.
+Stylised low-complexity 3D isometric presentation, simple readable geometry and silhouettes, expressive but limited animation, authored Past/Present environment variants, and a scope suitable for a solo or small-team project. Avoid photorealism and generic fantasy without unique identifiers.
 
-This should not become a full generational life simulator. Important families would have a manageable set of authored lineage states whose combinations materially alter Present NPCs, districts, institutions, dialogue, quests, and historical records. The system is a promising home for deeper causal gameplay because a small interaction with a person can plausibly produce large consequences centuries later.
+Recognisable world motifs: natural great birds versus exploited bird traditions, temporal seams and rips, contradictory historical architecture, reclaimed ruins, the monumental sea-creature skeleton, and eastern infrastructure dependent on artificial causal intervention. The two landmasses should have distinctive wildlife, settlement forms, cultures and characters. **OPEN:** Specific art bible, architecture, creature roster, character designs and final place names; not prerequisites for the first gameplay tests.
 
-## Player Origin
+## 7. Story and chronology
 
-The player originates in the eastern civilisation's **original, late-collapse history**, near the desperate end of its attempts to prevent the Unravelling. **LOCKED — the displacement happens late in the original cycle of collapse, as a last-gasp effort associated with the Curator's attempt to save the realm, not as an early experiment before the crisis is understood.** The experiment removes the protagonist from ordinary causality so that the Loom cannot rewrite them. The Curator need not have personally selected or known the protagonist, and the earlier Curator encountered during gameplay must not recognise them as someone they have already sent forward. **OPEN:** Who designed and executed the experiment, how much the Curator knew or directly authorised, and its exact timing relative to the original evacuation.
+### The original history, before the player's interventions — LOCKED outline
 
-**DIRECTION — failed displacement experiment:** The late-collapse experiment was intended to create a causally severed person able to help avert the crisis, probably by accessing an earlier turning point. It malfunctioned, throwing the protagonist centuries **forward** instead of delivering them where intended; the wrong arrival and loss of pre-opening memories are consequences of that failure. The exact intended destination and mechanics remain open.
+1. The eastern civilisation uses the Loom for repeated beneficial corrections. Accumulating instability becomes the Unravelling.
+2. At a **late, desperate stage** of the original collapse, an experiment linked to the Curator's final attempt to save the realm tries to sever someone from ordinary causality.
+3. The experiment fails in its delivery: the protagonist is sent centuries **forward** to Present v1 without access to pre-opening memories; the accompanying small bird is also weakened.
+4. The original collapse causes a refugee exodus toward western Harbour. A severe marine temporal rupture allows a gigantic prehistoric creature to enter the human era. Refugees and Harbour's defenders mistake each other for attackers.
+5. Harbour is devastated. The creature dies there, leaving the vast skeleton; survivors flee inland and develop the descendant culture later encountered in Present v1. The Loom eventually stops repeatedly correcting history, allowing partial natural recovery over centuries.
 
-**DIRECTION — late-game revelation:** In the original, late-collapse history, researchers had recently discovered or recovered an unusual **small bird** with the causal sensitivity they hoped might help the traveller survive or navigate the experiment. They deliberately decide to send that bird with the protagonist. The bird is not an all-knowing guide and is temporally weakened by the failed displacement. The player can discover this originally unseen scene late in the story, providing a retrospective explanation for why the bird was beside them when they woke. **OPEN:** How the lost original event is shown (for example an echo, testimony, surviving record, or brief non-playable scene) without introducing a third freely accessible era or implying the amnesiac protagonist remembered it all along.
+**OPEN:** The exact relative timing of the original experiment and the first evacuation, and precisely what took the creature through the fault. This outline does not imply the player caused the **original** exodus.
 
-**LOCKED — starting memory:** The player wakes in Present v1 with effectively no accessible memories of their life before displacement, including their role in the late-collapse experiment or any knowledge of the Curator and Loom. The original life and crisis genuinely happened in the history that produced Present v1; it is the protagonist's recollection that was lost in transit. Their history can be pieced together through exploration, evidence, and encounters rather than recalled on demand. Their subsequent seam travel allows them to reach **events earlier than their own original displacement**, not simply revisit the point where the experiment happened. Because they remain causally severed, they continue to exist even when their interventions rewrite the original catastrophic history and potentially prevent the experiment that first displaced them.
+### Origin and failed experiment — LOCKED premise / DIRECTION revelation
 
-This loss of **pre-opening autobiographical memory** must not be conflated with their ability to **remember overwritten Presents experienced during play**. Both are required: the initial mystery remains meaningful, while the player can compare historical changes they personally caused.
+The protagonist was a real person in the **later Past of the original history**, not a foretold Chosen One. A desperate experiment was intended to put someone outside the Loom's power so they could help save the world. **DIRECTION:** It was meant to reach an earlier decisive point, but malfunctioned and sent them centuries forward instead. The reason for arrival on Land #1, specific intended destination and who selected the person are **OPEN**.
 
-This explains why the player:
+**DIRECTION — Late-game reveal:** Researchers have only recently discovered/recovered the unusual **small bird**, believe its instincts may help, and **deliberately choose to send it alongside the protagonist**. This scene from the original, late-collapse history may be discovered by the player/audience late in the game; how to show a lost timeline without giving the player unexplained memories or a third explorable era is **OPEN**.
 
-- remembers overwritten Presents;
-- can eventually move between Past and Present;
-- is unusually important to the birds;
-- cannot simply be rewritten by the antagonist's system;
-- can ultimately serve as the final stabilising causal anchor.
+The playable **earlier Curator** has not lived through that last desperate phase. They believe the Loom can be fixed, may try to recruit the player, and have reason to resist dismantling its anchors. They do **not** recognise the protagonist as an individual they previously dispatched; faint familiarity is optional foreshadowing, not an established relationship. Exactly how involved the **later original-history Curator** was in the experiment is **OPEN**.
 
-The player is not a foretold Chosen One. The experiment creates the possibility of changing history; the player's decisions determine what that possibility becomes.
+### Act 1 — Harbour Village — LOCKED narrative beats
 
-The opening therefore presents three apparently separate mysteries that should gradually prove related:
+The traveller wakes on Land #1 in **Present v1** with no personal history and a temporally weakened small bird. The wilderness is dangerous, with monsters beyond settlement defences, but is not universally apocalyptic. Odd seams reveal alternate views of familiar places. The player encounters a small inland community descended from survivors of Harbour's catastrophe; its oral history speaks of an attacking fleet, a sea beast and birds that failed to protect the shore. A keeper of the older bird beliefs may help interpret these clues.
 
-**Who was I, and why am I here? Why is the bird damaged? Why is this Present coming apart?**
+**Opening sequence:** Wake → survive/explore → detect seams and the bird's reaction → glimpse the inaccessible Past → help the bird recover → widen the first seam → deliberate crossing. This happens **early**, so the game's main mechanic isn't withheld for an entire act.
 
-These should be answered by discoveries the player makes in the world, not by conveniently remembered prior knowledge.
+At ruined Harbour, the colossal skeleton's ribs and skull dominate the landscape. Crossing to Past Harbour reveals a living settlement preparing for invasion, a divided community that hunts great birds for their abilities, and the approaching fleet. Investigation reveals **refugees**, not invaders, fleeing Land #2's catastrophic instability. Their route intersects a deep marine rupture that admits a huge **prehistoric** creature into this era. Neither the refugees nor the creature are malicious invaders.
 
-## Geographic Structure
+The player saves the threatened great bird, builds trust and uses historical knowledge to avert armed conflict between the two populations. The sea creature still emerges: a major physical defence battle requires Foresee, Pin and Recall, active ground combat, the small bird's awareness and the great bird's decisive intervention. The beast is defeated **before Harbour is destroyed**. The great bird never wins alone.
 
-The story spans two major landmasses separated by a sea.
+Returning to **Present v2**, the old inland tribe no longer exists in exactly the known form, but its ancestral people and cultural threads persist within a prosperous combined Harbour society. The great-bird lineage survives. Records and bird responses to powerful disturbances in the east reveal that Harbour's tragedy was only a consequence of a larger disaster. The player mounts a great bird of the surviving lineage and crosses the sea to investigate the refugees' homeland.
 
-### Land #1
+### Act 2 — Across the Sea — LOCKED revelation / DIRECTION gameplay
 
-The western landmass. Harbour Village sits on its coast. This is where the game begins and where Act 1 takes place.
+Land #2's **Present v2** is far more heavily scarred: abandoned or altered cities, impossible memories, structures flickering between prior states, unstable routes and occasional intrusions from the distant Past. The player explores these environments, fights, meets survivors and investigates local historical contradictions, crossing to the **earlier Past** of the same regions. There they discover the prosperous Concordance civilisation and the functioning Loom.
 
-### Land #2
+**DIRECTION — A playable journey, not an exposition tour:** Several bounded regions offer distinct investigations, environmental causal changes, people to protect, enemies, shortcuts and consequences. The player initially tries to understand and sometimes repair particular disturbances. They learn that local solutions cannot resolve the network-wide catastrophe and that the Loom's past successes created its present danger.
 
-The eastern landmass, homeland of the refugees. It contains the civilisation that built the history-manipulation network and becomes the primary setting of Acts 2 and 3.
+The Curator's argument is credible: the Loom prevented famine, disease, war and suffering, and millions now depend on it. In the earlier era, they believe it can still be repaired. They attempt to recruit or stop the protagonist, not because they are simply evil but because pulling down the network appears to condemn people **now**. The player learns that further forced corrections only increase future instability. Act 2 ends with a decision: the Loom must be dismantled.
 
-The sea contains a deep natural temporal fault. **LOCKED — prehistoric sea creature:** Under extreme Loom-driven instability, this fault can tear into a deep-time rip through which a colossal prehistoric marine animal enters Harbour's historical era. The animal is not malicious or ordinarily resident in the human era; the refugee fleet inadvertently triggers or encounters the breach. The original Harbour catastrophe kills the creature and leaves its enormous skeleton; survivors flee the devastated settlement inland, **not** because the creature continues hunting them for generations. In the Act 1 rewritten history, the player and defenders defeat it before it destroys Harbour.
+### Act 3 — The Bird-Rider — LOCKED stakes / DIRECTION specifics
 
-**DIRECTION — final anchor:** The Loom's main anchor/gate exploits the powerful marine temporal fault; deactivating/destroying it at the climax should close the artificial deep-time breach, so in Present v3 the creature never enters the human era at all. The final solution should not depend solely on rerouting the fleet. The exact position of the installation, triggering of the original breach, and how the gate is closed safely are not yet specified.
+The player deactivates major causal anchors on Land #2. The intention is **not to destroy cities**: it is to prevent systemic collapse while organising warnings, routes, shelter, defence and evacuation. When artificial supports fail, infrastructure may stop functioning, districts become unsafe and communities must move. Some forces oppose the player because they see actual losses, not the avoided disaster.
 
-## Three-Act Story Structure
+The original refugees fled because **the Loom was already failing catastrophically**. In the changed history, the player's deliberate shutdown accelerates the loss of artificial supports but makes a more organised evacuation possible. The player recognises the westbound refugees they encountered in Act 1, now in altered circumstances. They are increasingly remembered as the feared **Bird-Rider**; the Curator may appear the last defender of the old world.
 
-### Act 1 — Harbour Village
+**DIRECTION — Final anchor:** The main anchor/gate exploits the deep natural marine fault. The player's final intervention closes the artificial deep-time breach **before the creature can emerge into this history**; simply destroying a navigation beacon is no longer the intended resolution. People witnessing their last great system dismantled may interpret it as one final hostile act. The exact gate construction, timing, safe shutdown method, confrontation and whether a diversion is also needed remain **OPEN**.
 
-The player wakes in **Present v1** on Land #1 in a landscape that feels wild, dangerous, and only partially reclaimed by people. Monsters roam outside settlements and can penetrate even the tribal village's defences.
+### Final Present v3 and sacrifice — LOCKED thematic ending / OPEN implementation
 
-**LOCKED — Present v1 is a partially healed, permanently scarred post-collapse world**, not a civilisation still in the immediate final throes of the original disaster. After the Loom's catastrophic failure, its repeated interventions largely ceased and people, wildlife, and landscapes had centuries to adapt. Most places can sustain ordinary life, allowing the inland tribe to form across generations; some geographic and causal wounds never fully healed. Temporal seams are present in the landscape: thin joins reveal fragments of the Past; larger rips distort terrain, structures, sounds, and history. Danger and visible instability concentrate around scars and exceptional places, rather than making every scene a constant apocalyptic glitch. This establishes mystery and a remaining threat without contradicting centuries of lived history on Land #1. Land #2, closer to the Loom's former centre, can retain much more severe damage.
+The refugees reach Harbour without the sea-monster catastrophe, and the two populations create a prosperous shared civilisation. The great-bird lineage and other earlier valid interventions remain part of history. Ancestral families and traditions recognizable from the original inland tribe provide an emotional callback, although the individuals and social form may differ. There is **no sea-creature skeleton**: in this history the creature never entered the human era, and its prehistoric environment is no longer connected by the catastrophic breach.
 
-The opening progression is deliberately directed:
+The Loom has ceased destabilising history. The player's actions to prevent catastrophes may leave no positive historical record: the Harbour defence never happened, while loss and flight from the east did. The Bird-Rider may be remembered as the destroyer; the Curator may be remembered as a tragic guardian.
 
-**Wake → survive/explore immediate surroundings → discover the first seams → notice the weakened bird responding to them → use glimpses through seams to understand inaccessible Past states → help the bird recover enough causal strength → open the first seam → make the first deliberate crossing into the Past.**
-
-Before the first crossing, seams can already provide useful information. They should teach the player that looking into another era can answer questions about the current landscape, not merely serve as glowing doors.
-
-The player encounters a small inland tribal culture whose people are descended from survivors of a legendary catastrophe at Harbour Village on the coast. **LOCKED — historical continuity:** In the rewrites where Harbour survives, the original inland tribal society need not form in the same way, but its ancestral Harbour families are not simply erased wholesale. Recognisable families, customs, bird-keeper traditions, or their cultural descendants should appear within the integrated Harbour civilisation, with an emotional callback in Present v3. Individual people need not remain identical across rewritten centuries.
-
-Their oral history says that a hostile fleet crossed the sea, a sea beast rose from the water, Harbour fell, and the survivors fled inland. Over generations, their temporary refuge became permanent and their culture formed around displacement and fear of the lost shore.
-
-The tribe also preserves fragments of an old bird-keeper tradition: great birds are said to protect people from unseen danger. Its origin is real but imperfectly understood and distorted over generations; this is a **cultural belief, not a literal prophecy** about a chosen stranger. A knowledgeable spiritual keeper may help introduce this belief to the player, but whether such a person has any innate sensitivity is **OPEN**.
-
-The player explores the ruined Harbour Village and eventually crosses into the Past. The ruin is dominated by the overwhelmingly large skeleton of the sea beast: ribs, vertebrae, skull, and other remains form part of the environment, traversal, combat spaces, and visual identity of Act 1. The skeleton is physical proof that something immense happened here, even though the tribe's account does not fully explain it. Harbour is alive in the Past, and the supposed Great Battle has not yet occurred.
-
-The player discovers that the incoming fleet is not an invasion. It is made up of refugees fleeing a disaster on Land #2. During their desperate crossing they pass a deep marine temporal fault destabilised by the Loom; a catastrophic rip allows an enormous prehistoric creature to emerge. Harbour's defenders see an armed fleet approaching with a monster behind it and assume an attack; the refugees see a fortified settlement raising weapons while they flee for their lives. Fear and misunderstanding turn the event into a catastrophe.
-
-In the original history:
-
-- Harbour and the refugees fight;
-- the beast devastates the coast;
-- both populations suffer enormous losses;
-- survivors flee inland;
-- Harbour is abandoned;
-- their descendants eventually become the tribal culture of Present v1.
-
-The player intervenes using normal world actions, combat, preparation, social persuasion, rescue, and bird abilities. They prevent the two populations destroying one another and help Harbour survive the beast attack. The player/bird combination makes the decisive difference because the player carries future knowledge that the defenders cannot possess. The smaller bird supplies battlefield awareness and **Foresee, Pin, and Recall** in direct combat, all of which are meaningfully used to create opportunities against the creature; the rescued great bird intervenes at the critical moment. The great bird does not win alone.
-
-When the player returns to the Present, history has been rewritten into **Present v2**. The tribe no longer exists in the form the player knew, though its ancestral families and some cultural traditions continue in other forms. Harbour has instead grown into a prosperous coastal civilisation combining descendants of the original villagers and the refugees.
-
-The visual state of seams/rips should also respond to this rewrite. If Present v2 is causally healthier than Present v1, the world should visibly contain fewer or calmer seams. This gives the player an immediate, environmental sense that history has become more coherent without requiring a numerical stability score.
-
-Present v2 preserves records that were lost in the original timeline. Those records reveal that the refugees were fleeing something much greater on Land #2. Together with the small and great birds' instinctive responses to severe disturbances from the east, these records give the player a concrete reason to travel to the refugees' homeland. The mount enables that journey; it is not the entire motivation.
-
-Act 1 also pays off the great-bird thread. In the original history the great bird encountered around Harbour died during the catastrophe, leaving it absent or mythical in Present v1. The player saves it, its nesting site, or the conditions necessary for its survival in the rewritten history. In Present v2, a surviving **great-bird lineage** now exists; a bird of that lineage recognises the player's causal imprint and becomes mountable. The centuries-later mount need not be the exact individual rescued in the Past. The player uses it to cross the sea toward Land #2, making the end of Act 1 both a narrative consequence and a major traversal unlock.
-
-Act 1 therefore ends with apparent success, but also the realisation that the Harbour catastrophe was only the outermost consequence of a much larger problem.
-
-### Act 2 — Across the Sea
-
-The player travels to Land #2 in Present v2, retracing the refugees' route in reverse.
-
-The eastern landmass is ruined, abandoned, or temporally scarred. The player encounters evidence of overwritten histories: structures that retain contradictory forms, records of disasters that apparently never happened, echoes of lives that no longer belong to the current Present, and increasingly severe seams/rips where reality is struggling to maintain a single historical state. At its worst, roads and buildings visibly flicker between mutually incompatible historical versions, districts lose reliable geography, and rare severe breaches allow objects or creatures from the distant Past to intrude. This helps explain the prehistoric creature's appearance at Harbour without adding another playable era. **EXPERIMENTAL:** Intrusions from future periods beyond the player's Present; do not assume these exist when scoping levels or systems.
-
-The player eventually reaches Land #2 in the Past, in an earlier accessible historical state before the late-stage collapse and experiment that originally displaced them, and during the same broad historical period as the Harbour events.
-
-They discover the advanced civilisation that once existed there and the system it built to manipulate history. **DIRECTION — Act 2 gameplay:** Explore paired Past/Present regions, investigate local temporal damage, use the bird and physical causality to attempt to protect communities, and gradually learn that isolated repairs cannot cure a network-wide problem. Avoid reducing this act to an exposition tour of ruins.
-
-#### The Concordance
-
-Placeholder name for the eastern civilisation. It discovered that certain places act as powerful **causal anchors** and learned to use birds and technology to alter conditions in the Past in order to improve the Present.
-
-At first the system produced extraordinary benefits:
-
-- famines prevented;
-- epidemics stopped;
-- wars avoided;
-- disasters averted;
-- infrastructure preserved;
-- lives saved.
-
-The player initially understands the temptation because this is essentially what they have been doing at Harbour Village.
-
-#### The Loom
-
-Placeholder name for the network of causal anchors used to repeatedly force preferable historical outcomes.
-
-The Loom does not create a multiverse. It repeatedly rewrites the one history.
-
-Small natural changes are normally absorbed by history. The Loom performs thousands of deliberate corrections, leaving accumulated causal residue from incompatible former histories. **LOCKED — outcome:** Its forced corrections are the underlying cause of the Unravelling and eventually of the original eastern exodus; the Curator continues to operate and defend it even as reality destabilises.
-
-**OPEN — precise mechanism:** One candidate is that anchors exploit natural seams to observe causal turning points and induce targeted changes in an earlier state, forcing a preferred Present. The network may artificially hold particular seams/gates open to sustain that access, with a local gate closing when its anchor is disabled. This is a **working model**, not a rule to build technical architecture around yet. Distinguish ending an ongoing artificial connection from magically undoing every physical consequence of old historical changes.
-
-#### The Unravelling
-
-The catastrophe produced when too many mutually incompatible histories have been forced through the same reality.
-
-Its symptoms escalate from subtle to physical:
-
-- people remember events that never happened;
-- maps and structures change;
-- birds abandon affected areas;
-- objects occupy contradictory historical states;
-- roads or buildings briefly belong to different former histories;
-- seams multiply and widen into rips;
-- people experience memories of lives they never lived;
-- eventually whole regions struggle to maintain one coherent history;
-- in the most damaged regions, rare material intrusions from much older periods become possible, including dangerous animals.
-
-The visible seam/rip language introduced in the opening is therefore a readable symptom of the Unravelling. By the time the player reaches severely affected regions, they already understand intuitively that a landscape dense with rips is causally dangerous.
-
-#### The Curator
-
-Placeholder name for the principal antagonist and keeper of the Loom.
-
-The Curator is not a simple villain. Their civilisation is now dependent on centuries of corrected history. They believe dismantling the Loom would cause immediate collapse and mass suffering.
-
-To preserve the core civilisation, the Curator pushes accumulated instability outward into peripheral regions. The Loom therefore appears to be protecting the centre while actually exporting the damage that it created.
-
-Most ordinary citizens do not understand this. They experience the Loom as one of civilisation's greatest achievements and may believe the Unravelling is an external disaster that the Curator is heroically containing.
-
-**LOCKED — asymmetric knowledge:** The Curator encountered in the playable earlier Past still believes the Loom is recoverable and necessary for the civilisation's survival. They have not yet lived through the original final breakdown or the last-gasp experiment; they therefore have a coherent reason to oppose dismantling anchors rather than automatically work with the player. The protagonist begins without memories of the original crisis or experiment and need not know that the later Curator or their institution would eventually attempt such a desperate solution. The audience/player can discover that contrast late in the story. They see the player as an uncontrolled causal anomaly and attempt first to recruit rather than kill them. They **do not recognise the player as someone they previously sent forward**; at most, a faint sense of familiarity may be used as optional foreshadowing, without revealing the answer. The late-collapse Curator (or their surviving institution) may have been involved in a desperate final attempt to save the world without having personally known or selected the protagonist. Their ideological argument is powerful: the player changed Harbour because its history was unacceptable; the Concordance merely learned to do the same thing systematically.
-
-Act 2 culminates in the player understanding that every further Loom correction makes eventual collapse worse. The network has to be dismantled. The Curator refuses because doing so means accepting enormous suffering now to prevent a far greater disaster later.
-
-The player commits to destroying the Loom. By this stage the great bird gained at the end of Act 1 has become a mature part of traversal and combat, and its role can expand further into aerial exploration and battle.
-
-### Act 3 — The Bird-Rider
-
-The player begins dismantling the Loom's major causal anchors across Land #2.
-
-Each safely deactivated or destroyed anchor can help restore long-term historical stability, but the immediate consequences are severe:
-
-- critical infrastructure and protections dependent on the Loom may fail;
-- already damaged districts may become temporarily unsafe as their artificial support ends;
-- communities must evacuate, relocate, or adapt;
-- political order and public trust fracture;
-- defenders fight the player believing they are destroying civilisation.
-
-**LOCKED — character and gameplay intent:** The player is not deliberately razing cities or murdering refugees. Act 3 should involve warning people, arranging safer exits, protecting evacuations and limiting suffering while disabling systems that cannot safely remain. Ruins and loss are consequences of dependence on the Loom and its collapse, not the player's desired objective. Do not treat deactivating an anchor as automatically rewriting whole populations out of existence.
-
-The Curator is remembered by much of the population as the last great defender of the old realm. The player increasingly becomes the feared **Bird-Rider**, the figure apparently tearing the civilisation apart.
-
-As evacuations intensify, the player recognises the people preparing to flee west across the sea. They are the refugees from Act 1, though the circumstances of their exodus have changed.
-
-**LOCKED — distinction between histories:** The **original** refugee exodus was caused by the Loom's accumulating failure and the Unravelling, independently of the player's later intervention. In the revised history, the player's intentional dismantling of the failing network accelerates the loss of its remaining protections but also enables evacuation before a still worse collapse. Their actions change *how* the people flee; they did not cause the original flight in an unchangeable predestination loop.
-
-The player knows that the earlier fleet's passage through a deep-sea temporal fault coincided with the rupture that brought a prehistoric creature into Harbour's era. **DIRECTION — final intervention:** They confront the main Loom anchor/gate exploiting this fault and shut it down, permanently ending the artificial deep-time breach before the fleet's catastrophic encounter. The fleet does not necessarily need rerouting. The refugees witnessing their last great mechanism destroyed may see this as one final assault by the Bird-Rider, not as their salvation.
-
-This intervention rewrites Harbour history again.
-
-#### Final Present — Present v3
-
-The refugees reach Harbour without the sea-beast catastrophe. The two populations eventually coexist and build a prosperous shared civilisation. Families and cultural threads familiar from the inland tribe of Present v1 survive within this different society, allowing a deliberate emotional callback even though the original tribal settlement's history has changed. The Unravelling has been stopped at its source: the catastrophic deep-time breach is closed, the creature remains in its prehistoric world, and the enormous Harbour skeleton has never existed.
-
-The original Harbour battle from Act 1 no longer happened at all. **LOCKED — persistence across rewrites:** The player's earlier Past Harbour interventions (including the great bird's rescue and viable relationships or preparations) remain historical actions where consistent with the new circumstances. They need not be undone merely because the sea creature never arrives. The great-bird lineage and the integrated Harbour society therefore have an ongoing causal basis, although the specific battle-based heroic legend may disappear.
-
-What remains visible to future generations is the destruction on Land #2.
-
-The player is remembered primarily as the Bird-Rider who destroyed the old eastern civilisation and drove its people from their homeland.
-
-The Curator may be remembered as its tragic last defender.
-
-History is not necessarily lying. It records what people could see. It simply cannot record the wider catastrophe that would have consumed the realm if the player had not acted, nor the sea-beast disaster that never happened because the player prevented it.
-
-## Final Sacrifice
-
-Destroying the final anchor requires the player to use their own causally severed existence as the stabilising element that allows history to settle into one coherent path.
-
-The player cannot return to an ordinary life in the Present. They may become permanently trapped in the Past, gradually lose parts of their original identity, or otherwise sacrifice their personal future.
-
-The realm survives and reaches a better Present, but the player receives no heroic historical legacy for doing so.
-
-The ending should reinforce the central theme:
+**LOCKED — Sacrificial principle:** The player's causally severed existence is implicated in stabilising the final resolution, and they cannot simply return to an untouched ordinary life and receive an uncomplicated heroic legacy. **OPEN:** Whether this means being anchored in the Past, losing a future, sacrificing identity or another precise cost. The ending must reinforce:
 
 > **History cannot record the disasters that didn't happen.**
 
-## Current Design Intent for Replayability
+## 8. Progression and replayability
 
-The game should support meaningful permutations rather than a single fixed puzzle solution.
+**LOCKED milestones:** Early seam crossing; Foresee → Pin → Recall within Act 1; saved great-bird lineage and mount at end of Act 1; increasingly difficult historical investigations across Land #2; final main-anchor resolution.
 
-- Physical actions can change traversal, infrastructure, ecology, and settlement development.
-- Combat choices alter who survives and what descendants or institutions exist later.
-- Social choices affect alliances, beliefs, migration, and political outcomes.
-- Some consequences are obvious; others are only discoverable after returning to the Present or on later playthroughs.
-- The player's goal is not to discover one perfect history but to learn how actions propagate through time.
+**DIRECTION:** Local causal permutations arise through physical, combat and social decisions. The macro-story is authored and coherent, rather than allowing a free simulation of arbitrary civilisations. Changes may affect routes, ecology, buildings, survivors, descendants, recorded history, dialogue and institution states; not every choice needs a centuries-long consequence.
 
-Replayability may draw inspiration from run-based games in the sense that later playthroughs reveal different causal permutations and allow players to recognise consequences they could not have predicted previously. The exact run structure remains to be designed.
+**OPEN:** Density and variety of causal choices per region, replay incentives, authored state combinations, progression of aerial capabilities, detailed save/state representation and effects of earlier choices late in the story.
 
-## Related World Concept — Grand Strategy Spin-off
+**EXPERIMENTAL:** A formal run-based or roguelike structure. A separate grand-strategy spin-off could explore deeper generational social simulation; it is **not part of this action-adventure's scope**.
 
-The deeper “alter a society and observe centuries of systemic repercussions” concept may belong in a separate grand-strategy game set in the same world. That game could operate at the natural scale for large causal systems: dynasties, migration, trade, ecology, technology, religion, warfare, settlement, and institutional change across ages.
+## 9. Development guardrails
 
-This separation allows the main game to keep a strongly authored action-adventure story while still using selective causality where it is legible and emotionally meaningful.
+**LOCKED current project choice:** **Godot**; Git/version control; develop through narrow, testable prototypes before any full-scale production.
 
-## Visual Direction
+**DIRECTION:** Stylised 3D, bounded levels, **GDScript unless testing reveals a compelling reason otherwise**, editable/tunable values and authored states rather than hard-coded one-off puzzles or premature generalized historical simulation.
 
-The game should be substantially simpler graphically than a high-detail realistic isometric adventure.
+Initial architectural decisions should be driven by prototypes for (a) isometric movement/level exploration, (b) visible and crossable seams, (c) paired Past/Present authoring, (d) one legible authored causal intervention, (e) bird companionship and (f) Foresee/Pin/Recall in compact direct combat. Community defence, aerial traversal, full story content and broad lineage permutations should **not** be built into the first prototype.
 
-Current target direction:
+Dedicated prototype and technical planning belong in **PROTOTYPE_PLAN.md** and **TECHNICAL_DIRECTION.md** once the remaining consequential questions are settled; those are supporting plans, not alternate masters.
 
-- stylised 3D isometric presentation;
-- compact bounded regions rather than one open world;
-- deliberately simple geometry and readable silhouettes;
-- environments reused structurally between Past and Present with authored state changes;
-- limited but expressive animation;
-- birds and temporal seams as key visual identifiers;
-- Present v1 should feel unstable and uncanny rather than fully apocalyptic;
-- seams should allow legible glimpses of the other era, including mismatched terrain, intact/ruined structures, movement, light, weather, or sound;
-- rips should be visually more severe than ordinary seams and signal greater causal danger;
-- seam/rip density and severity should communicate timeline stability diegetically;
-- a more stable timeline should visibly calm or reduce these phenomena;
-- graphical scope appropriate for a solo or very small-team project.
+## 10. Open questions, prioritised
 
-## Open Questions for Development Phase
+### OPEN — Important before / during earliest prototypes
 
-- Exact engine and technical stack.
-- Final player interaction verb set.
-- Exact tuning, density, and placement rules for temporal seams and rips.
-- Exact recovery beat that restores the companion bird's first seam-opening ability.
-- Exact later progression for opening weak seams versus stabilising dangerous rips.
-- How much independent cross-era bird control is genuinely fun and fictionally credible.
-- Final depth of direct combat versus defence-battle systems.
-- Exact tactical commands available from the bird overview and how trust unlocks them.
-- Whether the experimental time-displacement weapon belongs in the core combat kit.
-- Scope and representation of the lineage system.
-- Number and density of investigations, light puzzles, causal interventions, and major defence encounters per region.
-- Exact timespan between Past and Present; current intent is centuries, likely long enough for myth, lineage, cultural change, and institutional consequences to propagate convincingly.
-- Exact causal-authoring architecture.
-- How much of the Present recalculates immediately versus at explicit timeline transitions.
-- Replay/run structure.
-- Save-state and branching-history representation.
-- Exact bird progression and mount mechanics beyond the locked early seam unlock.
-- Exact form of the final sacrifice.
-- Who designed and executed the desperate late-collapse displacement experiment, how directly the late Curator was involved, and whether any subtle familiarity is useful as foreshadowing. The playable earlier Curator does not personally identify the player from a previous encounter.
-- What specific earlier turning point the failed experiment was meant to reach, and why the protagonist instead emerged centuries later on Land #1.
-- How to reveal the original experiment scene and the deliberate inclusion of the newly discovered small bird without requiring free travel to the original departure time or recovered player memories.
-- Exact fictional reason the displacement erased the protagonist's accessible pre-opening memories while preserving their later memories of overwritten Presents. No need to define detailed neuroscience or time physics before the narrative requires it.
-- How the player's two accessible era states are fixed when the original displacement happened later than the playable Past; precise chronology relative to the refugee evacuation.
-- Exact mechanical relationship among the Loom, natural seams, artificial anchor gates, and temporary local protections; how to disable anchors without an implausible instant undoing of history.
-- Which Act 2 regional investigations first communicate the Unravelling's danger, and how their outcomes teach the player about the Loom.
-- Precise narrative callback linking Present v1 inland families/traditions with Present v3 integrated Harbour society.
-- Names, cultures, geography, and final lore terminology.
+1. **Loom and anchor causal logic:** Does it physically intervene at earlier turning points? How do maintained gates/anchors function, why does switching them off stop further damage, and how can the final marine gate be closed without rewriting away every prior consequence? Resolve a credible high-level rule, not detailed science.
+2. **Era anchoring and chronology:** Why can the displaced traveller access the earlier playable Past even though the failed experiment occurred later? How do time-of-day/story chronology, seams and overwritten states remain consistent within only two accessible eras?
+3. **Core gameplay balance and feel:** How frequent and challenging should ground combat be relative to investigation and exploration? What is the minimum grounded movement kit and the typical bounded level size? Use hands-on tests for most tuning.
+4. **Bird abilities' boundary:** Are Foresee, Pin and Recall combat-only for the first prototype, or may some affect selected environmental actions? Test readability before expanding their universality.
+5. **One understandable causal prototype:** Define a small authored Past change and clear Present effect, including when the game reveals the updated state.
 
-## Locked Design Update — Temporal Seams (11 September 2026)
+### OPEN — Can safely wait until later
 
-The following points are now treated as current design direction rather than loose brainstorming:
+- Exact bird recovery incident, power unlock beats and great-bird teaching interaction.
+- Exact research/experiment personnel, Curator's late involvement, and how the player/audience sees that erased-history scene.
+- Specific landslide/river puzzle, NPC lineages, cultural keeper's possible sensitivity, names and character biographies.
+- Exact shape of Harbour defence commands and trust mechanics; amount of aerial exploration and combat.
+- Full enemy/creature roster, precise map sizes, artwork, sound and cinematic approach.
+- Final sacrifice's physical form; save architecture and long-term replay/run structure.
 
-- Present v1 is visibly temporally unstable.
-- **Seam** is the default term for a relatively stable join between Past and Present.
-- **Rip** is the term for a seam that has widened or become dangerously unstable.
-- Players can glimpse and sometimes hear the other era through seams before they can cross them.
-- The landscape itself communicates causal stability through seam/rip density and severity.
-- The companion bird was temporally weakened by the same displacement event that brought the player into Present v1.
-- The player encounters and learns to read seams before unlocking traversal.
-- The bird recovers enough causal ability fairly early to widen an existing seam and permit the first deliberate crossing.
-- Early seam interaction is location-bound, not unrestricted anywhere/anytime time travel.
-- Later bird progression may stabilise rips, hold seams open, and interact with weaker seams.
-- The opening mysteries of the player's displacement, the bird's condition, and the unstable Present are deliberately connected.
+### EXPERIMENTAL — Do not design around yet
+
+- Independent bird crossing/control and large bird-only puzzle chains.
+- Time-displacement weapon beyond Foresee/Pin/Recall.
+- Incursions from a time later than the playable Present.
+- Fully simulated lineage, economy or arbitrary causal histories.
+- Roguelike runs and an expanded RTS/commander layer.
+
+### SUPERSEDED — Do not silently reinstate
+
+- A literal great-bird prophecy or predestined Chosen One.
+- Three normal playable eras, arbitrary time-jumping, or simultaneous multiverse branches.
+- The earlier Curator knowingly sending and recognising the protagonist.
+- The player having useful memories of the original late-collapse crisis on waking.
+- The player causing the **original** refugee exodus in an unavoidable causal loop.
+- A sea monster living for centuries beside the inland tribe; the skeleton is from a creature that died in the original Harbour catastrophe.
+- A navigation beacon alone being the intended final solution.
+- The complete disappearance of all ancestral people and cultural threads from the inland tribe after Harbour is rewritten.
