@@ -18,10 +18,11 @@ The player's greatest successes are often invisible to history because the catas
 - There are not parallel universes that coexist independently.
 - When history changes, the current Present is overwritten by a new Present.
 - The player remembers erased Presents because they have been severed from ordinary causal continuity.
-- Certain birds can sense causal significance, retain some awareness across rewritten histories, and interact with temporal seams.
+- Certain birds instinctively sense causal significance, retain some awareness across rewritten histories, and interact with temporal seams. They are animals responding to an unusual natural sense, not consciously all-knowing guardians. Great birds have particularly strong sensitivity and can instinctively help preserve the stability of natural seams.
 - Most ordinary interactions do not survive across centuries. Persistent consequences arise when an action plausibly propagates through physical, ecological, social, political, or familial systems.
 - **Temporal seams** are visible joins where Past and Present press unusually close together. Through a seam the player may be able to glimpse, hear, or partially perceive the other era before they can cross.
 - **Rips** are seams that have become badly damaged or widened by temporal instability. They are more visually violent, less predictable, and potentially dangerous.
+- Exceptionally severe rips may reach much further back than the player's two accessible eras, including prehistoric time. Such deep-time breaches are dangerous anomalies, **not** a third playable time period or a general-purpose travel system.
 - Seam/rip density is itself a world-state signal. A coherent timeline may contain very few visible seams; a badly destabilised timeline can become riddled with them.
 - The game should communicate timeline instability primarily through the world rather than through an abstract stability meter.
 
@@ -85,7 +86,9 @@ Combat has causal consequences just as physical interaction does. Saving, killin
 
 ## Birds
 
-Birds are creatures unusually attuned to causality. They can sense when a present action has a strong future thread and retain some awareness of histories that have been overwritten.
+Birds are instinctively attuned to causality. As animals, they can sense when an action has a strong future thread and retain some awareness of overwritten histories, but do not consciously understand timelines, prophecies, or human history. Great birds are especially attuned: their natural behaviour around seams can help prevent or soothe temporal instability. They do not freely rewrite history or choose an ideal future.
+
+The player's forced displacement has profoundly altered their causal presence. Birds recognise this unusual temporal imprint much as they recognise seams, rather than because the player is destined or chosen. The small companion's initial attention is instinctive; its loyalty develops through their shared experiences.
 
 The companion bird's opening condition is now part of the core progression. It was harmed by the same forced temporal displacement that carried the player into the Present. Its visible weakness gives the player an immediate reason to care for it while also fictionally limiting its causal abilities during the opening.
 
@@ -103,17 +106,19 @@ Its gameplay role expands over time:
 
 The exact thing the companion bird must recover, and the precise event that restores its first seam-opening ability, remain to be designed. The important locked principle is that the loss is temporal/causal in origin and that seam traversal is earned early rather than available immediately.
 
-In Present v1, the great bird is absent because it died during the original Harbour catastrophe. The tribe remembers an old prophecy that a great bird would come at Harbour's moment of greatest need and change the fate of the shore, but because Harbour still fell the story has become known as a **failed prophecy**. Some descendants still believe it; others treat it as proof that the old stories were wrong.
+In Present v1, the great bird is absent because it died during the original Harbour catastrophe. The inland tribe preserves a **cultural belief**, inherited from Past Harbour's bird-keepers, that great birds protect places from dangers people cannot see. This belief originated in genuine observations of birds sensing and sometimes stabilising temporal disturbances, but it was distorted through generations of oral history. Because Harbour fell despite the old stories, descendants disagree over whether the birds abandoned their ancestors or whether their ancestors failed to listen. It is **not a literal prophecy** guaranteeing that a bird or hero will save Harbour.
 
-When the player reaches Past Harbour, they discover why the prophecy failed. Harbour society has learned that causally attuned birds have practical value and has begun hunting them. Their feathers, bones, behaviour, or other biological traits are used for navigation, reading dangerous currents or weather, finding temporal seams, and other forms of prediction that people only partly understand. The village therefore exploits the birds without understanding what they really are. Great birds are especially rare and valuable, and one of the last local great birds is due to be killed shortly before or during the Harbour catastrophe.
+When the player reaches Past Harbour, they discover why its birds could not help. Traditional keepers tried to protect them, but Harbour society also learned that causally attuned birds have practical value and began hunting them. Their feathers, bones, behaviour, or other biological traits are used for navigation, reading dangerous currents or weather, finding temporal seams, and other forms of prediction that people only partly understand. The village therefore exploits the birds without understanding what they really are. Great birds are especially rare and valuable, and one of the last local great birds is due to be killed shortly before or during the Harbour catastrophe.
 
-The player, having already heard the failed prophecy in Present v1, realises that this hunted bird may be the one history expected to appear. They intervene to save the bird, its nesting site, its keeper, or the conditions required for it to survive. During the Harbour battle the beast is already awake and must be fought directly; the player uses knowledge gained from the future, their smaller bird's battlefield coordination, and the saved great bird's late intervention to create a new way to defeat the beast early enough for Harbour to survive. The great bird does not win the battle alone: it creates the decisive opening that the player and defenders can exploit.
+The player, having heard the descendants' story of birds that failed to protect Harbour, realises that saving this hunted creature might allow its natural abilities to help during the catastrophe—not fulfil any predetermined prophecy. They intervene to save the bird, its nesting site, its keeper, or the conditions required for it to survive. During the Harbour battle the beast is already awake and must be fought directly; the player uses knowledge gained from the future, their smaller bird's battlefield coordination, and the saved great bird's late intervention to create a new way to defeat the beast early enough for Harbour to survive. The great bird does not win the battle alone: it creates the decisive opening that the player and defenders can exploit.
 
 When the player returns to Present v2, the failed prophecy is no longer remembered in the same way because its outcome was rewritten. A surviving great bird lineage now exists, and a great bird recognises the player's causal imprint and becomes their mount. This makes the mount a direct, tangible consequence of rewriting history rather than an arbitrary progression unlock.
 
 Harbour's exploitation of bird abilities is also intended to foreshadow Land #2. Harbour uses the birds crudely and locally for practical advantage; the Concordance later takes the same instinct to an industrial extreme by building the Loom around systematic causal manipulation.
 
-The birds are not merely magical companions. Their relationship with causality is central to the lore, the player's powers, and the civilisation that later attempts to industrialise history manipulation.
+The birds are not merely magical companions. Their relationship with causality is central to the lore, the player's powers, and the civilisation that later attempts to industrialise history manipulation. The Concordance/Loom represents an **artificial attempt to imitate and override** what great birds do instinctively: birds help preserve temporal coherence, while the Curator forces supposedly preferable historical outcomes.
+
+**LOCKED — Act 1 combat progression:** The small companion gains **Foresee → Pin → Recall**, with all three available before the Harbour sea-creature climax. That encounter must give the player meaningful reasons to use all three powers alongside direct combat and the great bird's intervention. **DIRECTION:** The rescued great bird may help the smaller bird understand, strengthen, or unlock its later abilities; the precise interaction and unlock beats remain flexible.
 
 ## Combat and Defence Systems
 
@@ -122,6 +127,14 @@ The game should support two complementary scales of combat.
 ### Direct exploration combat
 
 Most roaming encounters use compact action combat: movement, melee attacks, dodging, positioning, bird-assisted abilities, and survival-oriented encounters with monsters or hostile people. The opening Present should feel wild and dangerous rather than like a safe RPG overworld.
+
+**LOCKED — bird-assisted temporal combat abilities:**
+
+- **Foresee** shows an enemy's near-future movement/attack, for instance as a predictive ghost or readable projected action, rather than changing history.
+- **Pin** briefly arrests or disrupts an enemy's predicted action, creating an opening for positioning or attack.
+- **Recall** returns an enemy along its recent movement/action, enabling tactical repositioning; it does not simply restore lost health or undo all consequences.
+
+These are immediate, local combat-time effects, distinct from centuries-long historical rewriting through seams. Their precise durations, costs, enemy rules, presentation, and wider environmental applications remain tunable through prototypes. All three unlock in Act 1 in that order and are used during the Harbour climax.
 
 ### Community defence battles
 
@@ -186,7 +199,7 @@ The western landmass. Harbour Village sits on its coast. This is where the game 
 
 The eastern landmass, homeland of the refugees. It contains the civilisation that built the history-manipulation network and becomes the primary setting of Acts 2 and 3.
 
-The sea contains a dangerous ancient creature living around a deep natural temporal seam or sensitive territory. Its involvement in the original Harbour catastrophe is accidental rather than malicious.
+The sea contains a deep natural temporal fault. **DIRECTION — prehistoric sea creature:** Under extreme Loom-driven instability, this fault can tear into a deep-time rip through which a colossal prehistoric marine animal enters Harbour's historical era. The animal is not malicious or ordinarily resident in the human era; the refugee fleet inadvertently triggers or encounters the breach. The original Harbour catastrophe kills the creature and leaves its enormous skeleton. In the Act 1 rewritten history, the player and defenders must defeat it before it destroys Harbour. In the final rewritten history, the fleet avoids the fault, the creature never enters this era, and closure of the catastrophic rips leaves it in its own prehistoric time. The precise biological nature and mechanics of the breach are open.
 
 ## Three-Act Story Structure
 
@@ -206,11 +219,11 @@ The player encounters a small inland tribal culture whose people are descended f
 
 Their oral history says that a hostile fleet crossed the sea, a sea beast rose from the water, Harbour fell, and the survivors fled inland. Over generations, their temporary refuge became permanent and their culture formed around displacement and fear of the lost shore.
 
-The tribe also preserves fragments of a prophecy or tradition concerning strange birds and a history-changing stranger. This is not a straightforward prediction of a hero; its meaning has degraded over generations.
+The tribe also preserves fragments of an old bird-keeper tradition: great birds are said to protect people from unseen danger. Its origin is real but imperfectly understood and distorted over generations; this is a **cultural belief, not a literal prophecy** about a chosen stranger. A knowledgeable spiritual keeper may help introduce this belief to the player, but whether such a person has any innate sensitivity is **OPEN**.
 
 The player explores the ruined Harbour Village and eventually crosses into the Past. The ruin is dominated by the overwhelmingly large skeleton of the sea beast: ribs, vertebrae, skull, and other remains form part of the environment, traversal, combat spaces, and visual identity of Act 1. The skeleton is physical proof that something immense happened here, even though the tribe's account does not fully explain it. Harbour is alive in the Past, and the supposed Great Battle has not yet occurred.
 
-The player discovers that the incoming fleet is not an invasion. It is made up of refugees fleeing a disaster on Land #2. During their desperate crossing they inadvertently awaken the sea beast. Harbour's defenders see an armed fleet approaching with a monster behind it and assume an attack; the refugees see a fortified settlement raising weapons while they flee for their lives. Fear and misunderstanding turn the event into a catastrophe.
+The player discovers that the incoming fleet is not an invasion. It is made up of refugees fleeing a disaster on Land #2. During their desperate crossing they pass a deep marine temporal fault destabilised by the Loom; a catastrophic rip allows an enormous prehistoric creature to emerge. Harbour's defenders see an armed fleet approaching with a monster behind it and assume an attack; the refugees see a fortified settlement raising weapons while they flee for their lives. Fear and misunderstanding turn the event into a catastrophe.
 
 In the original history:
 
@@ -221,7 +234,7 @@ In the original history:
 - Harbour is abandoned;
 - their descendants eventually become the tribal culture of Present v1.
 
-The player intervenes using normal world actions, combat, preparation, social persuasion, rescue, and bird abilities. They prevent the two populations destroying one another and help Harbour survive the beast attack. The player/bird combination makes the decisive difference because the player carries future knowledge that the defenders cannot possess, while the smaller bird provides battlefield awareness and communication and the rescued great bird can intervene at the critical moment.
+The player intervenes using normal world actions, combat, preparation, social persuasion, rescue, and bird abilities. They prevent the two populations destroying one another and help Harbour survive the beast attack. The player/bird combination makes the decisive difference because the player carries future knowledge that the defenders cannot possess. The smaller bird supplies battlefield awareness and **Foresee, Pin, and Recall** in direct combat, all of which are meaningfully used to create opportunities against the creature; the rescued great bird intervenes at the critical moment. The great bird does not win alone.
 
 When the player returns to the Present, history has been rewritten into **Present v2**. The tribe no longer exists in the form the player knew. Harbour has instead grown into a prosperous coastal civilisation combining descendants of the original villagers and the refugees.
 
@@ -229,7 +242,7 @@ The visual state of seams/rips should also respond to this rewrite. If Present v
 
 Present v2 preserves records that were lost in the original timeline. Those records reveal that the refugees were fleeing something much greater on Land #2.
 
-Act 1 also pays off the great-bird thread. In the original history the great bird encountered around Harbour died during the catastrophe, leaving it absent or mythical in Present v1. The player saves it, its nesting site, or the conditions necessary for its survival in the rewritten history. In Present v2 a great bird now exists, recognises the player's causal imprint, and becomes mountable. The player uses it to cross the sea toward Land #2, making the end of Act 1 both a narrative consequence and a major traversal unlock.
+Act 1 also pays off the great-bird thread. In the original history the great bird encountered around Harbour died during the catastrophe, leaving it absent or mythical in Present v1. The player saves it, its nesting site, or the conditions necessary for its survival in the rewritten history. In Present v2, a surviving **great-bird lineage** now exists; a bird of that lineage recognises the player's causal imprint and becomes mountable. The centuries-later mount need not be the exact individual rescued in the Past. The player uses it to cross the sea toward Land #2, making the end of Act 1 both a narrative consequence and a major traversal unlock.
 
 Act 1 therefore ends with apparent success, but also the realisation that the Harbour catastrophe was only the outermost consequence of a much larger problem.
 
@@ -237,7 +250,7 @@ Act 1 therefore ends with apparent success, but also the realisation that the Ha
 
 The player travels to Land #2 in Present v2, retracing the refugees' route in reverse.
 
-The eastern landmass is ruined, abandoned, or temporally scarred. The player encounters evidence of overwritten histories: structures that retain contradictory forms, records of disasters that apparently never happened, echoes of lives that no longer belong to the current Present, and increasingly severe seams/rips where reality is struggling to maintain a single historical state.
+The eastern landmass is ruined, abandoned, or temporally scarred. The player encounters evidence of overwritten histories: structures that retain contradictory forms, records of disasters that apparently never happened, echoes of lives that no longer belong to the current Present, and increasingly severe seams/rips where reality is struggling to maintain a single historical state. Exceptional breaches may expose fragments of far more distant history; this helps explain the prehistoric creature's appearance at Harbour without adding another playable era.
 
 The player eventually reaches Land #2 in the Past, before and during the same broad historical period as the Harbour events.
 
@@ -318,7 +331,7 @@ As evacuations intensify, the player recognises the people preparing to flee wes
 
 The player finally understands the causal loop: their own Act 3 campaign is what drives the refugee population toward Harbour Village.
 
-However, the player now knows something history did not. In the original history the desperate refugee fleet took a route that crossed the sea beast's territory and awakened it.
+However, the player now knows something history did not. In the earlier history the desperate refugee fleet took a route through an unstable deep-sea temporal fault, triggering the breach that brought a prehistoric creature into their era.
 
 One of the player's final interventions therefore changes the evacuation route. They may destroy a familiar navigation beacon, open an older safe channel, collapse a causeway, or otherwise force the fleet onto a safer course.
 
@@ -328,7 +341,7 @@ This rewrites Harbour history again.
 
 #### Final Present — Present v3
 
-The refugees reach Harbour without the sea-beast catastrophe. The two populations eventually coexist and build a prosperous shared civilisation. The Unravelling has been stopped at its source.
+The refugees reach Harbour without the sea-beast catastrophe. The two populations eventually coexist and build a prosperous shared civilisation. The Unravelling has been stopped at its source: the catastrophic deep-time breach is closed, the creature remains in its prehistoric world, and the enormous Harbour skeleton has never existed.
 
 The original Harbour battle from Act 1 no longer happened at all. Therefore even the player's positive legacy as Harbour's defender may disappear from history.
 
