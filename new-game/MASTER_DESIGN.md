@@ -174,12 +174,14 @@ Recognisable world motifs: natural great birds versus exploited bird traditions,
 ### The original history, before the player's interventions — LOCKED outline
 
 1. The eastern civilisation uses the Loom for repeated beneficial corrections. Accumulating instability becomes the Unravelling.
-2. At a **late, desperate stage** of the original collapse, an experiment linked to the Curator's final attempt to save the realm tries to sever someone from ordinary causality.
-3. The experiment fails in its delivery: the protagonist is sent centuries **forward** to Present v1 without access to pre-opening memories; the accompanying small bird is also weakened.
-4. The original collapse causes a refugee exodus toward western Harbour. A severe marine temporal rupture allows a gigantic prehistoric creature to enter the human era. Refugees and Harbour's defenders mistake each other for attackers.
-5. Harbour is devastated. The creature dies there, leaving the vast skeleton; survivors flee inland and develop the descendant culture later encountered in Present v1. The Loom eventually stops repeatedly correcting history, allowing partial natural recovery over centuries.
+2. In the **terminal crisis**, two developments occur, with their **relative order still OPEN**:
+   - A desperate experiment linked to the Curator's final attempt to save the realm severs the protagonist from ordinary causality. It fails to deliver them to the intended destination, instead throwing them centuries forward with lost memories and a weakened small bird.
+   - The Loom's accumulating failure makes the eastern homeland untenable, forcing refugees westward toward Harbour. This original exodus does **not** depend on the protagonist's later interventions.
+3. The fleeing fleet encounters or triggers a severe marine temporal rupture. A gigantic prehistoric creature enters the human era; refugees and Harbour's defenders mistake each other for attackers.
+4. Harbour is devastated. The creature dies there, leaving the vast skeleton; survivors flee inland and develop the descendant culture encountered in Present v1.
+5. The Loom's repeated corrections eventually cease; nature and societies partly recover over centuries, though temporal scars persist. The displaced protagonist awakens in this later Present v1.
 
-**OPEN:** The exact relative timing of the original experiment and the first evacuation, and precisely what took the creature through the fault. This outline does not imply the player caused the **original** exodus.
+**OPEN:** The experiment's exact timing relative to the evacuation and precisely what triggers the marine breach. This is the **original causal history**, not the order in which the player experiences these scenes.
 
 ### Origin and failed experiment — LOCKED premise / DIRECTION revelation
 
