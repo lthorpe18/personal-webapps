@@ -88,6 +88,8 @@ A failed harvest no longer meant adapting the farms; it meant finding a year in 
 
 The Curator believed this was the price of keeping a civilisation alive. They were neither a monster nor a fool. The traveller saw why people trusted them.
 
+Scattered among the installations were traces of an older ambition. The first anchors had been built by people who studied the natural seams and the birds that sensed them, hoping to prevent suffering without forcing every passage to remain open. The Curator and another researcher had helped turn that hope into machinery. Their work had saved lives; only gradually had they disagreed about how often the passages should be held open, and whether a civilisation could learn to endure what it could not correct. The traveller did not yet know why that forgotten disagreement mattered to them.
+
 At one damaged installation, the traveller helped its workers contain a dangerous failure. Lives were saved because the Loom could still be made to function. The relief on the workers' faces was real. So was their gratitude.
 
 Across other regions, the traveller found smaller natural seams that the bird noticed without any machinery. Some led to lost places and modest discoveries. Others revealed that the prosperity of one settlement had depended on a change made somewhere distant, to people who had not agreed to pay for it.
@@ -172,5 +174,6 @@ This story is a **readable adaptation**, not a new authority. In particular:
 
 - **Locked underlying narrative:** one overwritable chronology; original exile and amnesia; two accessible eras; inland village; historical river change; Harbour's refugees, giant prehistoric creature and rescued great bird; prosperous Present v2; Concordance/Loom and Curator; containment and neglected-anchor crises; anchor shutdown cascade and evacuation; prevention of the marine catastrophe; contested Bird-Rider legacy.
 - **Direction rather than canon:** precise scenery, dialogue-free story staging, the relative attention given to particular missions, and the family accounts in the final Present.
+- **Agreed character direction:** the protagonist and Curator helped build the anchor system together, then gradually diverged over bird-like limited intervention versus increasingly continuous correction. The protagonist does not yet know their role in that shared history. Exact relationship, roles and timing are open.
 - **Still open:** the exact sacrifice tied to causal severance; when/how the original experiment is revealed in the playable game; the protagonist's eventual ability to return or remain after the final intervention; exact NPC identities and companion relationships; individual anchor mechanics and geographical layouts.
 - **Scope rule:** This prose should not be interpreted as requiring extra playable systems, third-era exploration, a branching evacuation simulation, or an additional sea-creature boss fight in Act 3. The authoritative source is [MASTER_DESIGN.md](./MASTER_DESIGN.md).
