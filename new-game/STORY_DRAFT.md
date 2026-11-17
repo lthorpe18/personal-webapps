@@ -72,6 +72,8 @@ The traveller remembered both cities: the dead one and the living one. No one el
 
 For a while, the traveller stayed in the Harbour that had survived. They walked streets that had once been rubble and found signs of the two coastal peoples living together over generations. What had seemed a complete victory slowly acquired another meaning: the eastern refugees had fled a catastrophe far greater than the one fought on these shores. Their homeland had never been saved.
 
+Some descendants told a strange, inconsistent story from the old crossing: a rider accompanied by birds, glimpsed where the sea and sky seemed to split. Other families told it differently, or insisted it had never happened. The traveller could find no reliable record behind the tale. In a world scarred by unstable seams, even the past could leave contradictory stories.
+
 Among objects and accounts preserved in Harbour, some signs of eastern origin appeared disturbingly familiar to the traveller, though they could recall no life before waking. The small bird still sensed disturbances beyond the sea. Having seen one ruined future become a living city, the traveller believed that the greater disaster might also be prevented.
 
 A great bird of the rescued lineage carried the traveller and their small companion east.
@@ -178,6 +180,7 @@ This story is a **readable adaptation**, not a new authority. In particular:
 
 - **Locked underlying narrative:** one overwritable chronology; original exile and amnesia; two accessible eras; inland village; historical river change; Harbour's refugees, giant prehistoric creature and rescued great bird; prosperous Present v2; Concordance/Loom and Curator; containment and neglected-anchor crises; anchor shutdown cascade and evacuation; prevention of the marine catastrophe; contested Bird-Rider legacy.
 - **Direction rather than canon:** Act 1 ends on the return to prosperous Present v2; Act 2 begins by exploring Harbour and learning why the eastern collapse must be investigated before flying east. Exact personal clues, scenery, dialogue-free staging, relative mission attention, and the family accounts in the final Present remain flexible.
+- **Agreed folklore direction:** Unstable seams may leave fragmentary legends of overwritten histories, including conflicting accounts of a bird-associated traveller. Their exact persistence mechanism and connection, if any, to the original experiment remain open.
 - **Agreed character direction:** the protagonist and Curator helped build the anchor system together, then gradually diverged over bird-like limited intervention versus increasingly continuous correction. The protagonist does not yet know their role in that shared history. Exact relationship, roles and timing are open.
 - **Still open:** the exact sacrifice tied to causal severance; when/how the original experiment is revealed in the playable game; the protagonist's eventual ability to return or remain after the final intervention; exact NPC identities and companion relationships; individual anchor mechanics and geographical layouts.
 - **Scope rule:** This prose should not be interpreted as requiring extra playable systems, third-era exploration, a branching evacuation simulation, or an additional sea-creature boss fight in Act 3. The authoritative source is [MASTER_DESIGN.md](./MASTER_DESIGN.md).
