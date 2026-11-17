@@ -152,7 +152,7 @@ The Curator had tried to preserve their world. The Bird-Rider had ended it.
 
 Neither account was entirely false.
 
-The traveller's own existence had begun with another failed intervention, one made in the final desperate days of the history that was now being erased. They had once been sent into time alongside a newly discovered bird, intended to save a world already falling apart. The experiment had missed its destination by centuries and taken their memories with it.
+The traveller's own existence had begun with another failed intervention, one made in the final desperate days of the history that was now being erased. The small bird, recently found by eastern researchers, had come from the west, where the network's influence was weaker and some attuned birds still survived. Its unexpected arrival was a reminder that the creatures had not wholly vanished; it was not a messenger carrying a plan. The traveller had been sent into time alongside it, intended to save a world already falling apart. The experiment had missed its destination by centuries and taken their memories with it.
 
 Now the traveller stood apart from the history they had changed. Whatever price that severance would finally demand, there could be no simple return to the life they had lost.
 
