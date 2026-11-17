@@ -48,7 +48,7 @@ A colossal skeleton lay among the ruins. Ribs rose above collapsed streets like 
 
 And through a seam among the broken walls, Harbour still lived.
 
-The traveller entered a busy settlement preparing for an attack. Watchers on the headland had spotted ships approaching from the east. The defenders called them invaders. Along the quays, some people hunted or imprisoned the great birds for their uncanny knowledge of danger; others remembered older traditions and tried to protect them.
+The traveller entered a busy settlement preparing for an attack. Watchers on the headland had spotted ships approaching from the east. The defenders called them invaders. Along the quays, people argued over one of the last great birds. It had been confined partly for its own protection and partly because its warnings of rough seas and approaching danger were too valuable to lose. Those who kept it believed they were safeguarding Harbour; others argued that protection had become captivity. Few understood that the bird sensed something deeper than weather or ordinary threats.
 
 The traveller recognised the fleet's desperation before anyone else did. These were refugees, not conquerors. They had crossed a dangerous sea to escape the collapse of their own homeland. The defenders had prepared for the wrong enemy.
 
