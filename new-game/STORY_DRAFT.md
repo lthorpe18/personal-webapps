@@ -78,7 +78,9 @@ The farther they travelled, the less the world seemed able to agree with itself.
 
 Yet through the seams, the Past of this land was dazzling.
 
-The Concordance had built cities of bridges, gardens, workshops and extraordinary machines. Its greatest achievement was the Loom: a network of artificial anchors that held temporal passages open long after natural seams would have settled. Through these openings people could physically travel into earlier moments, move supplies and intervene in events whose consequences would echo into their own lives.
+The Concordance had built cities of bridges, gardens, workshops and extraordinary machines. Its greatest achievement was the Loom: a network of artificial anchors that held temporal passages open long after natural seams would have settled.
+
+There were few signs of the causally attuned birds in these cities. The people spoke of them as creatures from an earlier age, absent for generations. What looked like extinction had begun more quietly: as artificial passages remained open, the birds' natural ranges became increasingly disturbed, and they withdrew from the places where people once knew them. Some populations had dwindled; others might have survived beyond the network's reach. Through these openings people could physically travel into earlier moments, move supplies and intervene in events whose consequences would echo into their own lives.
 
 At first, the Loom had been merciful. A famine prevented. A sickness contained before it spread. A war diverted before armies met.
 
