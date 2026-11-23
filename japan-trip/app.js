@@ -309,6 +309,10 @@ function openEditor(type,id){
     return '<div class="field '+(f.full?"full":"")+'"><label for="field-'+esc(f.name)+'">'+esc(f.label)+'</label>'+control+'</div>';
   }).join("");
   if(stay&&(type==="stop"&&stay.booking&&!listingOnStay||type==="booking"&&listingOnStay))$("#editor-fields").insertAdjacentHTML("beforeend",'<p class="hint full">The listing link is managed on the linked '+(listingOnStay?'stay':'booking')+'.</p>');
+  if(type==="reminder"){
+    const current=v?.image_data_url||"";
+    $("#editor-fields").insertAdjacentHTML("beforeend",'<div class="field full reminder-image-field"><label for="reminder-image-file">Photo (optional)</label>'+(current?'<img class="reminder-editor-preview" src="'+esc(current)+'" alt="Current saved image">':'')+'<input id="reminder-image-file" name="reminder_image_file" type="file" accept="image/*"><small>Choose from Photos or take a picture. It will be resized before it is saved.</small>'+(current?'<label class="reminder-remove-image"><input type="checkbox" name="remove_reminder_image"> Remove current photo</label>':'')+'</div>');
+  }
   if(isOwner()&&FIELDS[type]?.some(f=>f.name==="visibility")){
     $("#editor-fields").insertAdjacentHTML("beforeend",'<fieldset class="field full"><legend>Private access (optional)</legend><p class="hint">The owner always has access. Selected people also need access to any linked private parent. Shared items are visible to every member.</p>'+state.members.filter(m=>m.user_id!==state.user?.id).map(m=>'<label><input type="checkbox" name="private_user_ids" value="'+esc(m.user_id)+'" '+(v?.private_user_ids?.includes(m.user_id)?'checked':'')+'> Member '+esc(m.email||m.user_id.slice(0,8))+' · '+esc(m.role)+'</label>').join('')+'</fieldset>');
   }
@@ -331,14 +335,54 @@ function openEditor(type,id){
   $("#editor-fields").querySelector("input,textarea,select")?.focus();
 }
 function closeEditor(){$("#editor").close();}
+
+async function reminderImageData(file){
+  if(!file||!file.size)return "";
+  if(!String(file.type||"").startsWith("image/"))throw new Error("Choose an image file.");
+  if(file.size>20*1024*1024)throw new Error("Choose an image smaller than 20 MB.");
+  const url=URL.createObjectURL(file);
+  try{
+    const image=await new Promise((resolve,reject)=>{const img=new Image();img.onload=()=>resolve(img);img.onerror=()=>reject(new Error("Could not read that image."));img.src=url;});
+    const max=1400,scale=Math.min(1,max/Math.max(image.naturalWidth||image.width,image.naturalHeight||image.height));
+    const canvas=document.createElement("canvas");canvas.width=Math.max(1,Math.round((image.naturalWidth||image.width)*scale));canvas.height=Math.max(1,Math.round((image.naturalHeight||image.height)*scale));
+    const ctx=canvas.getContext("2d");if(!ctx)throw new Error("Image processing is unavailable on this device.");
+    ctx.drawImage(image,0,0,canvas.width,canvas.height);
+    for(const quality of [.82,.72,.62,.52]){const out=canvas.toDataURL("image/jpeg",quality);if(out.length<=2200000)return out;}
+    throw new Error("That image is still too large after resizing. Try a tighter crop.");
+  }finally{URL.revokeObjectURL(url);}
+}
+async function toggleReminder(id){
+  if(!canEdit())return;
+  const reminder=state.data.trip_reminders.find(v=>v.id===id);if(!reminder)return;
+  const status=reminder.status==="done"?"active":"done";
+  if(state.demo){reminder.status=status;render();return;}
+  const {error}=await state.client.from("trip_reminders").update({status}).eq("id",id).eq("trip_id",state.tripId).select("id").single();
+  if(error)return fail(error);
+  await loadTrip();toast(status==="done"?"Marked found / done":"Put back on your list");
+}
+function openReminderImage(id){
+  const reminder=state.data.trip_reminders.find(v=>v.id===id);if(!reminder?.image_data_url)return;
+  $("#reminder-image-title").textContent=reminder.title;
+  $("#reminder-image-full").src=reminder.image_data_url;
+  $("#reminder-image-dialog").showModal();
+}
+
 async function saveEditor(event){
   event.preventDefault();
   if(state.busy)return;
   // The submit listener is delegated from document: currentTarget is document, target is the form.
   const form=event.target,type=form.dataset.type,id=form.dataset.id;
   const fd=new FormData(form),data=Object.fromEntries(fd.entries());
+  const reminderFile=type==="reminder"?fd.get("reminder_image_file"):null;
+  const removeReminderImage=type==="reminder"&&fd.get("remove_reminder_image")==="on";
+  delete data.reminder_image_file;delete data.remove_reminder_image;
   if(isOwner()&&FIELDS[type]?.some(f=>f.name==="visibility"))data.private_user_ids=fd.getAll("private_user_ids");
   if(data.listing_url){const url=safeUrl(data.listing_url.trim());if(!url)return editorError("Use an http or https website link.");data.listing_url=url;}
+  if(type==="reminder"){
+    data.category=String(data.category||"General").trim()||"General";data.link_url=String(data.link_url||"").trim();
+    if(data.link_url){const url=safeUrl(data.link_url);if(!url)return editorError("Use an http or https link.");data.link_url=url;}
+    try{if(reminderFile?.size)data.image_data_url=await reminderImageData(reminderFile);else if(removeReminderImage)data.image_data_url="";}catch(error){return editorError(error.message);}
+  }
   if(data.email)data.email=data.email.trim().toLowerCase();
   if(data.start_date&&data.end_date&&data.end_date<data.start_date)return editorError("End date cannot be before the start date.");
   if(data.starts_on&&data.ends_on&&data.ends_on<=data.starts_on)return editorError("Departure must be after arrival.");
@@ -400,20 +444,20 @@ async function remove(type,id){
     toast("Deleted");
   }catch(error){fail(error);}
 }
-function stripRow(type,v){const allowed=[...FIELDS[type].map(f=>f.name),"private_user_ids"];return Object.fromEntries(allowed.filter(k=>v[k]!==undefined).map(k=>[k,v[k]]));}
+function stripRow(type,v){const allowed=[...FIELDS[type].map(f=>f.name),"private_user_ids",...(type==="reminder"?["image_data_url","sort_order"]:[])];return Object.fromEntries(allowed.filter(k=>v[k]!==undefined).map(k=>[k,v[k]]));}
 function exportTrip(){
   if(!trip())return;
   const payload={format:"trip-planner/v1",exported_at:new Date().toISOString(),trip:stripRow("trip",trip())};
-  for(const [type,key] of [["task","tasks"],["stop","trip_stops"],["activity","activities"],["booking","bookings"],["decision","decisions"]])payload[key]=sharedOnlyData()[key].map(row=>({...stripRow(type,row),private_user_ids:[]}));
+  for(const [type,key] of [["task","tasks"],["stop","trip_stops"],["activity","activities"],["booking","bookings"],["decision","decisions"],["reminder","trip_reminders"]])payload[key]=sharedOnlyData()[key].map(row=>({...stripRow(type,row),private_user_ids:[]}));
   const blob=new Blob([JSON.stringify(payload,null,2)],{type:"application/json"});
   const href=URL.createObjectURL(blob);const a=document.createElement("a");a.href=href;a.download=(trip().title||"trip").toLowerCase().replace(/[^a-z0-9]+/g,"-")+".json";document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(href),1000);
   toast("Shared trip export downloaded");
 }
 async function importTrip(file){
-  if(!file||file.size>1024*1024)throw new Error("Choose a JSON trip file smaller than 1 MB.");
+  if(!file||file.size>12*1024*1024)throw new Error("Choose a JSON trip file smaller than 12 MB.");
   const payload=JSON.parse(await file.text());
   if(payload.format!=="trip-planner/v1"||!payload.trip?.title||!payload.trip?.start_date||!payload.trip?.end_date)throw new Error("This is not a valid Trip Planner backup.");
-  const keys=[["task","tasks"],["stop","trip_stops"],["activity","activities"],["booking","bookings"],["decision","decisions"]];
+  const keys=[["task","tasks"],["stop","trip_stops"],["activity","activities"],["booking","bookings"],["decision","decisions"],["reminder","trip_reminders"]];
   for(const [,key] of keys)if(payload[key]&&!Array.isArray(payload[key]))throw new Error("Invalid "+key+" section.");
   const total=keys.reduce((sum,[,key])=>sum+(payload[key]?.length||0),0);
   if(total>500)throw new Error("Import is limited to 500 entries per trip.");
