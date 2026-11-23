@@ -263,7 +263,7 @@ function renderDecisions(){
 }
 function sharedOnlyData(){return sharedData(state.data);}
 function privacyBadge(v){return v.visibility==="private"?'<span class="pill private-badge">🔒 Private</span>':'';}
-function closePrivateDialogs(){state.walletSearch="";state.walletFilter="all";state.costFilter="all";state.costOpen=null;state.search="";closeItemDetail();for(const selector of ["#editor","#ticket-dialog","#itinerary-share-dialog"]){const el=$(selector);if(el?.open)el.close();}releaseItineraryPreview();activeTicketAssets=[];ticketRenderVersion++;$("#ticket-dialog-image")?.removeAttribute("src");state.ticketIndex=0;}
+function closePrivateDialogs(){state.walletSearch="";state.walletFilter="all";state.costFilter="all";state.costOpen=null;state.search="";closeItemDetail();for(const selector of ["#editor","#ticket-dialog","#itinerary-share-dialog","#reminder-image-dialog"]){const el=$(selector);if(el?.open)el.close();}releaseItineraryPreview();activeTicketAssets=[];ticketRenderVersion++;$("#ticket-dialog-image")?.removeAttribute("src");state.ticketIndex=0;}
 function renderPrivacySettings(){
   if(!isOwner()||state.preview)return '';
   const types={tasks:"task",trip_stops:"stop",activities:"activity",bookings:"booking",decisions:"decision",transport_legs:"leg",trip_assets:"asset",trip_expenses:"expense",trip_reminders:"reminder"};
