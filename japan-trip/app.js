@@ -77,7 +77,7 @@ function demoFixture(){
 }
 async function init(){
   if("serviceWorker" in navigator && (location.protocol==="https:"||location.hostname==="localhost")){
-    navigator.serviceWorker.register("./sw.js?v=20",{updateViaCache:"none"}).catch(()=>{});
+    navigator.serviceWorker.register("./sw.js?v=21",{updateViaCache:"none"}).catch(()=>{});
   }
   if(state.demo){const v=demoFixture();state.trips=[v.t];state.tripId=v.t.id;state.data=v.d;render();return;}
   if(!(config.url && config.publishableKey)){
@@ -492,6 +492,7 @@ function attachEvents(){
   document.addEventListener('toggle',e=>{const el=e.target;if(el.id==='cost-summary'){state.costSummaryOpen=el.open;localStorage.setItem('trip-planner-cost-summary-open',el.open?'1':'0');return;}if(!el.matches?.('details[data-cost-id]'))return;if(el.open)state.costOpen=el.dataset.costId;else if(state.costOpen===el.dataset.costId)state.costOpen=null;},true);
   document.addEventListener("click",async e=>{
     const navEl=e.target.closest("[data-tab]");if(navEl){e.preventDefault();state.tab=navEl.dataset.tab;if(navEl.dataset.more)state.moreTab=navEl.dataset.more;state.search="";render();window.scrollTo({top:0,behavior:"instant"});return;}
+    const savedStatus=e.target.closest('[data-saved-status]');if(savedStatus){state.savedStatus=savedStatus.dataset.savedStatus;render();return;}
     const costCurrency=e.target.closest('[data-cost-currency]');if(costCurrency){state.costCurrency=costCurrency.dataset.costCurrency==='JPY'?'JPY':'GBP';state.costSummaryOpen=true;localStorage.setItem('trip-planner-cost-currency',state.costCurrency);render();return;}
     const costFilter=e.target.closest('[data-cost-filter]');if(costFilter){state.costFilter=costFilter.dataset.costFilter;render();return;}
     const planDay=e.target.closest("[data-plan-day]");if(planDay){const date=planDay.dataset.planDay;const toggle=planDay.hasAttribute("aria-expanded");state.selectedDay=toggle&&state.selectedDay===date?null:date;render();const target=document.querySelector('[data-plan-day="'+date+'"][aria-expanded]');target?.focus({preventScroll:true});if(!toggle)target?.scrollIntoView({behavior:"smooth",block:"start"});return;}
@@ -509,6 +510,8 @@ function attachEvents(){
       try{const rows=[...$('#cost-split-rows').querySelectorAll('[data-cost-split]')];if(!rows.length)throw new Error('Add at least one person first.');const share=equalShares($('#field-amount').value,$('#field-currency').value.trim().toUpperCase(),rows.length);for(const row of rows){row.querySelector('[data-split-mode]').value='amount';row.querySelector('[data-split-share]').value=share;}}catch(error){editorError(error.message);}return;
     }
     if(name==="settle-expense")return settleExpense(id,action.dataset.part);
+    if(name==="toggle-reminder")return toggleReminder(id);
+    if(name==="open-reminder-image")return openReminderImage(id);
     if(name==="close-detail")return closeItemDetail();
     if(name==="open-asset"){const asset=state.data.trip_assets.find(a=>a.id===id);if(!asset)return;activeTicketAssets=[asset];state.ticketIndex=0;$("#ticket-dialog").showModal();renderTicketWallet();return;}
     if(name==="preview-shared"){
@@ -540,6 +543,8 @@ function attachEvents(){
     if(e.target.id==="wallet-search"){const start=e.target.selectionStart;state.walletSearch=e.target.value;render();const input=$("#wallet-search");input?.focus();if(input&&start!=null)input.setSelectionRange(start,start);return;}
     if(e.target.id==="task-search"){const start=e.target.selectionStart;state.search=e.target.value;render();const input=$("#task-search");input?.focus();if(input&&start!=null)input.setSelectionRange(start,start);}
   });
+  document.addEventListener("input",e=>{if(e.target.id==="saved-search"){const pos=e.target.selectionStart;state.savedSearch=e.target.value;render();const input=$("#saved-search");input?.focus();if(input&&pos!=null)input.setSelectionRange(pos,pos);}});
+  document.addEventListener("change",e=>{if(e.target.id==="saved-category"){state.savedCategory=e.target.value;render();}});
   document.addEventListener("submit",async e=>{
     if(e.target.id==="editor-form")return saveEditor(e);
     if(e.target.id==="account-password-form"){
@@ -595,6 +600,8 @@ function attachEvents(){
   $("#editor-cancel").addEventListener("click",closeEditor);
   $("#editor-delete").addEventListener("click",()=>{const form=$("#editor-form");const type=form.dataset.type,id=form.dataset.id;closeEditor();if(id)remove(type,id);});
   $("#editor").addEventListener("click",e=>{if(e.target===$("#editor"))closeEditor();});
+  $("#reminder-image-close")?.addEventListener("click",()=>$("#reminder-image-dialog")?.close());
+  $("#reminder-image-dialog")?.addEventListener("click",e=>{if(e.target===$("#reminder-image-dialog"))$("#reminder-image-dialog").close();});
   $("#ticket-dialog-close")?.addEventListener("click",()=>$("#ticket-dialog")?.close());
   $("#ticket-dialog")?.addEventListener("click",e=>{if(e.target===$("#ticket-dialog"))$("#ticket-dialog").close();});
   document.addEventListener("visibilitychange",()=>{if(!document.hidden&&state.user&&!state.demo)loadTrips().catch(fail);});
