@@ -71,3 +71,11 @@ Shared/Private record access is enforced in Supabase across all seven content ta
 ## Unified Plan / Wallet navigation (8 November 2026)
 
 The navigation is now Plan, Tasks, Wallet, More. Home, Days and Itinerary are consolidated into expandable days in Plan, with colour-coded items and one shared detail-sheet component for Plan/Wallet. Bookings are compact searchable Wallet rows. Source records, Supabase schema/RLS and public audience are unchanged. The no-login public page uses the same presentation module against its restricted projection. See README.md for behaviour, checks and device acceptance limits. Frontend rollback point: 0737cdcdf199bb48e38341399e40c60d00e61538.
+
+## Saved reminders / look-out-for board (23 Nov 2026)
+- Added `trip_reminders` for lightweight photos, text reminders and links. Typical use: Pokémon cards/accessories, shopping targets, food, places or anything to remember while travelling.
+- More > Saved shows searchable/filterable cards, optional reference image, link, notes, category and active / found-done state. Shared reminders appear in the public no-login Japan viewer; Private reminders remain hidden there and follow the existing member privacy rules.
+- iPhone image selection uses the normal photo chooser/camera flow. The browser resizes images to max 1400 px and stores JPEG data URLs capped at 2.5 MB; raw camera files are not stored.
+- Reminder records participate in realtime, member/editor RLS, shared-member preview, general shared-trip export/import and privacy management.
+- Frontend asset version `20261123-1`; service worker shell `v21`.
+- Database migration record: `supabase/migrations/20261123195500_saved_trip_reminders.sql`.
