@@ -8,7 +8,7 @@ const esc = value => String(value == null ? "" : value).replace(/[&<>"']/g, c =>
 const config = window.TRIP_PLANNER_CONFIG || {};
 const isDemo = new URLSearchParams(location.search).get("demo") === "1";
 const NAV = [["plan","◇","Plan"],["tasks","☑","Tasks"],["wallet","▤","Wallet"],["costs","£","Costs"],["more","⋯","More"]];
-const TABLE = {task:"tasks",stop:"trip_stops",activity:"activities",booking:"bookings",decision:"decisions",trip:"trips",invite:"trip_invitations",leg:"transport_legs",asset:"trip_assets",expense:"trip_expenses"};
+const TABLE = {task:"tasks",stop:"trip_stops",activity:"activities",booking:"bookings",decision:"decisions",trip:"trips",invite:"trip_invitations",leg:"transport_legs",asset:"trip_assets",expense:"trip_expenses",reminder:"trip_reminders"};
 const PRIORITIES = [["1","Urgent"],["2","High"],["3","Normal"]];
 const STATUSES = {
   task:[["todo","To do"],["doing","In progress"],["blocked","Blocked"],["done","Done"]],
@@ -25,6 +25,7 @@ const FIELDS = {
   activity:[FIELD("title","Activity or journey","text",{required:true,full:true}),FIELD("activity_date","Date","date"),FIELD("type","Type","select",{options:[["sightseeing","Sightseeing"],["theme_park","Theme park"],["transport","Transport"],["meal","Meal"],["other","Other"]]}),FIELD("location","Location","text",{full:true}),FIELD("status","Status","select",{options:STATUSES.activity}),FIELD("notes","Notes","textarea",{full:true})],
   booking:[FIELD("title","Booking name","text",{required:true,full:true}),FIELD("category","Type","select",{options:[["flight","Flight"],["accommodation","Accommodation"],["transport","Transport"],["activity","Activity"],["parking","Parking"],["insurance","Insurance"],["other","Other"]]}),FIELD("status","Status","select",{options:STATUSES.booking}),FIELD("provider","Provider","text",{full:true}),FIELD("start_date","From","date"),FIELD("end_date","To","date"),FIELD("amount","Amount","number",{step:"0.01",min:"0"}),FIELD("currency","Currency","text",{placeholder:"GBP"}),FIELD("booking_reference","Reference","text",{full:true}),FIELD("confirmation_url","Confirmation link","url",{full:true}),FIELD("notes","Details / what's included","textarea",{full:true})],
   decision:[FIELD("subject","Decision","text",{required:true,full:true}),FIELD("status","Status","select",{options:STATUSES.decision}),FIELD("outcome","Agreed outcome","textarea",{required:true,full:true}),FIELD("notes","Context or next steps","textarea",{full:true})],
+  reminder:[FIELD("title","What do you want to remember?","text",{required:true,full:true}),FIELD("category","Category","text",{placeholder:"Pokémon cards / Shopping / Food",required:true}),FIELD("status","Status","select",{options:[["active","Look out for"],["done","Found / done"]]}),FIELD("link_url","Link","url",{full:true,placeholder:"https://…"}),FIELD("notes","Notes","textarea",{full:true})],
   invite:[FIELD("email","Person's email","email",{required:true,full:true}),FIELD("role","Access","select",{options:[["viewer","Read only"],["editor","Can edit"]]})]
 };
 FIELDS.stop.push(FIELD("listing_url","Public listing / hotel website","url",{full:true,placeholder:"https://…"}));
@@ -32,10 +33,10 @@ FIELDS.booking.push(FIELD("listing_url","Public listing / website","url",{full:t
 FIELDS.leg=[FIELD("departure_name","From","text",{required:true}),FIELD("arrival_name","To","text",{required:true}),FIELD("activity_date","Date","date",{required:true}),FIELD("notes","Notes","textarea",{full:true})];
 FIELDS.expense=[FIELD("title","Cost name","text",{required:true,full:true}),FIELD("amount","Total cost","number",{required:true,min:"0",step:"any"}),FIELD("currency","Currency","text",{required:true,placeholder:"GBP / JPY"}),FIELD("paid_by","Person paying the vendor","text",{required:true,full:true}),FIELD("vendor_paid","Paid to vendor so far","number",{min:"0",step:"any",placeholder:"Blank = not recorded"}),FIELD("due_date","Vendor payment due (optional)","date"),FIELD("notes","Notes","textarea",{full:true})];
 FIELDS.asset=[FIELD("title","Attachment title","text",{required:true,full:true})];
-for(const type of ["task","stop","activity","booking","decision","leg","asset","expense"]){
+for(const type of ["task","stop","activity","booking","decision","leg","asset","expense","reminder"]){
   FIELDS[type].push(FIELD("visibility","Visibility","select",{options:[["shared","Shared — trip members"],["private","Private — owner and selected members"]],full:true}));
 }
-const state={costSummaryOpen:localStorage.getItem('trip-planner-cost-summary-open')==='1',costCurrency:localStorage.getItem('trip-planner-cost-currency')==='JPY'?'JPY':'GBP',preview:false,members:[],client:null,user:null,trips:[],tripId:null,tab:"plan",moreTab:"decisions",filter:"open",category:"all",search:"",selectedDay:null,detailKey:null,walletSearch:"",walletFilter:"all",ticketIndex:0,data:{tasks:[],trip_stops:[],activities:[],bookings:[],decisions:[],transport_legs:[],trip_assets:[],trip_expenses:[]},invites:[],member:null,demo:isDemo,busy:false,refreshVersion:0,channel:null};
+const state={costSummaryOpen:localStorage.getItem('trip-planner-cost-summary-open')==='1',costCurrency:localStorage.getItem('trip-planner-cost-currency')==='JPY'?'JPY':'GBP',preview:false,members:[],client:null,user:null,trips:[],tripId:null,tab:"plan",moreTab:"saved",filter:"open",category:"all",search:"",savedSearch:"",savedCategory:"all",savedStatus:"active",selectedDay:null,detailKey:null,walletSearch:"",walletFilter:"all",ticketIndex:0,data:{tasks:[],trip_stops:[],activities:[],bookings:[],decisions:[],transport_legs:[],trip_assets:[],trip_expenses:[],trip_reminders:[],trip_reminders:[]},invites:[],member:null,demo:isDemo,busy:false,refreshVersion:0,channel:null};
 const day=date => date ? new Date(date+"T12:00:00Z").toLocaleDateString("en-GB",{day:"numeric",month:"short",timeZone:"UTC"}) : "Date TBC";
 const longDay=date => date ? new Date(date+"T12:00:00Z").toLocaleDateString("en-GB",{weekday:"short",day:"numeric",month:"short",year:"numeric",timeZone:"UTC"}) : "Date TBC";
 const nights=(from,to)=>from&&to?Math.max(0,Math.round((Date.parse(to+"T00:00:00Z")-Date.parse(from+"T00:00:00Z"))/86400000)):0;
@@ -62,7 +63,7 @@ function demoFixture(){
     {id:uid(),location:"Tokyo",starts_on:"2027-02-02",ends_on:"2027-02-07",status:"planned",accommodation_name:"",notes:"Example city stay."},
     {id:uid(),location:"Kyoto",starts_on:"2027-02-07",ends_on:"2027-02-11",status:"planned",accommodation_name:"",notes:"Example city stay."}
   ],activities:[{id:uid(),title:"Explore the old city",location:"Kyoto",activity_date:"2027-02-08",type:"sightseeing",status:"planned",notes:"Example activity."}],
-  bookings:[],decisions:[{id:uid(),subject:"Which cities to visit?",outcome:"Tokyo and Kyoto",status:"confirmed",notes:"Example decision."}],transport_legs:[],trip_assets:[],trip_expenses:[]};
+  bookings:[],decisions:[{id:uid(),subject:"Which cities to visit?",outcome:"Tokyo and Kyoto",status:"confirmed",notes:"Example decision."}],transport_legs:[],trip_assets:[],trip_expenses:[],trip_reminders:[],trip_reminders:[{id:uid(),title:"Special-edition card artwork",category:"Pokémon cards",notes:"Example saved reminder for something to look out for while shopping.",link_url:"",image_data_url:"",status:"active",visibility:"shared",private_user_ids:[]} ]};
   d.trip_stops[0].accommodation_name="City apartment Tokyo";
   d.trip_stops[1].accommodation_name="Garden House Kyoto";
   const stayId=uid(),railId=uid(),activityId=uid();
@@ -91,7 +92,7 @@ async function init(){
     if(error)throw error;
     state.user=data.session?.user||null;
     state.client.auth.onAuthStateChange((event,session)=>{
-      if(event==="SIGNED_OUT"){closePrivateDialogs();state.data={tasks:[],trip_stops:[],activities:[],bookings:[],decisions:[],transport_legs:[],trip_assets:[],trip_expenses:[]};state.members=[];state.invites=[];state.preview=false;state.user=null;state.trips=[];state.tripId=null;state.channel&&state.client.removeChannel(state.channel);state.channel=null;render();return;}
+      if(event==="SIGNED_OUT"){closePrivateDialogs();state.data={tasks:[],trip_stops:[],activities:[],bookings:[],decisions:[],transport_legs:[],trip_assets:[],trip_expenses:[],trip_reminders:[]};state.members=[];state.invites=[];state.preview=false;state.user=null;state.trips=[];state.tripId=null;state.channel&&state.client.removeChannel(state.channel);state.channel=null;render();return;}
       if(session?.user && state.user?.id!==session.user.id){state.user=session.user;setTimeout(()=>loadTrips().catch(fail),0);}
     });
     if(state.user)await loadTrips();
@@ -115,7 +116,7 @@ async function loadTrips(){
   const last=localStorage.getItem("trip-planner-last-trip");
   state.tripId=state.trips.some(t=>t.id===state.tripId)?state.tripId:(state.trips.find(t=>t.id===last)?.id||state.trips[0]?.id||null);
   if(state.tripId)await loadTrip();
-  else{state.member=null;state.data={tasks:[],trip_stops:[],activities:[],bookings:[],decisions:[],transport_legs:[],trip_assets:[],trip_expenses:[]};render();}
+  else{state.member=null;state.data={tasks:[],trip_stops:[],activities:[],bookings:[],decisions:[],transport_legs:[],trip_assets:[],trip_expenses:[],trip_reminders:[]};render();}
 }
 async function loadTrip(){
   const id=state.tripId;if(!id)return;
@@ -127,14 +128,14 @@ async function loadTrip(){
     state.data=snapshot.data;subscribe(id);render();return;
   }
   const jobs=[
-    ...["tasks","trip_stops","activities","bookings","decisions","transport_legs","trip_assets","trip_expenses"].map(name=>state.client.from(name).select("*").eq("trip_id",id)),
+    ...["tasks","trip_stops","activities","bookings","decisions","transport_legs","trip_assets","trip_expenses","trip_reminders"].map(name=>state.client.from(name).select("*").eq("trip_id",id)),
     isOwner()?state.client.rpc("trip_member_directory",{p_trip_id:id}):state.client.from("trip_members").select("*").eq("trip_id",id)
   ];
   if(isOwner())jobs.push(state.client.from("trip_invitations").select("*").eq("trip_id",id).order("created_at",{ascending:false}));
   const results=await Promise.all(jobs);
   if(current!==state.refreshVersion||id!==state.tripId)return;
   for(const result of results)if(result.error)throw result.error;
-  const loadedData=Object.fromEntries(["tasks","trip_stops","activities","bookings","decisions","transport_legs","trip_assets","trip_expenses"].map((key,i)=>[key,results[i].data||[]]));
+  const loadedData=Object.fromEntries(["tasks","trip_stops","activities","bookings","decisions","transport_legs","trip_assets","trip_expenses","trip_reminders"].map((key,i)=>[key,results[i].data||[]]));
   state.members=results[8].data||[];
   state.member=state.members.find(m=>m.user_id===state.user.id);
   state.data=loadedData;
@@ -149,7 +150,7 @@ function subscribe(id){
   // Realtime is optional: visibility changes and a manual refresh also reload shared data.
   let schedule;
   const channel=state.client.channel("trip-"+id);
-  ["tasks","trip_stops","activities","bookings","decisions","transport_legs","trip_assets","trip_expenses","trip_invitations"].forEach(table=>
+  ["tasks","trip_stops","activities","bookings","decisions","transport_legs","trip_assets","trip_expenses","trip_reminders","trip_invitations"].forEach(table=>
     channel.on("postgres_changes",{event:"*",schema:"public",table,filter:"trip_id=eq."+id},()=>{
       clearTimeout(schedule);schedule=setTimeout(()=>{if(state.tripId===id)loadTrip().catch(fail);},450);
     })
@@ -237,9 +238,25 @@ function syncItemDetail(){
 }
 function renderMore(){
   if(!trip())state.moreTab="settings";
-  const subtabs=[["decisions","Decisions"],["settings","Settings"]];
-  return '<div class="tabs">'+subtabs.map(([id,label])=>'<button class="tab '+(state.moreTab===id?"active":"")+'" data-more="'+id+'">'+label+"</button>").join("")+'</div>'+(state.moreTab==="decisions"?renderDecisions():renderSettings());
+  const subtabs=[["saved","Saved"],["decisions","Decisions"],["settings","Settings"]];
+  return '<div class="tabs">'+subtabs.map(([id,label])=>'<button class="tab '+(state.moreTab===id?"active":"")+'" data-more="'+id+'">'+label+"</button>").join("")+'</div>'+(state.moreTab==="saved"?renderSaved():state.moreTab==="decisions"?renderDecisions():renderSettings());
 }
+
+function renderSaved(){
+  const all=[...(state.data.trip_reminders||[])].sort((a,b)=>Number(a.status==="done")-Number(b.status==="done")||(a.sort_order||0)-(b.sort_order||0)||String(b.created_at||"").localeCompare(String(a.created_at||"")));
+  const categories=[...new Set(all.map(v=>v.category||"General"))].sort((a,b)=>a.localeCompare(b));
+  const query=state.savedSearch.trim().toLowerCase();
+  const items=all.filter(v=>(state.savedStatus==="all"||v.status===state.savedStatus)&&(state.savedCategory==="all"||(v.category||"General")===state.savedCategory)&&(!query||(v.title+" "+(v.notes||"")+" "+(v.category||"")+" "+(v.link_url||"")).toLowerCase().includes(query)));
+  return '<div class="section-head"><div><h2>Saved for the trip</h2><p>Photos, links and reminders to have handy while you’re out.</p></div>'+(canEdit()?'<button class="button button-primary button-small" data-action="new-reminder">+ Save something</button>':"")+'</div>'+
+    '<div class="saved-toolbar"><input class="filter-search" id="saved-search" type="search" placeholder="Search saved items" value="'+esc(state.savedSearch)+'" aria-label="Search saved items"><select class="filter-select" id="saved-category" aria-label="Saved item category"><option value="all">All categories</option>'+categories.map(c=>'<option value="'+esc(c)+'" '+(state.savedCategory===c?"selected":"")+'>'+esc(c)+'</option>').join("")+'</select><div class="saved-status-toggle"><button class="button button-small '+(state.savedStatus==="active"?"active":"")+'" data-saved-status="active">Look out for</button><button class="button button-small '+(state.savedStatus==="done"?"active":"")+'" data-saved-status="done">Found / done</button><button class="button button-small '+(state.savedStatus==="all"?"active":"")+'" data-saved-status="all">All</button></div></div>'+
+    (items.length?'<div class="saved-grid">'+items.map(reminderCard).join("")+'</div>':emptySmall("Nothing saved here","Save a photo, link or note you want to remember during the trip.",canEdit()?"new-reminder":"",canEdit()?"Save something":""));
+}
+function reminderCard(v){
+  const image=v.image_data_url?'<button class="saved-image-button" data-action="open-reminder-image" data-id="'+esc(v.id)+'" aria-label="Open image for '+esc(v.title)+'"><img class="saved-image" src="'+esc(v.image_data_url)+'" alt="'+esc(v.title)+'"></button>':'';
+  const website=v.link_url?link(v.link_url,"Open link"):"";
+  return '<article class="panel saved-card '+(v.status==="done"?"is-done":"")+'">'+image+'<div class="saved-card-body"><div class="saved-card-top"><span class="pill">'+esc(v.category||"General")+'</span>'+privacyBadge(v)+'</div><h3>'+esc(v.title)+'</h3>'+(v.notes?'<p>'+esc(v.notes)+'</p>':'')+'<div class="saved-card-actions">'+website+(canEdit()?'<button class="button button-small" data-action="toggle-reminder" data-id="'+esc(v.id)+'">'+(v.status==="done"?"Put back":"Found / done")+'</button><button class="icon-button" data-action="edit-reminder" data-id="'+esc(v.id)+'" aria-label="Edit saved item">✎</button>':"")+'</div></div></article>';
+}
+
 function renderDecisions(){
   const ordered=[...state.data.decisions].sort((a,b)=>({open:0,confirmed:1,dropped:2}[a.status]||0)-({open:0,confirmed:1,dropped:2}[b.status]||0));
   return '<div class="section-head"><div><h2>Decisions log</h2><p>The agreed plan and what you ruled out.</p></div>'+(canEdit()?'<button class="button button-primary button-small" data-action="new-decision">+ Decision</button>':"")+'</div><div class="stack">'+(ordered.length?ordered.map(v=>'<div class="panel decision-card"><div class="panel-head"><h3>'+esc(v.subject)+privacyBadge(v)+'</h3>'+pill(v.status||"open","decision")+'</div><p>'+esc(v.outcome)+'</p>'+(v.notes?'<p class="muted">'+esc(v.notes)+'</p>':"")+(canEdit()?'<div><button class="button button-small" data-action="edit-decision" data-id="'+esc(v.id)+'">Edit</button></div>':"")+'</div>').join(""):emptySmall("No decisions recorded","Log a decision when plans change.",canEdit()?"new-decision":"",canEdit()?"Add decision":""))+'</div>';
@@ -249,7 +266,7 @@ function privacyBadge(v){return v.visibility==="private"?'<span class="pill priv
 function closePrivateDialogs(){state.walletSearch="";state.walletFilter="all";state.costFilter="all";state.costOpen=null;state.search="";closeItemDetail();for(const selector of ["#editor","#ticket-dialog","#itinerary-share-dialog"]){const el=$(selector);if(el?.open)el.close();}releaseItineraryPreview();activeTicketAssets=[];ticketRenderVersion++;$("#ticket-dialog-image")?.removeAttribute("src");state.ticketIndex=0;}
 function renderPrivacySettings(){
   if(!isOwner()||state.preview)return '';
-  const types={tasks:"task",trip_stops:"stop",activities:"activity",bookings:"booking",decisions:"decision",transport_legs:"leg",trip_assets:"asset",trip_expenses:"expense"};
+  const types={tasks:"task",trip_stops:"stop",activities:"activity",bookings:"booking",decisions:"decision",transport_legs:"leg",trip_assets:"asset",trip_expenses:"expense",trip_reminders:"reminder"};
   return '<div class="panel settings-section"><h2>Privacy & access</h2><p>Shared items are visible to trip members. Private items are visible to you and members you select. Linked items inherit their parent’s restrictions. Trip overview notes are shared; put confidential notes in a Private decision.</p><button class="button button-primary" data-action="preview-shared">Preview shared member view</button> <button class="button" data-action="private-note">+ Private note</button><details class="privacy-list"><summary>Manage item privacy</summary>'+Object.entries(types).map(([table,type])=>'<h3>'+esc(table.replaceAll('_',' '))+'</h3>'+(state.data[table]||[]).map(v=>'<div class="task-row"><div class="task-body">'+esc(v.title||v.subject||v.location||[v.departure_name,v.arrival_name].filter(Boolean).join(' → '))+privacyBadge(v)+'<small> '+esc(v.visibility||'shared')+'</small></div><button class="button button-small" data-action="edit-'+type+'" data-id="'+esc(v.id)+'">Edit</button></div>').join('')).join('')+'</details><h3>Current members</h3>'+state.members.filter(m=>m.user_id!==state.user?.id).map(m=>'<div class="task-row"><div class="task-body">Member '+esc(m.email||m.user_id.slice(0,8))+' · '+esc(m.role)+'</div><button class="button button-small" data-action="member-role" data-id="'+esc(m.user_id)+'">'+(m.role==='viewer'?'Allow editing':'Make read only')+'</button><button class="button button-small" data-action="member-remove" data-id="'+esc(m.user_id)+'">Remove</button></div>').join('')+'</div>';
 }
 async function manageMember(action,id){
@@ -282,7 +299,7 @@ function openEditor(type,id){
   const stay=!id?null:type==="stop"?buildTripView(trip(),state.data).stays.find(s=>s.stop?.id===id):type==="booking"?buildTripView(trip(),state.data).stays.find(s=>s.booking?.id===id):null;
   const listingOnStay=!!stay?.stop?.listing_url;
   const fields=FIELDS[type]?.filter(f=>(f.name!=="visibility"||isOwner())&&(f.name!=="listing_url"||!(type==="stop"&&stay?.booking&&!listingOnStay)&&!(type==="booking"&&listingOnStay)));if(!fields)return;
-  const titles={trip:"Trip",task:"Task",stop:"Stay",activity:"Activity or journey",booking:"Booking",decision:"Decision",invite:"Invitation",leg:"Journey",asset:"Attachment",expense:"Cost"};
+  const titles={trip:"Trip",task:"Task",stop:"Stay",activity:"Activity or journey",booking:"Booking",decision:"Decision",invite:"Invitation",leg:"Journey",asset:"Attachment",expense:"Cost",reminder:"Saved item"};
   $("#editor-title").textContent=(id||virtual?"Edit ":"Add ")+titles[type];
   $("#editor-form").dataset.type=type;$("#editor-form").dataset.id=id||"";
   $("#editor-fields").innerHTML=fields.map(f=>{
@@ -340,7 +357,7 @@ async function saveEditor(event){
   try{
     if(state.demo){
       if(type==="invite")throw new Error("Connect Supabase to invite people.");
-      if(type==="trip"&&!id){const newTrip={...data,id:uid(),created_by:"demo"};state.trips.push(newTrip);state.tripId=newTrip.id;state.data={tasks:[],trip_stops:[],activities:[],bookings:[],decisions:[],transport_legs:[],trip_assets:[],trip_expenses:[]};}
+      if(type==="trip"&&!id){const newTrip={...data,id:uid(),created_by:"demo"};state.trips.push(newTrip);state.tripId=newTrip.id;state.data={tasks:[],trip_stops:[],activities:[],bookings:[],decisions:[],transport_legs:[],trip_assets:[],trip_expenses:[],trip_reminders:[]};}
       else if(type==="trip")Object.assign(trip(),data);
       else if(id)Object.assign(item(type,id),data);
       else state.data[TABLE[type]].push({...data,id:uid(),trip_id:state.tripId});
@@ -405,7 +422,7 @@ async function importTrip(file){
   try{
     if(state.demo){
       newId=uid();state.trips.push({...data,id:newId,created_by:"demo"});state.tripId=newId;
-      state.data={tasks:[],trip_stops:[],activities:[],bookings:[],decisions:[],transport_legs:[],trip_assets:[],trip_expenses:[]};
+      state.data={tasks:[],trip_stops:[],activities:[],bookings:[],decisions:[],transport_legs:[],trip_assets:[],trip_expenses:[],trip_reminders:[]};
       for(const [type,key] of keys)state.data[key]=(payload[key]||[]).map(v=>({...stripRow(type,v),id:uid(),trip_id:newId}));
       render();
     }else{
@@ -425,7 +442,7 @@ async function importTrip(file){
     throw error;
   }
 }
-function changeTrip(id){state.preview=false;closePrivateDialogs();if(!state.trips.some(t=>t.id===id))return;state.tripId=id;state.tab="plan";state.moreTab="decisions";state.selectedDay=null;if(state.demo){state.data={tasks:[],trip_stops:[],activities:[],bookings:[],decisions:[],transport_legs:[],trip_assets:[],trip_expenses:[]};render();}else loadTrip().catch(fail);}
+function changeTrip(id){state.preview=false;closePrivateDialogs();if(!state.trips.some(t=>t.id===id))return;state.tripId=id;state.tab="plan";state.moreTab="decisions";state.selectedDay=null;if(state.demo){state.data={tasks:[],trip_stops:[],activities:[],bookings:[],decisions:[],transport_legs:[],trip_assets:[],trip_expenses:[],trip_reminders:[]};render();}else loadTrip().catch(fail);}
 async function refresh(){if(state.demo){render();toast("Preview mode — changes are not saved.");return;}try{await loadTrips();toast("Up to date");}catch(error){fail(error);}}
 function attachEvents(){
   document.addEventListener('toggle',e=>{const el=e.target;if(el.id==='cost-summary'){state.costSummaryOpen=el.open;localStorage.setItem('trip-planner-cost-summary-open',el.open?'1':'0');return;}if(!el.matches?.('details[data-cost-id]'))return;if(el.open)state.costOpen=el.dataset.costId;else if(state.costOpen===el.dataset.costId)state.costOpen=null;},true);
