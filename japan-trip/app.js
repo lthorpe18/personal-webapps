@@ -22,7 +22,7 @@ const FIELDS = {
   trip:[FIELD("title","Trip name","text",{required:true,full:true}),FIELD("destination","Destination"),FIELD("start_date","Departure date","date",{required:true}),FIELD("end_date","Return date","date",{required:true}),FIELD("timezone","Time zone","text",{placeholder:"Asia/Tokyo"}),FIELD("currency","Default currency","text",{placeholder:"GBP"}),FIELD("notes","Notes","textarea",{full:true})],
   task:[FIELD("title","What needs doing?","text",{required:true,full:true}),FIELD("category","Category","text",{placeholder:"Accommodation",required:true}),FIELD("priority","Priority","select",{options:PRIORITIES}),FIELD("status","Status","select",{options:STATUSES.task}),FIELD("due_date","Target date","date"),FIELD("notes","Details","textarea",{full:true})],
   stop:[FIELD("location","Destination or overnight base","text",{required:true,full:true}),FIELD("starts_on","Arrive / check in","date",{required:true}),FIELD("ends_on","Leave / check out","date",{required:true}),FIELD("accommodation_name","Property or hotel","text",{full:true}),FIELD("status","Status","select",{options:STATUSES.stop}),FIELD("notes","Notes","textarea",{full:true})],
-  activity:[FIELD("title","Activity or journey","text",{required:true,full:true}),FIELD("activity_date","Date","date"),FIELD("type","Type","select",{options:[["sightseeing","Sightseeing"],["theme_park","Theme park"],["transport","Transport"],["meal","Meal"],["other","Other"]]}),FIELD("location","Location","text",{full:true}),FIELD("status","Status","select",{options:STATUSES.activity}),FIELD("notes","Notes","textarea",{full:true})],
+  activity:[FIELD("title","Activity or journey","text",{required:true,full:true}),FIELD("activity_date","Date","date"),FIELD("type","Type","select",{options:[["sightseeing","Sightseeing"],["theme_park","Theme park"],["transport","Transport"],["meal","Meal"],["other","Other"]]}),FIELD("location","Location","text",{full:true}),FIELD("map_url","Map link","url",{full:true}),FIELD("status","Status","select",{options:STATUSES.activity}),FIELD("notes","Notes","textarea",{full:true})],
   booking:[FIELD("title","Booking name","text",{required:true,full:true}),FIELD("category","Type","select",{options:[["flight","Flight"],["accommodation","Accommodation"],["transport","Transport"],["activity","Activity"],["parking","Parking"],["insurance","Insurance"],["other","Other"]]}),FIELD("status","Status","select",{options:STATUSES.booking}),FIELD("provider","Provider","text",{full:true}),FIELD("start_date","From","date"),FIELD("end_date","To","date"),FIELD("amount","Amount","number",{step:"0.01",min:"0"}),FIELD("currency","Currency","text",{placeholder:"GBP"}),FIELD("booking_reference","Reference","text",{full:true}),FIELD("confirmation_url","Confirmation link","url",{full:true}),FIELD("notes","Details / what's included","textarea",{full:true})],
   decision:[FIELD("subject","Decision","text",{required:true,full:true}),FIELD("status","Status","select",{options:STATUSES.decision}),FIELD("outcome","Agreed outcome","textarea",{required:true,full:true}),FIELD("notes","Context or next steps","textarea",{full:true})],
   reminder:[FIELD("title","What do you want to remember?","text",{required:true,full:true}),FIELD("category","Category","text",{placeholder:"Pokémon cards / Shopping / Food",required:true}),FIELD("status","Status","select",{options:[["active","Look out for"],["done","Found / done"]]}),FIELD("link_url","Link","url",{full:true,placeholder:"https://…"}),FIELD("notes","Notes","textarea",{full:true})],
@@ -77,7 +77,7 @@ function demoFixture(){
 }
 async function init(){
   if("serviceWorker" in navigator && (location.protocol==="https:"||location.hostname==="localhost")){
-    navigator.serviceWorker.register("./sw.js?v=21",{updateViaCache:"none"}).catch(()=>{});
+    navigator.serviceWorker.register("./sw.js?v=22",{updateViaCache:"none"}).catch(()=>{});
   }
   if(state.demo){const v=demoFixture();state.trips=[v.t];state.tripId=v.t.id;state.data=v.d;render();return;}
   if(!(config.url && config.publishableKey)){
@@ -499,7 +499,7 @@ async function importTrip(file){
     throw error;
   }
 }
-function changeTrip(id){state.preview=false;closePrivateDialogs();if(!state.trips.some(t=>t.id===id))return;state.tripId=id;state.tab="plan";state.moreTab="decisions";state.selectedDay=null;if(state.demo){state.data={tasks:[],trip_stops:[],activities:[],bookings:[],decisions:[],transport_legs:[],trip_assets:[],trip_expenses:[],trip_reminders:[]};render();}else loadTrip().catch(fail);}
+function changeTrip(id){state.preview=false;closePrivateDialogs();if(!state.trips.some(t=>t.id===id))return;state.tripId=id;state.tab="plan";state.moreTab="explore";state.selectedDay=null;if(state.demo){state.data={tasks:[],trip_stops:[],activities:[],bookings:[],decisions:[],transport_legs:[],trip_assets:[],trip_expenses:[],trip_reminders:[]};render();}else loadTrip().catch(fail);}
 async function refresh(){if(state.demo){render();toast("Preview mode — changes are not saved.");return;}try{await loadTrips();toast("Up to date");}catch(error){fail(error);}}
 function attachEvents(){
   document.addEventListener('toggle',e=>{const el=e.target;if(el.id==='cost-summary'){state.costSummaryOpen=el.open;localStorage.setItem('trip-planner-cost-summary-open',el.open?'1':'0');return;}if(!el.matches?.('details[data-cost-id]'))return;if(el.open)state.costOpen=el.dataset.costId;else if(state.costOpen===el.dataset.costId)state.costOpen=null;},true);
@@ -544,7 +544,7 @@ function attachEvents(){
     if(name==="export")return exportTrip();
     if(name==="import"){let input=$("#import-file");if(!input){state.tab="more";state.moreTab="settings";render();input=$("#import-file");}input?.click();return;}
     if(name==="new-explore")return openEditor("reminder",null,{category:"Explore: Tokyo",notes:"Half day\n",status:"active"});
-    if(name==="plan-explore"){const v=item("reminder",id);if(!v||!isExplore(v))return;return openEditor("activity",null,{title:v.title,location:v.category.slice(8).trim(),notes:v.notes,map_url:v.link_url,status:"planned",visibility:v.visibility,private_user_ids:v.private_user_ids});}
+    if(name==="plan-explore"){const v=item("reminder",id);if(!v||!isExplore(v))return;if(v.visibility==="private"&&!isOwner())return toast("Only the owner can schedule a private idea.");return openEditor("activity",null,{title:v.title,location:v.category.slice(8).trim(),notes:v.notes,map_url:v.link_url,status:"planned",visibility:v.visibility,private_user_ids:v.private_user_ids});}
     if(name.startsWith("new-"))return openEditor(name.slice(4));
     if(name.startsWith("edit-"))return openEditor(name.slice(5),id||state.tripId);
     if(name.startsWith("delete-"))return remove(name.slice(7),id);
