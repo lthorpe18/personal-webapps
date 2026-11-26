@@ -7,10 +7,23 @@ const day=d=>d?new Date(d+'T12:00:00Z').toLocaleDateString('en-GB',{day:'numeric
 const today=()=>{const parts=new Intl.DateTimeFormat('en-CA',{timeZone:state.trip?.timezone||'UTC',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date()),v=Object.fromEntries(parts.map(x=>[x.type,x.value]));return v.year+'-'+v.month+'-'+v.day;};
 function nav(){return NAV.map(([key,icon,title])=>'<button class="nav-link '+(state.tab===key?'active':'')+'" data-tab="'+key+'" aria-current="'+(state.tab===key?'page':'false')+'"><span class="nav-ico">'+navigationIcon(key)+'</span><span class="nav-label">'+title+'</span></button>').join('');}
 function renderTasks(){return '<div class="section-head"><div><h2>Trip checklist</h2><p>Read only</p></div></div><div class="stack">'+[...state.data.tasks].sort((a,b)=>(a.priority||3)-(b.priority||3)).map(t=>'<div class="task-row"><input class="task-check" type="checkbox" disabled '+(t.status==='done'?'checked':'')+' aria-label="'+esc(t.title)+'"><div class="task-body"><span class="task-title '+(t.status==='done'?'complete':'')+'">'+esc(t.title)+'</span><div class="task-meta">'+esc(t.category)+' · '+esc(t.status==='done'?'Done':t.status==='todo'?'To do':t.status)+(t.due_date?' · '+esc(day(t.due_date)):'')+'</div></div></div>').join('')+'</div>';}
+function isExplore(v){return String(v.category||"").startsWith("Explore:");}
+function exploreLink(url,label){try{const u=new URL(url);if(!["https:","http:"].includes(u.protocol))return "";return '<a class="button button-small" target="_blank" rel="noopener noreferrer" href="'+esc(u.href)+'">'+esc(label)+' ↗</a>';}catch{return "";}}
+function renderExplore(data,editable=false){
+ const rows=(data.trip_reminders||[]).filter(isExplore).sort((a,b)=>(a.sort_order||0)-(b.sort_order||0));
+ const regions=[...new Set(rows.map(v=>v.category))];
+ return '<div class="section-head"><div><h2>Explore</h2><p>Flexible mornings, afternoons and days. Pick what suits you; no dates are committed. Prices are indicative and opening times may change.</p></div>'+(editable?'<button class="button button-small" data-action="new-explore">+ Idea</button>':'')+'</div>'+
+ (regions.length?regions.map(region=>'<section class="stack"><h2>'+esc(region.slice(8).trim())+'</h2>'+rows.filter(v=>v.category===region).map(v=>{
+ const lines=String(v.notes||"").split("\n").filter(Boolean),duration=lines.shift()||"",links=[],items=[];
+ for(const line of lines){const m=line.match(/^(.+?) \| (https?:\/\/\S+)$/);if(m)links.push(exploreLink(m[2],m[1]));else items.push(line);}
+ return '<details class="panel" style="margin-bottom:8px"><summary style="cursor:pointer"><strong>'+esc(v.title)+'</strong> <span class="pill">'+esc(duration)+'</span></summary><ul style="padding-left:20px;line-height:1.6">'+items.map(t=>'<li>'+esc(t)+'</li>').join("")+'</ul><div class="saved-card-actions" style="flex-wrap:wrap;gap:8px">'+exploreLink(v.link_url,"Map")+links.join("")+(editable?'<button class="button button-small" data-action="edit-reminder" data-id="'+esc(v.id)+'">Edit</button><button class="button button-small" data-action="plan-explore" data-id="'+esc(v.id)+'">Add to plan</button>':'')+'</div></details>';
+ }).join("")+'</section>').join(""):'<p>No activity ideas saved yet.</p>');
+}
+
 function renderMore(){
- const reminders=[...(state.data.trip_reminders||[])].sort((a,b)=>Number(a.status==='done')-Number(b.status==='done')||(a.sort_order||0)-(b.sort_order||0));
+ const reminders=[...(state.data.trip_reminders||[])].filter(v=>!isExplore(v)).sort((a,b)=>Number(a.status==='done')-Number(b.status==='done')||(a.sort_order||0)-(b.sort_order||0));
  const saved=reminders.length?'<div class="section-head"><div><h2>Saved for the trip</h2><p>Things to look out for, links and reference photos</p></div></div><div class="saved-grid">'+reminders.map(v=>'<article class="panel saved-card '+(v.status==='done'?'is-done':'')+'">'+(v.image_data_url?'<div class="saved-image-button"><img class="saved-image" src="'+esc(v.image_data_url)+'" alt="'+esc(v.title)+'"></div>':'')+'<div class="saved-card-body"><div class="saved-card-top"><span class="pill">'+esc(v.category||'General')+'</span></div><h3>'+esc(v.title)+'</h3>'+(v.notes?'<p>'+esc(v.notes)+'</p>':'')+'<div class="saved-card-actions">'+(v.link_url?'<a target="_blank" rel="noopener noreferrer" href="'+esc(v.link_url)+'">Open link ↗</a>':'')+'</div></div></article>').join('')+'</div>':'';
- return saved+'<div class="section-head"><h2>Decisions & notes</h2></div><div class="stack">'+state.data.decisions.map(d=>'<article class="panel"><h3>'+esc(d.subject)+'</h3><p>'+esc(d.outcome)+'</p></article>').join('')+'</div>';
+ return renderExplore(state.data)+saved+'<div class="section-head"><h2>Decisions & notes</h2></div><div class="stack">'+state.data.decisions.map(d=>'<article class="panel"><h3>'+esc(d.subject)+'</h3><p>'+esc(d.outcome)+'</p></article>').join('')+'</div>';
 }
 function render(){
  const t=state.trip;if(!t)return;const title={plan:'Your plan',tasks:'Checklist',wallet:'Travel wallet',more:'Trip details'}[state.tab];
