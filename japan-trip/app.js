@@ -36,7 +36,7 @@ FIELDS.asset=[FIELD("title","Attachment title","text",{required:true,full:true})
 for(const type of ["task","stop","activity","booking","decision","leg","asset","expense","reminder"]){
   FIELDS[type].push(FIELD("visibility","Visibility","select",{options:[["shared","Shared — trip members"],["private","Private — owner and selected members"]],full:true}));
 }
-const state={costSummaryOpen:localStorage.getItem('trip-planner-cost-summary-open')==='1',costCurrency:localStorage.getItem('trip-planner-cost-currency')==='JPY'?'JPY':'GBP',preview:false,members:[],client:null,user:null,trips:[],tripId:null,tab:"plan",moreTab:"saved",filter:"open",category:"all",search:"",savedSearch:"",savedCategory:"all",savedStatus:"active",selectedDay:null,detailKey:null,walletSearch:"",walletFilter:"all",ticketIndex:0,data:{tasks:[],trip_stops:[],activities:[],bookings:[],decisions:[],transport_legs:[],trip_assets:[],trip_expenses:[],trip_reminders:[],trip_reminders:[]},invites:[],member:null,demo:isDemo,busy:false,refreshVersion:0,channel:null};
+const state={costSummaryOpen:localStorage.getItem('trip-planner-cost-summary-open')==='1',costCurrency:localStorage.getItem('trip-planner-cost-currency')==='JPY'?'JPY':'GBP',preview:false,members:[],client:null,user:null,trips:[],tripId:null,tab:"plan",moreTab:"explore",filter:"open",category:"all",search:"",savedSearch:"",savedCategory:"all",savedStatus:"active",selectedDay:null,detailKey:null,walletSearch:"",walletFilter:"all",ticketIndex:0,data:{tasks:[],trip_stops:[],activities:[],bookings:[],decisions:[],transport_legs:[],trip_assets:[],trip_expenses:[],trip_reminders:[],trip_reminders:[]},invites:[],member:null,demo:isDemo,busy:false,refreshVersion:0,channel:null};
 const day=date => date ? new Date(date+"T12:00:00Z").toLocaleDateString("en-GB",{day:"numeric",month:"short",timeZone:"UTC"}) : "Date TBC";
 const longDay=date => date ? new Date(date+"T12:00:00Z").toLocaleDateString("en-GB",{weekday:"short",day:"numeric",month:"short",year:"numeric",timeZone:"UTC"}) : "Date TBC";
 const nights=(from,to)=>from&&to?Math.max(0,Math.round((Date.parse(to+"T00:00:00Z")-Date.parse(from+"T00:00:00Z"))/86400000)):0;
@@ -236,14 +236,27 @@ function syncItemDetail(){
   if(state.detailKey){const record=trip()&&buildTripView(trip(),state.data).details.get(state.detailKey);if(record)$("#item-detail-body").innerHTML=renderItemDetail(record,trip(),{canEdit:canEdit()});else closeItemDetail();}
   if(activeTicketAssets.some(a=>!state.data.trip_assets.some(x=>x.id===a.id))){activeTicketAssets=[];ticketRenderVersion++;$("#ticket-dialog")?.close();$("#ticket-dialog-image")?.removeAttribute("src");}
 }
+function isExplore(v){return String(v.category||"").startsWith("Explore:");}
+function exploreLink(url,label){try{const u=new URL(url);if(!["https:","http:"].includes(u.protocol))return "";return '<a class="button button-small" target="_blank" rel="noopener noreferrer" href="'+esc(u.href)+'">'+esc(label)+' ↗</a>';}catch{return "";}}
+function renderExplore(data,editable=false){
+ const rows=(data.trip_reminders||[]).filter(isExplore).sort((a,b)=>(a.sort_order||0)-(b.sort_order||0));
+ const regions=[...new Set(rows.map(v=>v.category))];
+ return '<div class="section-head"><div><h2>Explore</h2><p>Flexible mornings, afternoons and days. Pick what suits you; no dates are committed. Prices are indicative and opening times may change.</p></div>'+(editable?'<button class="button button-small" data-action="new-explore">+ Idea</button>':'')+'</div>'+
+ (regions.length?regions.map(region=>'<section class="stack"><h2>'+esc(region.slice(8).trim())+'</h2>'+rows.filter(v=>v.category===region).map(v=>{
+ const lines=String(v.notes||"").split("\n").filter(Boolean),duration=lines.shift()||"",links=[],items=[];
+ for(const line of lines){const m=line.match(/^(.+?) \| (https?:\/\/\S+)$/);if(m)links.push(exploreLink(m[2],m[1]));else items.push(line);}
+ return '<details class="panel" style="margin-bottom:8px"><summary style="cursor:pointer"><strong>'+esc(v.title)+'</strong> <span class="pill">'+esc(duration)+'</span></summary><ul style="padding-left:20px;line-height:1.6">'+items.map(t=>'<li>'+esc(t)+'</li>').join("")+'</ul><div class="saved-card-actions" style="flex-wrap:wrap;gap:8px">'+exploreLink(v.link_url,"Map")+links.join("")+(editable?'<button class="button button-small" data-action="edit-reminder" data-id="'+esc(v.id)+'">Edit</button><button class="button button-small" data-action="plan-explore" data-id="'+esc(v.id)+'">Add to plan</button>':'')+'</div></details>';
+ }).join("")+'</section>').join(""):'<p>No activity ideas saved yet.</p>');
+}
+
 function renderMore(){
   if(!trip())state.moreTab="settings";
-  const subtabs=[["saved","Saved"],["decisions","Decisions"],["settings","Settings"]];
-  return '<div class="tabs">'+subtabs.map(([id,label])=>'<button class="tab '+(state.moreTab===id?"active":"")+'" data-more="'+id+'">'+label+"</button>").join("")+'</div>'+(state.moreTab==="saved"?renderSaved():state.moreTab==="decisions"?renderDecisions():renderSettings());
+  const subtabs=[["explore","Explore"],["saved","Saved"],["decisions","Decisions"],["settings","Settings"]];
+  return '<div class="tabs">'+subtabs.map(([id,label])=>'<button class="tab '+(state.moreTab===id?"active":"")+'" data-more="'+id+'">'+label+"</button>").join("")+'</div>'+(state.moreTab==="explore"?renderExplore(state.data,canEdit()):state.moreTab==="saved"?renderSaved():state.moreTab==="decisions"?renderDecisions():renderSettings());
 }
 
 function renderSaved(){
-  const all=[...(state.data.trip_reminders||[])].sort((a,b)=>Number(a.status==="done")-Number(b.status==="done")||(a.sort_order||0)-(b.sort_order||0)||String(b.created_at||"").localeCompare(String(a.created_at||"")));
+  const all=[...(state.data.trip_reminders||[])].filter(v=>!isExplore(v)).sort((a,b)=>Number(a.status==="done")-Number(b.status==="done")||(a.sort_order||0)-(b.sort_order||0)||String(b.created_at||"").localeCompare(String(a.created_at||"")));
   const categories=[...new Set(all.map(v=>v.category||"General"))].sort((a,b)=>a.localeCompare(b));
   const query=state.savedSearch.trim().toLowerCase();
   const items=all.filter(v=>(state.savedStatus==="all"||v.status===state.savedStatus)&&(state.savedCategory==="all"||(v.category||"General")===state.savedCategory)&&(!query||(v.title+" "+(v.notes||"")+" "+(v.category||"")+" "+(v.link_url||"")).toLowerCase().includes(query)));
@@ -286,14 +299,14 @@ function renderSettings(){
     '<div class="panel settings-section"><h2>Account & connection</h2><p>'+esc(state.user?.email||"Preview mode")+'</p>'+(state.demo?'<p>This site is a fictional preview. Changes are not saved.</p>':'<form id="account-password-form" class="stack" autocomplete="on"><p class="panel-sub">Set or change your password. Once saved, you can sign in on another device without opening email there.</p><div class="field"><label for="account-new-password">New password (at least 12 characters)</label><input id="account-new-password" type="password" name="password" autocomplete="new-password" minlength="12" required></div><div class="field"><label for="account-confirm-password">Confirm new password</label><input id="account-confirm-password" type="password" name="confirm_password" autocomplete="new-password" minlength="12" required></div><button class="button button-primary" type="submit">Save password</button><p class="hint" id="account-password-message" role="status"></p></form><button class="button" data-action="signout">Sign out</button>')+'</div>';
 }
 function emptySmall(title,description,action,button){return '<div class="empty"><strong>'+esc(title)+'</strong><p>'+esc(description)+'</p>'+(action?'<button class="button" data-action="'+esc(action)+'">'+esc(button)+'</button>':"")+'</div>';}
-function openEditor(type,id){
+function openEditor(type,id,prefill={}){
   closeItemDetail();
   if(state.preview)return toast("Exit preview to make changes.");
   if(!canEdit()&&type!=="trip")return toast("You have read-only access.");
   if(type==="invite"&&!isOwner())return toast("Only the trip owner can invite people.");
   if(type==="trip"&&id&&!isOwner())return toast("Only the trip owner can edit trip details.");
   const virtual=type==='expense'&&id?.startsWith('booking:');
-  const v=id?item(type,id):{};if(!v)return;if(virtual)id=null;
+  const v=id?item(type,id):{...prefill};if(!v)return;if(virtual)id=null;
   if(type==="expense"&&!id)v.paid_by=state.demo?"Me":(state.user?.user_metadata?.full_name||"Trip owner");
   if(!id&&state.selectedDay){if(type==="activity")v.activity_date=state.selectedDay;if(type==="leg")v.activity_date=state.selectedDay;if(type==="booking")v.start_date=state.selectedDay;if(type==="stop")v.starts_on=state.selectedDay;}
   const stay=!id?null:type==="stop"?buildTripView(trip(),state.data).stays.find(s=>s.stop?.id===id):type==="booking"?buildTripView(trip(),state.data).stays.find(s=>s.booking?.id===id):null;
@@ -530,6 +543,8 @@ function attachEvents(){
     if(name==="signout"){const {error}=await state.client.auth.signOut();if(error)fail(error);return;}
     if(name==="export")return exportTrip();
     if(name==="import"){let input=$("#import-file");if(!input){state.tab="more";state.moreTab="settings";render();input=$("#import-file");}input?.click();return;}
+    if(name==="new-explore")return openEditor("reminder",null,{category:"Explore: Tokyo",notes:"Half day\n",status:"active"});
+    if(name==="plan-explore"){const v=item("reminder",id);if(!v||!isExplore(v))return;return openEditor("activity",null,{title:v.title,location:v.category.slice(8).trim(),notes:v.notes,map_url:v.link_url,status:"planned",visibility:v.visibility,private_user_ids:v.private_user_ids});}
     if(name.startsWith("new-"))return openEditor(name.slice(4));
     if(name.startsWith("edit-"))return openEditor(name.slice(5),id||state.tripId);
     if(name.startsWith("delete-"))return remove(name.slice(7),id);
